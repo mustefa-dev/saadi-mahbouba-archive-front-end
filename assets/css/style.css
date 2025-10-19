@@ -1,0 +1,189 @@
+:root{
+  --accent-bg:#F2F2F2;
+  --accent-bg-dark:rgb(29, 30, 32);
+  --accent-border: rgb(226 232 240);
+  --accent-border-dark: rgb(40, 43, 51);
+}
+.nui-card.nui-card-default {
+  --tw-bg-opacity: 1;
+  background-color: var(--accent-bg);
+}
+.nui-card.nui-card-default:where([class~="dark"], [class~="dark"] *){
+  --tw-bg-opacity: 1;
+  background-color: var(--accent-bg-dark);
+}
+.nui-dropdown .nui-dropdown-menu.nui-menu-md{
+  width: 8rem;
+}
+.bg-accent {
+  background-color: var(--accent-bg)
+}
+
+.bg-contrast {
+  background-color: #2A2A2A;
+}
+
+.bg-accent:where([class~="dark"], [class~="dark"] *){
+  background-color: var(--accent-bg-dark)
+}
+.scrollbar-none{
+  scrollbar-width: none;
+}
+.border-accent{
+  border-width: 0px;
+  border-color: var(--accent-border);
+}
+.border-accent:where([class~="dark"], [class~="dark"] *) {
+  border-color: var(--accent-border-dark);
+}
+.nui-input {
+  /* i really didn't want to do this */
+  background-color: var(--accent-bg) !important;
+}
+.nui-input::placeholder {
+  color: rgba(185, 194, 198, 0.9) !important;
+}
+.nui-input:where([class~="dark"], [class~="dark"] *) {
+  background-color: var(--accent-bg-dark) !important;
+}
+.nui-autocomplete-outer input {
+  /* i really didn't want to do this */
+  background-color: var(--accent-bg) !important;
+}
+.nui-autocomplete-outer:where([class~="dark"], [class~="dark"] *) input {
+  background-color: var(--accent-bg-dark) !important;
+}
+.nui-input-wrapper .nui-input-label, .nui-input-wrapper .nui-label-float {
+  line-height: 2;
+  font-weight: 600;
+}
+.dp__label{
+  color: rgba(185, 194, 198, 0.8);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.nui-textarea-wrapper.nui-textarea-default .nui-textarea{
+  background-color: var(--accent-bg);
+}
+.nui-textarea-wrapper.nui-textarea-default .nui-textarea:where([class~="dark"], [class~="dark"] *) {
+  background-color: var(--accent-bg-dark);
+}
+
+.nui-textarea-wrapper.nui-textarea-md .nui-textarea-label {
+  line-height: 1.25rem;
+  font-weight: 600;
+}
+.nui-textarea-wrapper .nui-textarea-label:where([class~="dark"], [class~="dark"] *), .nui-textarea-wrapper .nui-label-float:where([class~="dark"], [class~="dark"] *) {
+  font-weight: 600;
+}
+.rounded-t{
+  border-top-right-radius: 16px;
+  border-top-left-radius: 16px;
+}
+.rounded-b{
+  border-bottom-right-radius: 16px;
+  border-bottom-left-radius: 16px;
+}
+thead{
+  th{
+    background: var(--accent-bg) !important;
+  }
+  th:where([class~="dark"], [class~="dark"] *){
+    background: var(--accent-bg-dark) !important;
+  }
+}
+pre{
+  font-size: inherit;
+  color: inherit;
+  border: initial;
+  padding: initial;
+  font-family: inherit;
+}
+
+.dp__input{
+  border-radius: 16px !important;
+  background: var(--accent-bg) !important;
+  border: 2px solid var(--accent-border) !important;
+  font-family: Tajawal, sans-serif, Tajawal, sans-serif !important;
+  color: rgb(77, 80, 86) !important;
+  font-weight: 400 !important;
+}
+.dp__input:where([class~="dark"], [class~="dark"] *){
+  color: white !important;
+  background: var(--accent-bg-dark) !important;
+  border: 0px solid var(--accent-border-dark) !important;
+}
+
+
+.rounded-t-lg{
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+}
+
+.rounded-b-lg{
+  border-bottom-left-radius: 24px;
+  border-bottom-right-radius: 24px;
+}
+
+.grid-cols-1{
+  grid-template-columns: repeat(1,1fr);
+}
+.grid-cols-2{
+  grid-template-columns: repeat(2,1fr);
+}
+
+.grid-cols-3{
+  grid-template-columns: repeat(3,1fr);
+}
+
+.grid-cols-4{
+  grid-template-columns: repeat(4,1fr);
+}
+
+.grid-cols-5{
+  grid-template-columns: repeat(5,1fr);
+}
+
+.grid-cols-6{
+  grid-template-columns: repeat(6,1fr);
+}
+
+.grid-rows-1{
+  grid-template-rows: repeat(1,1fr);
+}
+.grid-rows-2{
+  grid-template-rows: repeat(2,1fr);
+}
+
+.grid-rows-3{
+  grid-template-rows: repeat(3,1fr);
+}
+
+.grid-rows-4{
+  grid-template-rows: repeat(4,1fr);
+}
+
+.grid-rows-5{
+  grid-template-rows: repeat(5,1fr);
+}
+
+.grid-rows-6{
+  grid-template-rows: repeat(6,1fr);
+}
+.grid-flow-col{
+  grid-auto-flow: column;
+}
+.grid-flow-row{
+  grid-auto-flow: row;
+}
+.leaflet-container{
+  border-radius: 24px;
+}
+
+.leaflet-control-attribution.leaflet-control{
+  display: none;
+}
+
+.nowrap{
+  white-space: nowrap;
+}
