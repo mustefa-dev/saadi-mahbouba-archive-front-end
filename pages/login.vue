@@ -1,10 +1,15 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
 import AppInputField from '~/components/app-field/AppInputField.vue';
-const email = ref();
+import { loginSchema } from '~/CONFIG/auth/login';
+import { phoneNumberOTP } from '~/utils/helpers';
+
+const phoneNumber = ref('');
 const isLoading = ref(false);
-const password = ref();
+const password = ref('');
 const router = useRouter();
+const helpers = useHelpers();
+const userStore = useAppUserStore();
 
 definePageMeta({
   layout: 'empty',
@@ -15,17 +20,101 @@ definePageMeta({
     categories: ['layouts', 'authentication'],
   },
 })
+
 useHead({
   title:'تسجيل الدخول'
 })
-const onSubmit = async ()=>{
+
+const onSubmit = async () => {
+  console.log('🔑 Starting login process...');
+  console.log('Phone:', phoneNumber.value);
+  console.log('Password length:', password.value?.length || 0);
+
   isLoading.value = true;
-  try{
-    await useAppUserStore().login(email.value,password.value);
-    router.push('/tickets')
-  }catch{
-    useToast({message:'حدث خطا في تسجيل الدخول',isError:true})
+  try {
+    // Validate input
+    console.log('📋 Validating input...');
+    const validatedData = loginSchema.parse({
+      phoneNumber: phoneNumber.value,
+      password: password.value
+    });
+    console.log('✅ Validation passed');
+    console.log('Validated phone:', validatedData.phoneNumber);
+
+    // Step 1: Login with credentials
+    console.log('🌐 Calling login API...');
+    const loginResponse = await userStore.login(validatedData.phoneNumber, validatedData.password);
+    console.log('📥 Login response received:', loginResponse);
+
+    // Check if token is returned directly (no OTP required)
+    if (loginResponse && loginResponse.token) {
+      // Token received directly - save it and login
+      console.log('✅ Token received! Saving...');
+
+      const userData = {
+        id: loginResponse.id,
+        fullName: loginResponse.fullName,
+        token: loginResponse.token,
+        role: loginResponse.role,
+        phoneNumber: loginResponse.phoneNumber,
+        isVerified: loginResponse.isActive || true
+      };
+
+      console.log('👤 User data:', userData);
+
+      // Store in localStorage
+      console.log('💾 Saving to localStorage...');
+      localStorage.setItem('authToken', loginResponse.token);
+      localStorage.setItem('authUser', JSON.stringify(userData));
+      console.log('✅ Saved to localStorage');
+
+      // Verify it was saved
+      const savedToken = localStorage.getItem('authToken');
+      console.log('🔍 Verification - Token in localStorage:', savedToken ? 'YES' : 'NO');
+
+      userStore.user = userData;
+      console.log('✅ User store updated');
+
+      helpers.setSuccessMessage('ar', 'Login successful', 'تم تسجيل الدخول بنجاح');
+
+      // Small delay to ensure storage is written
+      console.log('⏱️ Waiting 500ms before redirect...');
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Force reload to ensure middleware picks up the token
+      console.log('🔄 Redirecting to home...');
+      window.location.href = '/';
+    } else {
+      console.log('❌ No token in response - OTP required');
+      // OTP required - proceed with OTP flow
+      await userStore.sendOTP(validatedData.phoneNumber);
+      sessionStorage.setItem('pendingPhoneNumber', validatedData.phoneNumber);
+      router.push('/OTP');
+      helpers.setSuccessMessage('ar', 'تم إرسال رمز التحقق', 'تم إرسال رمز التحقق');
+    }
+  } catch (error: any) {
+    console.error('❌ Login error:', error);
+    if (error.errors) {
+      // Zod validation error
+      console.error('Validation error:', error.errors);
+      helpers.setErrorMessage(
+        { message: error.errors[0].message },
+        'ar',
+        'Invalid input',
+        error.errors[0].message
+      );
+    } else {
+      console.error('API error:', error.response?.data || error.message);
+      helpers.setErrorMessage(
+        error,
+        'ar',
+        'Login failed',
+        'فشل تسجيل الدخول، تحقق من بياناتك'
+      );
+    }
+  } finally {
     isLoading.value = false;
+    console.log('🏁 Login process finished');
   }
 }
 </script>
@@ -68,21 +157,21 @@ const onSubmit = async ()=>{
             >
               <div class="space-y-4">
                 <BaseInput
-                  v-model="email"
-                  type="email"
-                  label="البريد الالكتروني"
+                  v-model="phoneNumber"
+                  type="tel"
+                  label="رقم الهاتف"
                   :disabled="isLoading"
                   :loading="isLoading"
-                  placeholder="البريد الالكتروني"
-                  icon="ph:user-duotone"
+                  placeholder="077xxxxxxxx"
+                  icon="ph:phone-duotone"
                 />
                 <AppInputField
                   v-model="password"
                   type="password"
-                  label="رمز السر"
+                  label="كلمة المرور"
                   :loading="isLoading"
                   :disabled="isLoading"
-                  placeholder="رمز السر"
+                  placeholder="كلمة المرور"
                   icon="ph:lock-duotone"
                 />
               </div>

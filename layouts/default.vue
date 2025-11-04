@@ -1,47 +1,33 @@
 <script setup lang="ts">
-import { HubConnection, HubConnectionBuilder } from '@microsoft/signalr';
 import TairoCollapseLayout from '~/layers/tairo-layout-collapse/components/TairoCollapseLayout.vue';
-import { baseURL } from '~/services/app-client/axios';
 
-let connection : HubConnection;
+// Initialize SignalR on mount if user is logged in
+const userStore = useAppUserStore();
 
-const showToast = (data:any)=>{
-  useToast({
-    title:'لدريك رسالة جديدة',message:data.comment??'مرفق',icon:'ph:chat-centered-light',
-    onClick:()=>{
-      useRouter().push('/tickets/'+data.ticketId)
+onMounted(async () => {
+  console.log('📱 Layout mounted, user:', userStore.user?.fullName || 'Not logged in');
+
+  // Initialize SignalR for real-time messaging if user is logged in
+  const token = userStore.getToken();
+  if (token) {
+    console.log('🔌 Attempting to connect SignalR...');
+    const signalR = useSignalR();
+    try {
+      await signalR.initializeConnection(token);
+      console.log('✅ SignalR connected for real-time updates');
+    } catch (error) {
+      // Just log the error, don't fail the page load
+      console.warn('⚠️ SignalR connection failed (non-critical):', error);
+      console.log('📄 Page will continue to work, but real-time updates will be disabled');
     }
-  })
-}
-watch(()=>useAppUserStore().user,()=>{
-  if(useAppUserStore().user)
-
-    if(connection) connection.stop();
-
-  connection = new HubConnectionBuilder()
-    .withUrl(baseURL+`ticketsHub?userId=${useAppUserStore().user.id}`,{
-      accessTokenFactory: ()=>{return 'Bearer' + useAppUserStore().user.token}
-    })
-    .build();
-
-  connection.on('PublicComment',(data)=>{
-
-    console.log(data);
-
-
-    useNotificationStore().isNewNotification = true;
-    if(useRoute().fullPath.includes('tickets/')&&data.ticketId===useRoute().params.id) return;
-    showToast(data);
-  })
-  connection.start();
-
-},{immediate:true})
+  }
+});
 </script>
 
 <template>
   <div style="zoom: 90%;">
-  <TairoCollapseLayout>
-    <slot />
-  </TairoCollapseLayout>
+    <TairoCollapseLayout>
+      <slot />
+    </TairoCollapseLayout>
   </div>
 </template>

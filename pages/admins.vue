@@ -2,17 +2,13 @@
 import type { User, UsersResponse } from '~/types/users';
 import { formatDate, phoneNumberFormatter } from '~/utils/helpers';
 import { UserRoles } from '~/types/enums';
-import AddUser from '~/views/users/components/AddUser.vue';
-import EditUser from '~/views/users/components/EditUser.vue';
-import DeleteUser from '~/views/users/components/DeleteUser.vue';
-import ActivateUser from '~/views/users/components/ActivateUser.vue';
 
 useHead({
-  title: "إدارة المستخدمين"
+  title: "إدارة المشرفين"
 })
 
 definePageMeta({
-  title: "المستخدمون"
+  title: "المشرفون"
 })
 
 const apiPaths = useApiPaths();
@@ -22,13 +18,13 @@ const pageSize = ref(10);
 const searchQuery = ref('');
 
 // Use useFetch like Archive-Admin with UserRoles enum
-const { data: usersData, refresh: refreshUsers, pending: isLoading } = await useFetch<UsersResponse>(
+const { data: adminsData, refresh: refreshAdmins, pending: isLoading } = await useFetch<UsersResponse>(
   apiPaths.users,
   {
-    key: 'users-list',
+    key: 'admins-list',
     lazy: true,
     query: computed(() => ({
-      role: UserRoles.USER, // Use enum value (1)
+      role: UserRoles.ADMIN, // Use enum value (0)
       fullName: searchQuery.value,
       pageNumber: pageNumber.value,
       pageSize: pageSize.value,
@@ -36,9 +32,9 @@ const { data: usersData, refresh: refreshUsers, pending: isLoading } = await use
   }
 );
 
-const users = computed<User[]>(() => usersData.value?.data || []);
-const totalCount = computed(() => usersData.value?.totalCount || 0);
-const pageCount = computed(() => usersData.value?.pageCount || 0);
+const admins = computed<User[]>(() => adminsData.value?.data || []);
+const totalCount = computed(() => adminsData.value?.totalCount || 0);
+const pageCount = computed(() => adminsData.value?.pageCount || 0);
 
 watch(searchQuery, () => {
   pageNumber.value = 1;
@@ -49,15 +45,14 @@ watch(searchQuery, () => {
   <div class="space-y-6">
     <div class="flex items-center justify-between">
       <div>
-        <BaseHeading size="2xl" weight="bold">إدارة المستخدمين</BaseHeading>
-        <BaseParagraph size="sm" class="text-muted-400">إدارة حسابات المستخدمين العاديين</BaseParagraph>
+        <BaseHeading size="2xl" weight="bold">إدارة المشرفين</BaseHeading>
+        <BaseParagraph size="sm" class="text-muted-400">إدارة حسابات المشرفين</BaseParagraph>
       </div>
     </div>
 
     <BaseCard class="p-6">
       <div class="flex items-center justify-between gap-4">
         <BaseInput v-model="searchQuery" placeholder="البحث بالاسم..." icon="ph:magnifying-glass-duotone" class="w-full max-w-xs" />
-        <AddUser @added="refreshUsers" />
       </div>
     </BaseCard>
 
@@ -68,8 +63,8 @@ watch(searchQuery, () => {
         <BasePlaceload class="h-12 w-full rounded mt-2" />
       </div>
 
-      <div v-else-if="users.length === 0" class="p-12 text-center">
-        <BaseParagraph class="text-muted-400">لا توجد مستخدمين</BaseParagraph>
+      <div v-else-if="admins.length === 0" class="p-12 text-center">
+        <BaseParagraph class="text-muted-400">لا توجد مشرفين</BaseParagraph>
       </div>
 
       <div v-else class="overflow-x-auto">
@@ -79,30 +74,18 @@ watch(searchQuery, () => {
               <th class="px-6 py-3 text-right text-xs font-medium text-muted-500 uppercase tracking-wider">الاسم الكامل</th>
               <th class="px-6 py-3 text-right text-xs font-medium text-muted-500 uppercase tracking-wider">رقم الهاتف</th>
               <th class="px-6 py-3 text-right text-xs font-medium text-muted-500 uppercase tracking-wider">تاريخ الإنشاء</th>
-              <th class="px-6 py-3 text-right text-xs font-medium text-muted-500 uppercase tracking-wider">حالة التوثيق</th>
-              <th class="px-6 py-3 text-right text-xs font-medium text-muted-500 uppercase tracking-wider">الإجراءات</th>
             </tr>
           </thead>
           <tbody class="bg-white dark:bg-muted-800 divide-y divide-muted-200 dark:divide-muted-700">
-            <tr v-for="user in users" :key="user.id">
+            <tr v-for="admin in admins" :key="admin.id">
               <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm font-medium text-muted-900 dark:text-white">{{ user.fullName }}</div>
+                <div class="text-sm font-medium text-muted-900 dark:text-white">{{ admin.fullName }}</div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-muted-600 dark:text-muted-300">{{ phoneNumberFormatter(user.phoneNumber) }}</div>
+                <div class="text-sm text-muted-600 dark:text-muted-300">{{ phoneNumberFormatter(admin.phoneNumber) }}</div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-muted-600 dark:text-muted-300">{{ formatDate(user.creationDate) }}</div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <BaseTag v-if="user.isVerified" color="success" flavor="pastel" size="sm">موثق</BaseTag>
-                <ActivateUser v-else :user-id="user.id" @activated="refreshUsers" />
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="flex items-center gap-2">
-                  <EditUser :user="user" @edited="refreshUsers" />
-                  <DeleteUser :user-id="user.id" :user-name="user.fullName" @deleted="refreshUsers" />
-                </div>
+                <div class="text-sm text-muted-600 dark:text-muted-300">{{ formatDate(admin.creationDate) }}</div>
               </td>
             </tr>
           </tbody>

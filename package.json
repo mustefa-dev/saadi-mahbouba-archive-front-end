@@ -10,7 +10,7 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
-    "@microsoft/signalr": "^8.0.7",
+    "@microsoft/signalr": "^8.0.17",
     "@onesignal/onesignal-vue3": "^2.0.1",
     "@pinia/nuxt": "^0.5.1",
     "@vuepic/vue-datepicker": "^8.8.1",
@@ -21,7 +21,8 @@
     "vue": "^3.4.31",
     "vue-router": "^4.4.0",
     "vue3-apexcharts": "^1.5.3",
-    "vue3-image-preview": "^0.2.7"
+    "vue3-image-preview": "^0.2.7",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@cssninja/nuxt-toaster": "^0.3.12",

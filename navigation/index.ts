@@ -1,30 +1,48 @@
-const statistics = [
+const main = [
   {
-    header:"الاحصائيات",
-    role: ['Admin','SuperAdmin']
+    header: "القائمة الرئيسية",
   },
   {
-    name:"اللوحة الرئيسية",
+    name: "اللوحة الرئيسية",
     icon: { name: 'ph:chart-pie-slice-duotone', class: 'w-5 h-5' },
-    to:"/",
-    role: ['Admin','SuperAdmin']
+    to: "/",
+  },
+  {
+    name: "المحادثات",
+    icon: { name: 'ph:chats-duotone', class: 'w-5 h-5' },
+    to: "/chats",
+  },
+]
+
+const users = [
+  {
+    header: "إدارة المستخدمين",
+  },
+  {
+    name: "المستخدمون",
+    icon: { name: 'ph:users-duotone', class: 'w-5 h-5' },
+    to: "/users",
+  },
+  {
+    name: "المشرفين",
+    icon: { name: 'ph:shield-check-duotone', class: 'w-5 h-5' },
+    to: "/systemUsers",
   },
 ]
 
 const settings = [
   {
-    header:"الاعدادات",
-    role: ['Admin','SuperAdmin']
+    header: "الإعدادات",
   },
   {
-    name:"المستخدمون",
-    icon: { name: 'ph:user-duotone', class: 'w-5 h-5' },
-    to:"/users",
-    role: ['Admin','SuperAdmin']
+    name: "الإشعارات",
+    icon: { name: 'ph:bell-duotone', class: 'w-5 h-5' },
+    to: "/notifications",
   },
 ]
 
 export default [
-  ...statistics,
+  ...main,
+  ...users,
   ...settings,
 ]

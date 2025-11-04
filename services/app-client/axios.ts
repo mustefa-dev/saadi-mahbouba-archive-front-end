@@ -1,43 +1,58 @@
 import axios from 'axios'
 
-export const baseURL = 'http://localhost:5051/'
+// Hardcode base URL - runtime config can't be used at module level
+export const baseURL = 'https://almawsua-dashboard.taco5k.site'
 const axiosIns = axios.create({
-    baseURL: `${baseURL}api`,
+    baseURL: `${baseURL}/api`,
 })
 
 // ℹ️ Add request interceptor to send the authorization header on each subsequent request after login
 axiosIns.interceptors.request.use(config => {
-    const token = useAppUserStore().user.token;
-  if(!token)
-    useRouter().push("/login")
-    //const token = "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiJkZDYwMmFjYy0wZDhiLTQxOTAtOTViNi0zZjUzOTc3OWYyZWQiLCJpZCI6ImRkNjAyYWNjLTBkOGItNDE5MC05NWI2LTNmNTM5Nzc5ZjJlZCIsInJvbGUiOiJBZG1pbiIsIlJvbGUiOiJBZG1pbiIsIlByb2plY3RJZCI6IiIsIm5iZiI6MTcyMjYwNjc3OCwiZXhwIjoxNzI1MTk4Nzc4LCJpYXQiOjE3MjI2MDY3Nzh9.xyV-WhBF_EhlHQdX09emoxSki2OWvG9d1G-XhQZqSiGyY_F0hcErNMCFqEouhXXB6zBF0CoJYxAOxcvlX-mcAQ"
-    //const token = "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiJmMzU2NzdiZi1iMmY1LTRiMWEtYThmYy1jMzY0MWQ3OWVjNWIiLCJpZCI6ImYzNTY3N2JmLWIyZjUtNGIxYS1hOGZjLWMzNjQxZDc5ZWM1YiIsInJvbGUiOiJVc2VyIiwiUm9sZSI6IlVzZXIiLCJQcm9qZWN0SWQiOiI0ZjQ1YzllMy0xMWJjLTQyNTktOGI3Ni1kNWNlNGVkZGExNzYiLCJuYmYiOjE3MjI2MDY5NjMsImV4cCI6MTcyNTE5ODk2MywiaWF0IjoxNzIyNjA2OTYzfQ.H5KBADOOIl6vKTFnNIeNzweYjtH68z-vZwUZ-jGcPSuCejSaNtY3US5Iog9C3ijAR52HjUx31WAgN2F8vzt0ug"
+    // Get token from localStorage (simplified)
+    const token = localStorage.getItem('authToken');
 
     config.headers = config.headers || {}
     config.headers['Accept-Language'] = 'ar'
-    config.headers.Authorization = token ? `Bearer ${token}` : ''
+
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`
+        console.log('Adding token to request:', token.substring(0, 20) + '...');
+    } else {
+        console.warn('No token found in localStorage');
+    }
 
     return config
 })
 
 // ℹ️ Add response interceptor to handle 401 response
 axiosIns.interceptors.response.use(response => {
+    console.log('✅ API Response OK:', response.config.url);
     return response
 }, error => {
-    console.error(error)
-    // Handle error
-    if (!error.response || error.response.status === 401) {
-        console.error('error is 401')
-        useAppUserStore().user = {};
-        // Remove "userData" from localStorage
-        localStorage.removeItem('userData')
-        localStorage.removeItem('user')
+    console.error('❌ API Response Error:', {
+        url: error.config?.url,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        hasResponse: !!error.response
+    });
 
-        // Remove "accessToken" from localStorage
-        localStorage.removeItem('accessToken')
-        localStorage.removeItem('userAbilities')
-        useRouter().push('/login')
+    // ONLY redirect on 401 Unauthorized - not on network errors or other status codes
+    if (error.response && error.response.status === 401) {
+        console.error('🚫 Unauthorized (401) - Clearing auth and redirecting to login')
+
+        // Clear localStorage
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('authUser');
+
+        // Redirect to login
+        if (process.client) {
+            window.location.href = '/login';
+        }
+    } else if (!error.response) {
+        console.error('🌐 Network error - no response from server (possibly CORS, timeout, or server down)');
     }
+
     throw error;
 })
 

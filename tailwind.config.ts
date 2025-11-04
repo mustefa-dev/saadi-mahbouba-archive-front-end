@@ -37,7 +37,7 @@ export default withShurikenUI({
     extend: {
       // Custom colors
       colors: {
-        primary: colors.rose,
+        primary: colors.blue,
         secondary: colors.violet,
         muted: colors.slate,
         success: {

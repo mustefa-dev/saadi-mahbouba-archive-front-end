@@ -1,0 +1,187 @@
+<script setup lang="ts">
+import axios from '~/services/app-client/axios';
+import type { User, UsersResponse } from '~/types/users';
+import { formatDate, phoneNumberFormatter } from '~/utils/helpers';
+import AddUser from '~/views/users/components/AddUser.vue';
+import EditUser from '~/views/users/components/EditUser.vue';
+import DeleteUser from '~/views/users/components/DeleteUser.vue';
+import ActivateUser from '~/views/users/components/ActivateUser.vue';
+
+useHead({
+  title: "إدارة المستخدمين"
+})
+
+definePageMeta({
+  title: "المستخدمون"
+})
+
+const pageNumber = ref(1);
+const pageSize = ref(10);
+const searchQuery = ref('');
+const isLoading = ref(false);
+const users = ref<User[]>([]);
+const totalCount = ref(0);
+const pageCount = ref(0);
+
+// Fetch users with filters
+const fetchUsers = async () => {
+  isLoading.value = true;
+  try {
+    const apiPaths = useApiPaths();
+    const response = await axios.get<UsersResponse>(apiPaths.users, {
+      params: {
+        role: 'USER',
+        fullName: searchQuery.value,
+        pageNumber: pageNumber.value,
+        pageSize: pageSize.value
+      }
+    });
+
+    users.value = response.data.data;
+    totalCount.value = response.data.totalCount;
+    pageCount.value = response.data.pageCount;
+  } catch (error: any) {
+    useHelpers().setErrorMessage(error, 'ar', 'Failed to load users', 'فشل تحميل المستخدمين');
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// Watch for search query changes
+watch(searchQuery, () => {
+  pageNumber.value = 1;
+  fetchUsers();
+});
+
+// Watch for page changes
+watch(pageNumber, () => {
+  fetchUsers();
+});
+
+// Initial fetch
+onMounted(() => {
+  fetchUsers();
+});
+</script>
+
+<template>
+  <div class="space-y-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+      <div>
+        <BaseHeading size="2xl" weight="bold">
+          إدارة المستخدمين
+        </BaseHeading>
+        <BaseParagraph size="sm" class="text-muted-400">
+          إدارة حسابات المستخدمين العاديين
+        </BaseParagraph>
+      </div>
+    </div>
+
+    <!-- Filters and Actions -->
+    <BaseCard class="p-6">
+      <div class="flex items-center justify-between gap-4">
+        <BaseInput
+          v-model="searchQuery"
+          placeholder="البحث بالاسم..."
+          icon="ph:magnifying-glass-duotone"
+          class="w-full max-w-xs"
+        />
+        <AddUser @added="fetchUsers" />
+      </div>
+    </BaseCard>
+
+    <!-- Users Table -->
+    <BaseCard>
+      <div v-if="isLoading" class="p-6">
+        <BasePlaceload class="h-12 w-full rounded" />
+        <BasePlaceload class="h-12 w-full rounded mt-2" />
+        <BasePlaceload class="h-12 w-full rounded mt-2" />
+      </div>
+
+      <div v-else-if="users.length === 0" class="p-12 text-center">
+        <BaseParagraph class="text-muted-400">
+          لا توجد مستخدمين
+        </BaseParagraph>
+      </div>
+
+      <div v-else class="overflow-x-auto">
+        <table class="w-full">
+          <thead class="bg-muted-50 dark:bg-muted-900/50">
+            <tr>
+              <th class="px-6 py-3 text-right text-xs font-medium text-muted-500 uppercase tracking-wider">
+                الاسم الكامل
+              </th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-muted-500 uppercase tracking-wider">
+                رقم الهاتف
+              </th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-muted-500 uppercase tracking-wider">
+                تاريخ الإنشاء
+              </th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-muted-500 uppercase tracking-wider">
+                حالة التوثيق
+              </th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-muted-500 uppercase tracking-wider">
+                الإجراءات
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white dark:bg-muted-800 divide-y divide-muted-200 dark:divide-muted-700">
+            <tr v-for="user in users" :key="user.id">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm font-medium text-muted-900 dark:text-white">
+                  {{ user.fullName }}
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-muted-600 dark:text-muted-300">
+                  {{ phoneNumberFormatter(user.phoneNumber) }}
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-muted-600 dark:text-muted-300">
+                  {{ formatDate(user.creationDate) }}
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <BaseTag
+                  v-if="user.isVerified"
+                  color="success"
+                  flavor="pastel"
+                  size="sm"
+                >
+                  موثق
+                </BaseTag>
+                <ActivateUser
+                  v-else
+                  :user-id="user.id"
+                  @activated="fetchUsers"
+                />
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center gap-2">
+                  <EditUser :user="user" @edited="fetchUsers" />
+                  <DeleteUser
+                    :user-id="user.id"
+                    :user-name="user.fullName"
+                    @deleted="fetchUsers"
+                  />
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div v-if="pageCount > 1" class="p-6 border-t border-muted-200 dark:border-muted-700">
+        <BasePagination
+          :current-page="pageNumber"
+          :item-per-page="pageSize"
+          :total-items="totalCount"
+          @update:current-page="pageNumber = $event"
+        />
+      </div>
+    </BaseCard>
+  </div>
+</template>

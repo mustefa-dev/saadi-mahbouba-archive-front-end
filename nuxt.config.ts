@@ -25,6 +25,13 @@ export default defineNuxtConfig({
     '~/assets/css/style.css',
   ],
 
+  runtimeConfig: {
+    public: {
+      baseUrl: process.env.NUXT_PUBLIC_BASE_URL || 'http://localhost:5051/api',
+      assetsUrl: process.env.NUXT_PUBLIC_ASSETS_URL || 'http://localhost:5051',
+    }
+  },
+
   app: {
     pageTransition: { name: 'page', mode: 'out-in' },
     head: {
