@@ -37,6 +37,25 @@ export const useApiPaths = () => {
     userFiles: (userId: string) => `${baseUrl}/file/user/${userId}`,
     myFiles: `${baseUrl}/file/my-files`,
 
+    // Reports
+    reports: `${baseUrl}/reports`,
+    allReports: `${baseUrl}/reports/all`,
+    reportById: (id: string) => `${baseUrl}/reports/${id}`,
+    reportStatistics: `${baseUrl}/reports/statistics`,
+    reportsByUserId: (userId: string) => `${baseUrl}/reports/user/${userId}`,
+    reportsByUserAndCategory: (userId: string, categoryId: string) => `${baseUrl}/reports/user/${userId}/category/${categoryId}`,
+    reviewReport: (id: string) => `${baseUrl}/reports/${id}/review`,
+    assignReportCategory: (reportId: string) => `${baseUrl}/Reports/${reportId}/assign-category`,
+    myReportFiles: `${baseUrl}/reports/files/my`,
+    reportFilesByType: (fileType: string) => `${baseUrl}/reports/files/my/type/${fileType}`,
+
+    // Categories
+    categories: `${baseUrl}/Categories`,
+    categoryById: (id: string) => `${baseUrl}/Categories/${id}`,
+    subCategories: `${baseUrl}/SubCategories`,
+    subCategoryById: (id: string) => `${baseUrl}/SubCategories/${id}`,
+    archive: `${baseUrl}/Archive`,
+
     // Assets
     getAsset: (path: string) => {
       // If path is already a full URL, return as is

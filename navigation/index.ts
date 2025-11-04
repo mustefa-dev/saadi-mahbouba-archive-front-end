@@ -14,6 +14,27 @@ const main = [
   },
 ]
 
+const reports = [
+  {
+    header: "إدارة التقارير",
+  },
+  {
+    name: "الأرشيف",
+    icon: { name: 'ph:archive-box-duotone', class: 'w-5 h-5' },
+    to: "/archive",
+  },
+  {
+    name: "التقارير",
+    icon: { name: 'ph:file-text-duotone', class: 'w-5 h-5' },
+    to: "/reports",
+  },
+  {
+    name: "التصنيفات",
+    icon: { name: 'ph:folders-duotone', class: 'w-5 h-5' },
+    to: "/categories",
+  },
+]
+
 const users = [
   {
     header: "إدارة المستخدمين",
@@ -43,6 +64,7 @@ const settings = [
 
 export default [
   ...main,
+  ...reports,
   ...users,
   ...settings,
 ]
