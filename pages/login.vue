@@ -127,13 +127,7 @@ const onSubmit = async () => {
       <div
         class="mx-auto flex size-full max-w-4xl items-center justify-center"
       >
-        <!--Media image-->
-        <img
-          class="mx-auto max-w-xl"
-          src="~public/logo.png"
-          width="1200"
-          height="996"
-        >
+        <!-- Removed login image -->
       </div>
     </div>
 
