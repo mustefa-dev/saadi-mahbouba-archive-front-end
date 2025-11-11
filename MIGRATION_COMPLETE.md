@@ -125,8 +125,9 @@ cp .env.example .env
 
 Edit `.env` with your API URLs:
 ```env
-NUXT_PUBLIC_BASE_URL=http://localhost:5051/api
-NUXT_PUBLIC_ASSETS_URL=http://localhost:5051
+NUXT_PUBLIC_BASE_URL=
+https://almawsua-dashboard.taco5k.site/api
+NUXT_PUBLIC_ASSETS_URL=https://almawsua-dashboard.taco5k.site
 ```
 
 ### 2. Update Secret Key for Encryption

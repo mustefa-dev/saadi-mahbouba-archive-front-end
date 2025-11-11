@@ -1,3 +1,5 @@
+import {process} from "std-env";
+
 export default defineNuxtConfig({
   ssr: false,
 
@@ -27,8 +29,8 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      baseUrl: process.env.NUXT_PUBLIC_BASE_URL || 'http://localhost:5051/api',
-      assetsUrl: process.env.NUXT_PUBLIC_ASSETS_URL || 'http://localhost:5051',
+      baseUrl: process.env.NUXT_PUBLIC_BASE_URL || 'https://almawsua-dashboard.taco5k.site/api',
+      assetsUrl: process.env.NUXT_PUBLIC_ASSETS_URL || 'https://almawsua-dashboard.taco5k.site',
     }
   },
 
