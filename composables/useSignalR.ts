@@ -77,7 +77,13 @@ export const useSignalR = () => {
 
   const onReceiveMessage = (callback: (message: any) => void) => {
     if (connection.value) {
-      connection.value.on('ReceiveMessage', callback)
+      console.log('🎧 SignalR: Attaching ReceiveMessage listener')
+      connection.value.on('ReceiveMessage', (message) => {
+        console.log('🔔 SignalR: ReceiveMessage event fired:', message)
+        callback(message)
+      })
+    } else {
+      console.warn('⚠️ SignalR: Cannot attach listener, connection is null')
     }
   }
 

@@ -399,7 +399,14 @@ const sendMessage = async () => {
   await signalR.sendTypingIndicator(props.userId, false)
 
   try {
-    await $fetch<any>(apiPaths.sendMessage, {
+    console.log('📤 Sending message:', {
+      content: tempContent,
+      type: MessageType.TEXT,
+      toUserId: props.userId,
+      isConnected: signalR.isConnected.value
+    })
+
+    const response = await $fetch<any>(apiPaths.sendMessage, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -413,11 +420,14 @@ const sendMessage = async () => {
       }
     })
 
+    console.log('✅ Message sent, response:', response)
+    console.log('🔔 Waiting for SignalR to broadcast message...')
+
     await nextTick()
     scrollToBottom()
     await markAsRead()
   } catch (error) {
-    console.error('Error sending message:', error)
+    console.error('❌ Error sending message:', error)
     newMessage.value = tempContent
     helpers.setErrorMessage(error, 'ar', 'Failed to send message', 'فشل إرسال الرسالة')
   } finally {
@@ -677,14 +687,21 @@ watch(newMessage, () => {
 
 // Initialize SignalR and fetch messages
 onMounted(async () => {
-  if (token && !signalR.isConnected.value) {
+  if (token) {
     try {
-      await signalR.initializeConnection(token)
+      // Initialize connection if not already connected
+      if (!signalR.isConnected.value) {
+        await signalR.initializeConnection(token)
+      }
 
+      // Always attach event listeners for this chat window
       signalR.onReceiveMessage((message: Message) => {
+        console.log('📨 Message received in ChatWindow:', message)
+
         if (message.fromUserId === props.userId || message.toUserId === props.userId) {
           const exists = messages.value.some(m => m.id === message.id)
           if (!exists) {
+            console.log('✅ Adding message to UI:', message)
             messages.value.push(message)
             nextTick(() => scrollToBottom())
 
@@ -692,7 +709,11 @@ onMounted(async () => {
               markAsRead()
               signalR.sendMessageReadReceipt(message.id)
             }
+          } else {
+            console.log('⚠️ Message already exists, skipping')
           }
+        } else {
+          console.log('⚠️ Message not for this conversation')
         }
       })
 
@@ -711,7 +732,7 @@ onMounted(async () => {
         })
       })
     } catch (error) {
-      console.error('SignalR connection failed:', error)
+      console.error('❌ SignalR connection failed:', error)
     }
   }
 
