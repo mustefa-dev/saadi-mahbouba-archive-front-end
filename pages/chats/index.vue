@@ -35,7 +35,8 @@ const searchQuery = ref('')
 const totalUnreadCount = ref(0)
 const selectedUserId = ref<string | null>(null)
 const selectedUserName = ref<string>('')
-const isConversationsSidebarCollapsed = ref(false)
+
+const formatTimeAgo = timeAgo
 
 // Toggle conversations sidebar
 const toggleConversationsSidebar = () => {

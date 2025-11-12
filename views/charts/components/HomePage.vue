@@ -20,7 +20,9 @@ const statistics = ref<ReportStatistics>({
 onMounted(async () => {
   try {
     const response = await $fetch<any>(apiPaths.reportStatistics);
-    statistics.value = response.data;
+    if (response && response.data) {
+      statistics.value = response.data;
+    }
   } catch (error) {
     console.error('Error fetching report statistics:', error);
   }
