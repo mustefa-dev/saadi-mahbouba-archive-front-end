@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import axios from '~/services/app-client/axios';
-import type { Conversation, ConversationsResponse } from '~/types/messages';
 import { timeAgo } from '~/utils/helpers';
 
 useHead({
@@ -33,7 +31,7 @@ const fetchConversations = async () => {
   try {
     await chat.loadConversations();
     await chat.getUnreadCount();
-    console.log('✅ Conversations loaded:', conversations.value.length);
+    console.log('✅ Conversations loaded:', chat.conversationsList.value.length);
   } catch (error: any) {
     console.error('❌ Failed to fetch conversations:', error);
     useHelpers().setErrorMessage(error, 'ar', 'Failed to load conversations', 'فشل تحميل المحادثات');
@@ -81,7 +79,7 @@ const formatUnreadCount = (count: number): string => {
   return count > 9 ? '9+' : count.toString();
 };
 
-let refreshInterval: NodeJS.Timeout | null = null;
+let refreshInterval: ReturnType<typeof setInterval> | null = null;
 
 // Watch for route changes to restore sidebar when leaving chat
 watch(() => route.path, (newPath, oldPath) => {
@@ -225,9 +223,9 @@ onUnmounted(() => {
         >
           <Icon name="ph:chats-duotone" class="size-6 text-muted-600 dark:text-muted-400" />
         </button>
-        <div v-if="chat.unreadCountValue > 0" class="relative">
+        <div v-if="chat.unreadCountValue.value > 0" class="relative">
           <span class="inline-flex items-center justify-center min-w-[24px] h-6 px-1.5 rounded-full bg-primary-500 text-white text-xs font-bold shadow-sm">
-            {{ chat.unreadCountValue > 9 ? '9+' : chat.unreadCountValue }}
+            {{ chat.unreadCountValue.value > 9 ? '9+' : chat.unreadCountValue.value }}
           </span>
         </div>
       </div>
@@ -245,9 +243,9 @@ onUnmounted(() => {
 
               <div class="flex items-center gap-2">
                 <!-- Unread count badge -->
-                <div v-if="chat.unreadCountValue > 0" class="relative">
+                <div v-if="chat.unreadCountValue.value > 0" class="relative">
                   <span class="inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 rounded-full bg-white text-primary-600 text-xs font-bold">
-                    {{ chat.unreadCountValue > 99 ? '99+' : chat.unreadCountValue }}
+                    {{ chat.unreadCountValue.value > 99 ? '99+' : chat.unreadCountValue.value }}
                   </span>
                 </div>
                 <!-- Action buttons -->
