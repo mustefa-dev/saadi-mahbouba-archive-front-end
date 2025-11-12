@@ -16,17 +16,11 @@ const signalR = useSignalR();
 const chat = useChat();
 const { isOpen } = useCollapse();
 const route = useRoute();
-const router = useRouter();
 
 const searchQuery = ref('');
 const selectedUserId = ref<string | null>(null);
 const selectedUserName = ref<string>('');
 const isConversationsSidebarCollapsed = ref(false);
-
-// Use chat composable state
-const conversations = chat.conversationsList;
-const isLoading = chat.isLoading;
-const totalUnreadCount = chat.unreadCountValue;
 
 // Toggle conversations sidebar
 const toggleConversationsSidebar = () => {
@@ -48,7 +42,7 @@ const fetchConversations = async () => {
 
 // Filtered and sorted conversations (by date, most recent first)
 const filteredConversations = computed(() => {
-  let result = conversations.value;
+  let result = chat.conversationsList.value;
 
   // Filter by search query
   if (searchQuery.value) {
@@ -231,9 +225,9 @@ onUnmounted(() => {
         >
           <Icon name="ph:chats-duotone" class="size-6 text-muted-600 dark:text-muted-400" />
         </button>
-        <div v-if="totalUnreadCount > 0" class="relative">
+        <div v-if="chat.unreadCountValue > 0" class="relative">
           <span class="inline-flex items-center justify-center min-w-[24px] h-6 px-1.5 rounded-full bg-primary-500 text-white text-xs font-bold shadow-sm">
-            {{ totalUnreadCount > 9 ? '9+' : totalUnreadCount }}
+            {{ chat.unreadCountValue > 9 ? '9+' : chat.unreadCountValue }}
           </span>
         </div>
       </div>
@@ -251,9 +245,9 @@ onUnmounted(() => {
 
               <div class="flex items-center gap-2">
                 <!-- Unread count badge -->
-                <div v-if="totalUnreadCount > 0" class="relative">
+                <div v-if="chat.unreadCountValue > 0" class="relative">
                   <span class="inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 rounded-full bg-white text-primary-600 text-xs font-bold">
-                    {{ totalUnreadCount > 99 ? '99+' : totalUnreadCount }}
+                    {{ chat.unreadCountValue > 99 ? '99+' : chat.unreadCountValue }}
                   </span>
                 </div>
                 <!-- Action buttons -->
@@ -296,7 +290,7 @@ onUnmounted(() => {
       <!-- Conversations List - Telegram style -->
       <div class="flex-1 overflow-y-auto overscroll-contain custom-scrollbar bg-white dark:bg-[#212121]">
         <!-- Loading State -->
-        <div v-if="isLoading" class="p-3 space-y-1">
+        <div v-if="chat.isLoading" class="p-3 space-y-1">
           <p class="text-center text-sm text-muted-500">Loading conversations...</p>
           <div v-for="i in 10" :key="i" class="flex items-center gap-3 p-3 rounded-lg animate-pulse">
             <BasePlaceload class="size-14 rounded-full flex-shrink-0" />
