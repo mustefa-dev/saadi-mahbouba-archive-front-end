@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useDebounceFn } from '@vueuse/core'
 import { timeAgo } from '~/utils/helpers';
 
 useHead({
@@ -9,158 +10,194 @@ definePageMeta({
   title: "المحادثات"
 })
 
-const userStore = useAppUserStore();
-const signalR = useSignalR();
-const chat = useChat();
-const { isOpen } = useCollapse();
-const route = useRoute();
+export interface Conversation {
+  userId: string
+  userName: string
+  lastMessage: string
+  lastMessageTime: string
+  unreadCount: number
+}
 
-const searchQuery = ref('');
-const selectedUserId = ref<string | null>(null);
-const selectedUserName = ref<string>('');
-const isConversationsSidebarCollapsed = ref(false);
+const userStore = useAppUserStore()
+const signalR = useSignalR()
+const { isOpen } = useCollapse()
+const route = useRoute()
+const config = useRuntimeConfig()
+
+const token = await userStore.getToken()
+
+// State
+const conversations = ref<Conversation[]>([])
+const isLoading = ref(false)
+const pageNumber = ref(0)
+const pageSize = ref(20)
+const searchQuery = ref('')
+const totalUnreadCount = ref(0)
+const selectedUserId = ref<string | null>(null)
+const selectedUserName = ref<string>('')
+const isConversationsSidebarCollapsed = ref(false)
 
 // Toggle conversations sidebar
 const toggleConversationsSidebar = () => {
-  isConversationsSidebarCollapsed.value = !isConversationsSidebarCollapsed.value;
-};
+  isConversationsSidebarCollapsed.value = !isConversationsSidebarCollapsed.value
+}
 
-// Fetch conversations
+// Fetch conversations using mobile app pattern
 const fetchConversations = async () => {
-  console.log('🔄 fetchConversations called');
+  isLoading.value = true
   try {
-    await chat.loadConversations();
-    await chat.getUnreadCount();
-    console.log('✅ Conversations loaded:', chat.conversationsList.value.length);
-  } catch (error: any) {
-    console.error('❌ Failed to fetch conversations:', error);
-    useHelpers().setErrorMessage(error, 'ar', 'Failed to load conversations', 'فشل تحميل المحادثات');
+    const response = await $fetch<any>(`${config.public.baseUrl}/message/conversations`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      query: {
+        pageNumber: pageNumber.value,
+        pageSize: pageSize.value
+      }
+    })
+
+    conversations.value = response.data || []
+
+    // Calculate total unread count
+    totalUnreadCount.value = conversations.value.reduce(
+      (sum, conv) => sum + (conv.unreadCount || 0),
+      0
+    )
+  } catch (error) {
+    console.error('❌ Failed to load conversations:', error)
+    useHelpers().setErrorMessage(error, 'ar', 'Failed to load conversations', 'فشل تحميل المحادثات')
+  } finally {
+    isLoading.value = false
   }
-};
+}
 
-// Filtered and sorted conversations (by date, most recent first)
+// Open conversation
+const openConversation = (userId: string, userName: string) => {
+  console.log('🎯 Opening conversation:', { userId, userName })
+  selectedUserId.value = userId
+  selectedUserName.value = userName
+}
+
+// Filtered and sorted conversations
 const filteredConversations = computed(() => {
-  let result = chat.conversationsList.value;
+  let result = conversations.value
 
-  // Filter by search query
   if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase();
+    const query = searchQuery.value.toLowerCase()
     result = result.filter(
       conv =>
         conv.userName.toLowerCase().includes(query) ||
         (conv.lastMessage && conv.lastMessage.toLowerCase().includes(query))
-    );
+    )
   }
 
-  // Sort by last message time (most recent first)
   return [...result].sort((a, b) => {
-    const dateA = a.lastMessageTime ? new Date(a.lastMessageTime).getTime() : 0;
-    const dateB = b.lastMessageTime ? new Date(b.lastMessageTime).getTime() : 0;
-    return dateB - dateA; // Descending order (newest first)
-  });
-});
+    const dateA = a.lastMessageTime ? new Date(a.lastMessageTime).getTime() : 0
+    const dateB = b.lastMessageTime ? new Date(b.lastMessageTime).getTime() : 0
+    return dateB - dateA
+  })
+})
 
-
-// Open conversation
-const openConversation = (userId: string, userName: string) => {
-  console.log('🎯 Opening conversation:', { userId, userName, currentSelected: selectedUserId.value });
-  selectedUserId.value = userId;
-  selectedUserName.value = userName;
-  console.log('✅ Updated selected user ID:', selectedUserId.value);
-};
+// Handle search
+const handleSearch = useDebounceFn(() => {
+  // Search is handled by computed property
+}, 300)
 
 // Get user initials for avatar
 const getUserInitials = (name: string): string => {
-  return name.charAt(0).toUpperCase();
-};
+  return name.charAt(0).toUpperCase()
+}
 
 // Format unread count (show 9+ for 10 or more)
 const formatUnreadCount = (count: number): string => {
-  return count > 9 ? '9+' : count.toString();
-};
+  return count > 9 ? '9+' : count.toString()
+}
 
-let refreshInterval: ReturnType<typeof setInterval> | null = null;
+let refreshInterval: ReturnType<typeof setInterval> | null = null
 
-// Watch for route changes to restore sidebar when leaving chat
+// Watch for route changes
 watch(() => route.path, (newPath, oldPath) => {
-  console.log('🔀 Route changed:', { from: oldPath, to: newPath });
-
-  // If leaving chat page, restore sidebar immediately
   if (oldPath === '/chats' && newPath !== '/chats') {
-    console.log('📤 Leaving chat page, restoring sidebar');
-    isOpen.value = true;
+    isOpen.value = true
+  } else if (newPath === '/chats' && oldPath !== '/chats') {
+    isOpen.value = false
   }
-  // If entering chat page, collapse sidebar
-  else if (newPath === '/chats' && oldPath !== '/chats') {
-    console.log('📥 Entering chat page, collapsing sidebar');
-    isOpen.value = false;
-  }
-});
+})
 
+// Initialize - Mobile app pattern
 onMounted(async () => {
-  console.log('🚀 Chat page mounted');
+  console.log('🚀 Chat page mounted')
+  
+  // Collapse navigation sidebar
+  isOpen.value = false
 
-  // Collapse navigation sidebar when entering chat page
-  isOpen.value = false;
-
-  // Fetch conversations
-  await fetchConversations();
-
-  // Initialize SignalR connection if not already connected
-  const token = await userStore.getToken();
-  if (token && !signalR.isConnected()) {
+  // Initialize SignalR
+  if (token) {
     try {
-      await signalR.initializeConnection(token);
-      console.log('✅ SignalR initialized successfully');
+      await signalR.initializeConnection(token)
+
+      // Listen for new messages - mobile app pattern
+      signalR.onReceiveMessage((message: any) => {
+        console.log('📨 New message received:', message)
+
+        // Update conversation list
+        const convIndex = conversations.value.findIndex(
+          c => c.userId === message.fromUserId || c.userId === message.FromUserId
+        )
+
+        if (convIndex !== -1) {
+          const conv = conversations.value[convIndex]
+          conversations.value.splice(convIndex, 1)
+          conversations.value.unshift({
+            ...conv,
+            lastMessage: message.content || message.Content,
+            lastMessageTime: message.sentAt || message.SentAt,
+            unreadCount: (conv.unreadCount || 0) + 1
+          })
+        } else {
+          // New conversation
+          conversations.value.unshift({
+            userId: message.fromUserId || message.FromUserId,
+            userName: message.fromUserName || message.FromUserName || 'مستخدم',
+            lastMessage: message.content || message.Content,
+            lastMessageTime: message.sentAt || message.SentAt,
+            unreadCount: 1
+          })
+        }
+
+        totalUnreadCount.value++
+      })
+
+      console.log('✅ SignalR listeners attached')
     } catch (error) {
-      console.error('❌ Failed to initialize SignalR:', error);
+      console.error('❌ SignalR connection failed:', error)
     }
   }
 
-  // Setup SignalR event listeners
-  signalR.onReceiveMessage((message) => {
-    console.log('📨 New message received in conversations page:', message);
-    chat.handleIncomingMessage(message);
-  });
+  // Fetch conversations
+  await fetchConversations()
 
-  signalR.onUserOnline((data) => {
-    console.log('🟢 User online:', data);
-    chat.handleUserOnline(data);
-  });
+  // Poll for updates every 30 seconds
+  refreshInterval = setInterval(() => {
+    fetchConversations()
+  }, 30000)
+})
 
-  signalR.onUserOffline((data) => {
-    console.log('🔴 User offline:', data);
-    chat.handleUserOffline(data);
-  });
-
-  signalR.onTypingIndicator((data) => {
-    chat.handleTypingIndicator(data);
-  });
-
-  console.log('✅ SignalR listeners attached');
-
-  // Refresh unread count periodically
-  refreshInterval = setInterval(async () => {
-    console.log('🔄 Background refresh (unread count)');
-    await chat.getUnreadCount();
-  }, 60000); // Every minute
-});
-
+// Cleanup
 onUnmounted(() => {
-  console.log('👋 Chat page unmounted');
+  console.log('👋 Chat page unmounted')
 
-  // Clear interval
   if (refreshInterval) {
-    clearInterval(refreshInterval);
-    refreshInterval = null;
+    clearInterval(refreshInterval)
+    refreshInterval = null
   }
 
-  // Remove SignalR listeners
-  signalR.offAll();
-
-  // Restore navigation sidebar to expanded when leaving chat page
-  isOpen.value = true;
-});
+  signalR.offReceiveMessage()
+  
+  // Restore navigation sidebar
+  isOpen.value = true
+})
 </script>
 
 <template>
@@ -223,9 +260,9 @@ onUnmounted(() => {
         >
           <Icon name="ph:chats-duotone" class="size-6 text-muted-600 dark:text-muted-400" />
         </button>
-        <div v-if="chat.unreadCountValue.value > 0" class="relative">
+        <div v-if="totalUnreadCount > 0" class="relative">
           <span class="inline-flex items-center justify-center min-w-[24px] h-6 px-1.5 rounded-full bg-primary-500 text-white text-xs font-bold shadow-sm">
-            {{ chat.unreadCountValue.value > 9 ? '9+' : chat.unreadCountValue.value }}
+            {{ totalUnreadCount > 9 ? '9+' : totalUnreadCount }}
           </span>
         </div>
       </div>
@@ -243,9 +280,9 @@ onUnmounted(() => {
 
               <div class="flex items-center gap-2">
                 <!-- Unread count badge -->
-                <div v-if="chat.unreadCountValue.value > 0" class="relative">
+                <div v-if="totalUnreadCount > 0" class="relative">
                   <span class="inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 rounded-full bg-white text-primary-600 text-xs font-bold">
-                    {{ chat.unreadCountValue.value > 99 ? '99+' : chat.unreadCountValue.value }}
+                    {{ totalUnreadCount > 99 ? '99+' : totalUnreadCount }}
                   </span>
                 </div>
                 <!-- Action buttons -->
@@ -288,7 +325,7 @@ onUnmounted(() => {
       <!-- Conversations List - Telegram style -->
       <div class="flex-1 overflow-y-auto overscroll-contain custom-scrollbar bg-white dark:bg-[#212121]">
         <!-- Loading State -->
-        <div v-if="chat.isLoading.value" class="p-3 space-y-1">
+        <div v-if="isLoading" class="p-3 space-y-1">
           <p class="text-center text-sm text-muted-500">Loading conversations...</p>
           <div v-for="i in 10" :key="i" class="flex items-center gap-3 p-3 rounded-lg animate-pulse">
             <BasePlaceload class="size-14 rounded-full flex-shrink-0" />
@@ -352,7 +389,7 @@ onUnmounted(() => {
                     ? 'text-primary-600 dark:text-primary-400 font-medium'
                     : 'text-muted-400 dark:text-muted-500'"
                 >
-                  {{ timeAgo(conversation.lastMessageTime) }}
+                  {{ formatTimeAgo(conversation.lastMessageTime) }}
                 </span>
               </div>
 
