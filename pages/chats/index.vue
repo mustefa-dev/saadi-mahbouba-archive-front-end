@@ -288,7 +288,7 @@ onUnmounted(() => {
       <!-- Conversations List - Telegram style -->
       <div class="flex-1 overflow-y-auto overscroll-contain custom-scrollbar bg-white dark:bg-[#212121]">
         <!-- Loading State -->
-        <div v-if="chat.isLoading" class="p-3 space-y-1">
+        <div v-if="chat.isLoading.value" class="p-3 space-y-1">
           <p class="text-center text-sm text-muted-500">Loading conversations...</p>
           <div v-for="i in 10" :key="i" class="flex items-center gap-3 p-3 rounded-lg animate-pulse">
             <BasePlaceload class="size-14 rounded-full flex-shrink-0" />
