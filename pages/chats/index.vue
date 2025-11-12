@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useDebounceFn } from '@vueuse/core'
 import { timeAgo } from '~/utils/helpers';
 
 useHead({
@@ -35,6 +34,7 @@ const searchQuery = ref('')
 const totalUnreadCount = ref(0)
 const selectedUserId = ref<string | null>(null)
 const selectedUserName = ref<string>('')
+const isConversationsSidebarCollapsed = ref(false)
 
 const formatTimeAgo = timeAgo
 
@@ -99,11 +99,6 @@ const filteredConversations = computed(() => {
     return dateB - dateA
   })
 })
-
-// Handle search
-const handleSearch = useDebounceFn(() => {
-  // Search is handled by computed property
-}, 300)
 
 // Get user initials for avatar
 const getUserInitials = (name: string): string => {

@@ -1,20 +1,15 @@
-/**
- * SignalR Composable - Copied from mobile app
- * Manages WebSocket connection for real-time messaging
- */
-
+// composables/useSignalR.ts
 import * as signalR from '@microsoft/signalr'
 
 export const useSignalR = () => {
-  const config = useRuntimeConfig()
   const connection = ref<signalR.HubConnection | null>(null)
   const isConnected = ref(false)
   const connectionError = ref<string | null>(null)
 
   const initializeConnection = async (token: string) => {
     try {
+      const config = useRuntimeConfig()
       const hubUrl = `${config.public.assetsUrl}/chat`
-      console.log('🔌 Connecting to SignalR hub:', hubUrl)
 
       connection.value = new signalR.HubConnectionBuilder()
         .withUrl(hubUrl, {
@@ -36,18 +31,18 @@ export const useSignalR = () => {
 
       // Connection events
       connection.value.onreconnecting((error) => {
-        console.log('🔄 SignalR reconnecting...', error)
+        console.log('SignalR reconnecting...', error)
         isConnected.value = false
       })
 
       connection.value.onreconnected((connectionId) => {
-        console.log('✅ SignalR reconnected:', connectionId)
+        console.log('SignalR reconnected:', connectionId)
         isConnected.value = true
         connectionError.value = null
       })
 
       connection.value.onclose((error) => {
-        console.log('🔌 SignalR connection closed:', error)
+        console.log('SignalR connection closed:', error)
         isConnected.value = false
         if (error) {
           connectionError.value = error.message
@@ -57,11 +52,11 @@ export const useSignalR = () => {
       await connection.value.start()
       isConnected.value = true
       connectionError.value = null
-      console.log('✅ SignalR Connected!')
+      console.log('SignalR Connected!')
 
       return connection.value
     } catch (error: any) {
-      console.error('❌ SignalR Connection Error:', error)
+      console.error('SignalR Connection Error:', error)
       isConnected.value = false
       connectionError.value = error.message
       throw error
@@ -73,7 +68,7 @@ export const useSignalR = () => {
       try {
         await connection.value.stop()
         isConnected.value = false
-        console.log('🔌 SignalR connection stopped')
+        console.log('SignalR connection stopped')
       } catch (error) {
         console.error('Error stopping SignalR connection:', error)
       }
@@ -152,3 +147,4 @@ export const useSignalR = () => {
     offMessageRead
   }
 }
+
