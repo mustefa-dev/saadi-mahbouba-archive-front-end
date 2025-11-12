@@ -6,7 +6,6 @@ import AppAutoCompleteField from '../app-field/AppAutoCompleteField.vue';
 import { useAppCrudStore } from './store/AppCrudStore';
 import type { IModelService } from '~/services/app-model';
 import RestoreModal from './components/RestoreModal.vue';
-the chat pagethe chat page
 interface Props {
   addButtonText?: string
   pagination?: boolean

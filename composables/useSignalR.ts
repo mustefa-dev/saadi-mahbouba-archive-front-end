@@ -20,7 +20,7 @@ export const useSignalR = () => {
         await stopConnection()
       }
 
-      // Connect to ChatHub endpoint
+      // Connect to ChatHub endpoint (backend uses /chatHub based on negotiate endpoint)
       const hubUrl = `${config.public.assetsUrl}/chatHub`;
       console.log('🔌 Connecting to SignalR hub:', hubUrl);
 
