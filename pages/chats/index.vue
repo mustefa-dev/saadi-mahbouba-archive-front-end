@@ -13,17 +13,20 @@ definePageMeta({
 
 const userStore = useAppUserStore();
 const signalR = useSignalR();
+const chat = useChat();
 const { isOpen } = useCollapse();
 const route = useRoute();
 const router = useRouter();
 
-const conversations = ref<Conversation[]>([]);
-const isLoading = ref(false);
 const searchQuery = ref('');
-const totalUnreadCount = ref(0);
 const selectedUserId = ref<string | null>(null);
 const selectedUserName = ref<string>('');
 const isConversationsSidebarCollapsed = ref(false);
+
+// Use chat composable state
+const conversations = chat.conversationsList;
+const isLoading = chat.isLoading;
+const totalUnreadCount = chat.unreadCountValue;
 
 // Toggle conversations sidebar
 const toggleConversationsSidebar = () => {
@@ -32,62 +35,14 @@ const toggleConversationsSidebar = () => {
 
 // Fetch conversations
 const fetchConversations = async () => {
-  console.log('🔄 fetchConversations called, isLoading:', isLoading.value);
-  isLoading.value = true;
-
-  // Safety timeout - force complete after 10 seconds
-  const safetyTimeout = setTimeout(() => {
-    console.error('⏰ TIMEOUT: fetchConversations took too long, forcing complete');
-    isLoading.value = false;
-  }, 10000);
-
+  console.log('🔄 fetchConversations called');
   try {
-    const apiPaths = useApiPaths();
-    console.log('📥 Fetching conversations from:', apiPaths.conversations);
-
-    const response = await axios.get<ConversationsResponse>(apiPaths.conversations);
-    console.log('✅ RAW Response:', response);
-    console.log('✅ Response data:', response.data);
-    console.log('✅ Response data.data:', response.data?.data);
-
-    // Check if response has the expected structure
-    if (!response.data) {
-      console.error('❌ response.data is undefined!');
-      throw new Error('Invalid response structure');
-    }
-
-    if (!response.data.data) {
-      console.error('❌ response.data.data is undefined!');
-      console.log('Full response object:', JSON.stringify(response, null, 2));
-      throw new Error('Invalid response structure - missing data array');
-    }
-
-    // Extract the data array from the paginated response
-    conversations.value = response.data.data;
-    console.log('📊 Loaded conversations count:', conversations.value.length);
-    console.log('📋 Conversations array:', JSON.stringify(conversations.value, null, 2));
-
-    // Calculate total unread
-    totalUnreadCount.value = conversations.value.reduce(
-      (sum, conv) => sum + conv.unreadCount,
-      0
-    );
-    console.log('🔔 Total unread count:', totalUnreadCount.value);
-    console.log('✅ Setting isLoading to false');
-
-    clearTimeout(safetyTimeout);
+    await chat.loadConversations();
+    await chat.getUnreadCount();
+    console.log('✅ Conversations loaded:', conversations.value.length);
   } catch (error: any) {
     console.error('❌ Failed to fetch conversations:', error);
-    console.error('❌ Error details:', {
-      message: error.message,
-      response: error.response,
-      stack: error.stack
-    });
     useHelpers().setErrorMessage(error, 'ar', 'Failed to load conversations', 'فشل تحميل المحادثات');
-    clearTimeout(safetyTimeout);
-  } finally {
-    isLoading.value = false;
-    console.log('🏁 fetchConversations finished, isLoading:', isLoading.value);
   }
 };
 
@@ -156,65 +111,47 @@ onMounted(async () => {
   // Collapse navigation sidebar when entering chat page
   isOpen.value = false;
 
-  // Fetch conversations once
+  // Fetch conversations
   await fetchConversations();
 
-  // Setup SignalR listeners (connection already initialized in layout)
-  const token = userStore.getToken();
-  if (token) {
-    console.log('🔌 Setting up SignalR listeners for conversations...');
-
-    // Listen for new messages
-    signalR.onReceiveMessage((message: any) => {
-      console.log('📨 New message received in conversations:', message);
-
-      // Find conversation by matching userId with either sender or receiver
-      // For admin messages: message.fromUserId = admin, message.toUserId = user
-      // For user messages: message.fromUserId = user, message.toUserId = admin
-      const convIndex = conversations.value.findIndex(c => {
-        if (message.isAdminMessage) {
-          // Admin sent message - match with toUserId
-          return c.userId === message.toUserId;
-        } else {
-          // User sent message - match with fromUserId
-          return c.userId === message.fromUserId;
-        }
-      });
-
-      console.log('🔍 Found conversation at index:', convIndex, 'for userId:', message.isAdminMessage ? message.toUserId : message.fromUserId);
-
-      if (convIndex !== -1) {
-        // Update conversation and move to top
-        const conv = conversations.value[convIndex];
-        conv.lastMessage = message.content || '🖼️ صورة';
-        conv.lastMessageTime = message.sentAt;
-
-        // Only increment unread for incoming messages (not admin's own messages)
-        if (!message.isAdminMessage) {
-          conv.unreadCount++;
-          totalUnreadCount.value++;
-        }
-
-        // Move to top
-        conversations.value.splice(convIndex, 1);
-        conversations.value.unshift(conv);
-
-        console.log('✅ Conversation moved to top:', conv.userName);
-      } else {
-        // New conversation - fetch all
-        console.log('🆕 New conversation detected, fetching...');
-        fetchConversations();
-      }
-    });
-    console.log('✅ SignalR listeners attached');
+  // Initialize SignalR connection if not already connected
+  const token = await userStore.getToken();
+  if (token && !signalR.isConnected()) {
+    try {
+      await signalR.initializeConnection(token);
+      console.log('✅ SignalR initialized successfully');
+    } catch (error) {
+      console.error('❌ Failed to initialize SignalR:', error);
+    }
   }
 
-  // Refresh every 5 minutes as fallback (only if SignalR fails)
-  // SignalR should handle real-time updates
-  refreshInterval = setInterval(() => {
-    console.log('🔄 Background refresh (5min interval)');
-    fetchConversations();
-  }, 300000); // 5 minutes instead of 30 seconds
+  // Setup SignalR event listeners
+  signalR.onReceiveMessage((message) => {
+    console.log('📨 New message received in conversations page:', message);
+    chat.handleIncomingMessage(message);
+  });
+
+  signalR.onUserOnline((data) => {
+    console.log('🟢 User online:', data);
+    chat.handleUserOnline(data);
+  });
+
+  signalR.onUserOffline((data) => {
+    console.log('🔴 User offline:', data);
+    chat.handleUserOffline(data);
+  });
+
+  signalR.onTypingIndicator((data) => {
+    chat.handleTypingIndicator(data);
+  });
+
+  console.log('✅ SignalR listeners attached');
+
+  // Refresh unread count periodically
+  refreshInterval = setInterval(async () => {
+    console.log('🔄 Background refresh (unread count)');
+    await chat.getUnreadCount();
+  }, 60000); // Every minute
 });
 
 onUnmounted(() => {
@@ -226,8 +163,8 @@ onUnmounted(() => {
     refreshInterval = null;
   }
 
-  // Remove SignalR listeners (don't stop connection, it's global)
-  signalR.offReceiveMessage();
+  // Remove SignalR listeners
+  signalR.offAll();
 
   // Restore navigation sidebar to expanded when leaving chat page
   isOpen.value = true;

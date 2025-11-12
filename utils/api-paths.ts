@@ -23,12 +23,16 @@ export const useApiPaths = () => {
     admins: `${baseUrl}/admins`,
 
     // Messages
+    messageHistory: `${baseUrl}/message/history`,
     conversations: `${baseUrl}/message/conversations`,
     conversationById: (userId: string) => `${baseUrl}/message/conversation/${userId}`,
     sendMessage: `${baseUrl}/message/send`,
     sendMessageWithAttachment: `${baseUrl}/message/send-with-attachment`,
     markMessageRead: `${baseUrl}/message/mark-read`,
     markMessageDelivered: (messageId: string) => `${baseUrl}/message/mark-delivered/${messageId}`,
+    unreadCount: `${baseUrl}/message/unread-count`,
+    messageById: (messageId: string) => `${baseUrl}/message/${messageId}`,
+    deleteMessage: (messageId: string) => `${baseUrl}/message/${messageId}`,
 
     // Files
     uploadFile: `${baseUrl}/file/upload`,
