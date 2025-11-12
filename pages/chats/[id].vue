@@ -83,6 +83,13 @@ const sendMessage = async () => {
   try {
     const apiPaths = useApiPaths();
 
+    console.log('📤 Mobile: Sending message:', {
+      hasText: !!messageText.value,
+      hasFile: !!selectedFile.value,
+      toUserId: userId,
+      isConnected: signalR.isConnected.value
+    })
+
     if (selectedFile.value) {
       // Send with attachment
       const formData = new FormData();
@@ -99,20 +106,26 @@ const sendMessage = async () => {
       }
       formData.append('Type', messageType.toString());
 
-      await axios.post(apiPaths.sendMessageWithAttachment, formData, {
+      console.log('📤 Mobile: Sending file message')
+      const response = await axios.post(apiPaths.sendMessageWithAttachment, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       });
+      console.log('✅ Mobile: File message sent, response:', response.data)
     } else {
       // Send text only
-      await axios.post(apiPaths.sendMessage, {
+      console.log('📤 Mobile: Sending text message:', messageText.value)
+      const response = await axios.post(apiPaths.sendMessage, {
         content: messageText.value,
         type: MessageType.TEXT,
         toUserId: userId,
         attachmentUrl: null
       });
+      console.log('✅ Mobile: Text message sent, response:', response.data)
     }
+
+    console.log('🔔 Mobile: Waiting for SignalR to broadcast message...')
 
     // Clear inputs
     messageText.value = '';
@@ -194,38 +207,57 @@ const initSignalR = async () => {
   try {
     const token = await userStore.getToken();
     if (token) {
-      await signalR.initializeConnection(token);
+      // Initialize connection if not already connected
+      if (!signalR.isConnected.value) {
+        await signalR.initializeConnection(token);
+      }
 
-      // Listen for new messages
+      console.log('🎧 Mobile: Attaching SignalR listeners for chat:', userId)
+
+      // Listen for new messages - FIXED: Check for duplicates
       signalR.onReceiveMessage((message: Message) => {
+        console.log('📨 Mobile: Message received:', message)
+
         if (message.fromUserId === userId || message.toUserId === userId) {
-          messages.value.push(message);
-          scrollToBottom();
+          // Check if message already exists to prevent duplicates
+          const exists = messages.value.some(m => m.id === message.id)
 
-          // Mark as read if from user
-          if (!message.isAdminMessage) {
-            signalR.sendMessageReadReceipt(message.id);
+          if (!exists) {
+            console.log('✅ Mobile: Adding new message to UI')
+            messages.value.push(message)
+            scrollToBottom()
+
+            // Mark as read if from admin
+            if (!message.isAdminMessage) {
+              signalR.sendMessageReadReceipt(message.id)
+            }
+          } else {
+            console.log('⚠️ Mobile: Message already exists, skipping')
           }
+        } else {
+          console.log('⚠️ Mobile: Message not for this conversation')
         }
       });
 
-      // Listen for typing indicator
-      signalR.onUserTyping((typingUserId: string, typing: boolean) => {
-        if (typingUserId === userId) {
-          isTyping.value = typing;
+      // Listen for typing indicator - FIXED: Correct data structure
+      signalR.onUserTyping((data) => {
+        if (data.userId === userId) {
+          isTyping.value = data.isTyping
         }
       });
 
-      // Listen for read receipts
-      signalR.onMessageRead((messageId: string) => {
-        const message = messages.value.find(m => m.id === messageId);
+      // Listen for read receipts - FIXED: Correct data structure
+      signalR.onMessageRead((data) => {
+        const message = messages.value.find(m => m.id === data.messageId);
         if (message) {
           message.isRead = true;
         }
       });
+
+      console.log('✅ Mobile: SignalR listeners attached successfully')
     }
   } catch (error) {
-    console.error('SignalR initialization failed:', error);
+    console.error('❌ Mobile: SignalR initialization failed:', error);
   }
 };
 
@@ -249,6 +281,14 @@ const getAssetUrl = (path: string): string => {
   const url = apiPaths.getAsset(path);
   console.log('🔗 Asset URL generated:', { input: path, output: url });
   return url;
+};
+
+// Open image in new tab
+const openImageInNewTab = (attachmentUrl: string | undefined) => {
+  if (attachmentUrl) {
+    const url = getAssetUrl(attachmentUrl)
+    window.open(url, '_blank')
+  }
 };
 
 onMounted(async () => {
@@ -338,10 +378,10 @@ onMounted(async () => {
             <p v-if="message.content" class="text-sm mb-2">{{ message.content }}</p>
             <img
               :src="getAssetUrl(message.attachmentUrl)"
+              :alt="message.content || 'صورة'"
               class="max-w-full rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
               style="max-height: 300px; object-fit: cover;"
-              @click="() => window.open(getAssetUrl(message.attachmentUrl!), '_blank')"
-              @error="(e) => { console.error('Image failed to load:', getAssetUrl(message.attachmentUrl), e); }"
+              @click="openImageInNewTab(message.attachmentUrl)"
               loading="lazy"
             />
           </div>
@@ -407,6 +447,7 @@ onMounted(async () => {
             <img
               v-if="filePreviewUrl"
               :src="filePreviewUrl"
+              :alt="selectedFile?.name || 'معاينة'"
               class="size-14 rounded-lg object-cover"
             />
             <div v-else class="size-14 rounded-lg bg-muted-200 dark:bg-muted-700 flex items-center justify-center">
@@ -436,9 +477,9 @@ onMounted(async () => {
             accept="image/*,audio/*,.pdf,.doc,.docx"
             @change="handleFileSelect"
           />
-          <div class="p-2.5 rounded-full hover:bg-muted-100 dark:hover:bg-muted-800 transition-colors">
+          <span class="inline-block p-2.5 rounded-full hover:bg-muted-100 dark:hover:bg-muted-800 transition-colors">
             <Icon name="ph:paperclip" class="size-6 text-muted-500" />
-          </div>
+          </span>
         </label>
 
         <div class="flex-1 bg-muted-100 dark:bg-muted-800 rounded-2xl px-4 py-2.5">
