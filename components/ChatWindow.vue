@@ -1,3 +1,7 @@
+overflow-wrap: break-word;
+  max-width: 100%;
+  white-space: pre-wrap;
+}
 <template>
   <div class="flex flex-col h-full bg-white dark:bg-[#0e1621]">
     <!-- Header - Telegram style -->
@@ -77,7 +81,7 @@
               : 'bg-primary-500 dark:bg-primary-600 text-white rounded-br-md'"
           >
             <!-- Text Message -->
-            <p v-if="message.type === MessageType.TEXT" class="text-sm leading-relaxed break-words">
+            <p v-if="message.type === MessageType.TEXT" class="message-text">
               {{ message.content }}
             </p>
 
@@ -779,5 +783,13 @@ onUnmounted(() => {
 
 .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.3);
+}
+
+/* Message text styling */
+.message-text {
+  word-break: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+  white-space: pre-wrap;
 }
 </style>
