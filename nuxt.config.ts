@@ -29,8 +29,8 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      baseUrl: process.env.NUXT_PUBLIC_BASE_URL || 'https://almawsua-dashboard.taco5k.site/api',
-      assetsUrl: process.env.NUXT_PUBLIC_ASSETS_URL || 'https://almawsua-dashboard.taco5k.site',
+      baseUrl: process.env.NUXT_PUBLIC_BASE_URL || 'https://archive-api.taco5k.site/api',
+      assetsUrl: process.env.NUXT_PUBLIC_ASSETS_URL || 'https://archive-api.taco5k.site',
     }
   },
 
