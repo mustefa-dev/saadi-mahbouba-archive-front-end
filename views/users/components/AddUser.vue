@@ -19,16 +19,14 @@ const formData = reactive({
 const addUser = async () => {
   isLoading.value = true;
   try {
-    // Validate
     const validated = addUserSchema.parse(formData);
 
     const apiPaths = useApiPaths();
-    await axios.post(apiPaths.users, validated);
+    await axios.post(apiPaths.admins, validated);
 
     helpers.setSuccessMessage('ar', 'User added successfully', 'تم إضافة المستخدم بنجاح');
     isOpen.value = false;
 
-    // Reset form
     formData.fullName = '';
     formData.phoneNumber = '';
     formData.password = '';
@@ -58,14 +56,14 @@ const addUser = async () => {
       @click="isOpen = true"
     >
       <Icon name="ph:plus" class="size-4" />
-      <span>إضافة مستخدم</span>
+      <span>إضافة مشرف</span>
     </BaseButton>
 
     <TairoModal :open="isOpen" size="md" @close="isOpen = false">
       <template #header>
         <div class="flex w-full items-center justify-between p-4 md:p-6">
           <h3 class="font-heading text-muted-900 text-lg font-medium leading-6 dark:text-white">
-            إضافة مستخدم جديد
+            إضافة مشرف جديد
           </h3>
           <BaseButtonClose @click="isOpen = false" />
         </div>

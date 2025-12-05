@@ -2,6 +2,9 @@
 import type { User, UsersResponse } from '~/types/users';
 import { formatDate, phoneNumberFormatter } from '~/utils/helpers';
 import { UserRoles } from '~/types/enums';
+import AddUser from '~/views/users/components/AddUser.vue';
+import EditUser from '~/views/users/components/EditUser.vue';
+import DeleteUser from '~/views/users/components/DeleteUser.vue';
 
 useHead({
   title: "إدارة المشرفين"
@@ -53,6 +56,7 @@ watch(searchQuery, () => {
     <BaseCard class="p-6">
       <div class="flex items-center justify-between gap-4">
         <BaseInput v-model="searchQuery" placeholder="البحث بالاسم..." icon="ph:magnifying-glass-duotone" class="w-full max-w-xs" />
+        <AddUser @added="refreshAdmins" />
       </div>
     </BaseCard>
 
@@ -74,6 +78,7 @@ watch(searchQuery, () => {
               <th class="px-6 py-3 text-right text-xs font-medium text-muted-500 uppercase tracking-wider">الاسم الكامل</th>
               <th class="px-6 py-3 text-right text-xs font-medium text-muted-500 uppercase tracking-wider">رقم الهاتف</th>
               <th class="px-6 py-3 text-right text-xs font-medium text-muted-500 uppercase tracking-wider">تاريخ الإنشاء</th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-muted-500 uppercase tracking-wider">الإجراءات</th>
             </tr>
           </thead>
           <tbody class="bg-white dark:bg-muted-800 divide-y divide-muted-200 dark:divide-muted-700">
@@ -86,6 +91,12 @@ watch(searchQuery, () => {
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="text-sm text-muted-600 dark:text-muted-300">{{ formatDate(admin.creationDate) }}</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center gap-2">
+                  <EditUser :user="admin" @edited="refreshAdmins" />
+                  <DeleteUser :user-id="admin.id" :user-name="admin.fullName" @deleted="refreshAdmins" />
+                </div>
               </td>
             </tr>
           </tbody>
