@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { User, UsersResponse } from '~/types/users';
+import { UserStatus } from '~/types/users';
 import { formatDate, phoneNumberFormatter } from '~/utils/helpers';
 import { UserRoles } from '~/types/enums';
 import AddUser from '~/views/users/components/AddUser.vue';
@@ -21,14 +22,13 @@ const pageNumber = ref(1);
 const pageSize = ref(10);
 const searchQuery = ref('');
 
-// Use useFetch like Archive-Admin with UserRoles enum
 const { data: usersData, refresh: refreshUsers, pending: isLoading } = await useFetch<UsersResponse>(
   apiPaths.users,
   {
     key: 'users-list',
     lazy: true,
     query: computed(() => ({
-      role: UserRoles.USER, // Use enum value (1)
+      role: UserRoles.USER,
       fullName: searchQuery.value,
       pageNumber: pageNumber.value,
       pageSize: pageSize.value,
@@ -43,6 +43,32 @@ const pageCount = computed(() => usersData.value?.pageCount || 0);
 watch(searchQuery, () => {
   pageNumber.value = 1;
 });
+
+const getStatusLabel = (status?: UserStatus) => {
+  switch (status) {
+    case UserStatus.Active:
+      return 'مفعّل';
+    case UserStatus.PendingApproval:
+      return 'بانتظار الموافقة';
+    case UserStatus.Rejected:
+      return 'مرفوض';
+    default:
+      return 'بانتظار الموافقة';
+  }
+};
+
+const getStatusColor = (status?: UserStatus) => {
+  switch (status) {
+    case UserStatus.Active:
+      return 'success';
+    case UserStatus.PendingApproval:
+      return 'warning';
+    case UserStatus.Rejected:
+      return 'danger';
+    default:
+      return 'warning';
+  }
+};
 </script>
 
 <template>
@@ -50,14 +76,13 @@ watch(searchQuery, () => {
     <div class="flex items-center justify-between">
       <div>
         <BaseHeading size="2xl" weight="bold">إدارة المستخدمين</BaseHeading>
-        <BaseParagraph size="sm" class="text-muted-400">إدارة حسابات المستخدمين العاديين</BaseParagraph>
+        <BaseParagraph size="sm" class="text-muted-400">إدارة حسابات الشركات</BaseParagraph>
       </div>
     </div>
 
     <BaseCard class="p-6">
       <div class="flex items-center justify-between gap-4">
         <BaseInput v-model="searchQuery" placeholder="البحث بالاسم..." icon="ph:magnifying-glass-duotone" class="w-full max-w-xs" />
-        <AddUser @added="refreshUsers" />
       </div>
     </BaseCard>
 
@@ -76,26 +101,34 @@ watch(searchQuery, () => {
         <table class="w-full">
           <thead class="bg-muted-50 dark:bg-muted-900/50">
             <tr>
+              <th class="px-6 py-3 text-right text-xs font-medium text-muted-500 uppercase tracking-wider">اسم الشركة</th>
               <th class="px-6 py-3 text-right text-xs font-medium text-muted-500 uppercase tracking-wider">الاسم الكامل</th>
               <th class="px-6 py-3 text-right text-xs font-medium text-muted-500 uppercase tracking-wider">رقم الهاتف</th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-muted-500 uppercase tracking-wider">الكود</th>
               <th class="px-6 py-3 text-right text-xs font-medium text-muted-500 uppercase tracking-wider">تاريخ الإنشاء</th>
-              <th class="px-6 py-3 text-right text-xs font-medium text-muted-500 uppercase tracking-wider">حالة التوثيق</th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-muted-500 uppercase tracking-wider">الحالة</th>
               <th class="px-6 py-3 text-right text-xs font-medium text-muted-500 uppercase tracking-wider">الإجراءات</th>
             </tr>
           </thead>
           <tbody class="bg-white dark:bg-muted-800 divide-y divide-muted-200 dark:divide-muted-700">
             <tr v-for="user in users" :key="user.id">
               <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm font-medium text-muted-900 dark:text-white">{{ user.fullName }}</div>
+                <div class="text-sm font-medium text-muted-900 dark:text-white">{{ user.companyName || '-' }}</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-muted-600 dark:text-muted-300">{{ user.fullName }}</div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="text-sm text-muted-600 dark:text-muted-300">{{ phoneNumberFormatter(user.phoneNumber) }}</div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-muted-600 dark:text-muted-300">{{ user.code || '-' }}</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
                 <div class="text-sm text-muted-600 dark:text-muted-300">{{ formatDate(user.creationDate) }}</div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
-                <BaseTag v-if="user.isVerified" color="success" flavor="pastel" size="sm">موثق</BaseTag>
+                <BaseTag v-if="user.status === UserStatus.Active" :color="getStatusColor(user.status)" flavor="pastel" size="sm">{{ getStatusLabel(user.status) }}</BaseTag>
                 <ActivateUser v-else :user-id="user.id" @activated="refreshUsers" />
               </td>
               <td class="px-6 py-4 whitespace-nowrap">

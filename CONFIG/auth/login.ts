@@ -1,11 +1,6 @@
-/**
- * Login Form Validation Schema
- */
-
 import { z } from 'zod'
 import { phoneNumberOTP } from '~/utils/helpers'
 
-// Phone validation: Must be exactly 11 digits starting with 077, 078, or 079
 const phoneValidation = z
   .string()
   .trim()
@@ -19,7 +14,7 @@ export const loginSchema = z.object({
   phoneNumber: phoneValidation,
   password: z
     .string()
-    .min(8, 'كلمة المرور يجب أن تكون على الأقل 8 أحرف')
+    .min(1, 'كلمة المرور مطلوبة')
 })
 
 export type LoginFormData = z.infer<typeof loginSchema>

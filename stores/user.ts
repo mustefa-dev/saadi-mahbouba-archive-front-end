@@ -42,7 +42,6 @@ export const useAppUserStore = defineStore('appUserStore',()=>{
   // Auto-initialize on store creation
   initAuth();
 
-  // Login with phone and password (step 1 - returns login success)
   const login = async (phoneNumber: string, password: string) => {
     const apiPaths = useApiPaths();
     const res = await axios.post(apiPaths.login, { phoneNumber, password });

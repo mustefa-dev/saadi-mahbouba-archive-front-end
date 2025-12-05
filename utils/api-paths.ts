@@ -5,8 +5,8 @@
 
 export const useApiPaths = () => {
   const config = useRuntimeConfig()
-  const baseUrl = config.public.baseUrl || 'https://almawsua-dashboard.taco5k.site/api'
-  const assetsUrl = config.public.assetsUrl || 'https://almawsua-dashboard.taco5k.site'
+  const baseUrl = config.public.baseUrl || 'https://archive-api.taco5k.site/api'
+  const assetsUrl = config.public.assetsUrl || 'https://archive-api.taco5k.site'
 
   return {
     // Authentication
