@@ -12,8 +12,7 @@ useHead({
 });
 
 definePageMeta({
-  title: "التقارير حسب الشركات",
-  middleware: ['auth']
+  title: "التقارير حسب الشركات"
 });
 
 const apiPaths = useApiPaths();
