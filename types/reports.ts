@@ -25,12 +25,25 @@ export const ReportStatusColors: Record<ReportStatus, 'default' | 'primary' | 's
   [ReportStatus.Rejected]: 'danger'
 };
 
+// Map string status to enum
+const StringToStatusMap: Record<string, ReportStatus> = {
+  'pending': ReportStatus.Pending,
+  'under_review': ReportStatus.UnderReview,
+  'approved': ReportStatus.Approved,
+  'rejected': ReportStatus.Rejected
+};
+
 // Helper functions for safe status access
 export function getReportStatusColor(status: string | ReportStatus): 'default' | 'primary' | 'success' | 'warning' | 'danger' | 'info' {
   if (typeof status === 'number') {
     return ReportStatusColors[status as ReportStatus] || 'default';
   }
-  // Try to parse string status
+  // Check string status
+  const lowerStatus = status.toLowerCase();
+  if (lowerStatus in StringToStatusMap) {
+    return ReportStatusColors[StringToStatusMap[lowerStatus]] || 'default';
+  }
+  // Try to parse string status as number
   const statusNum = parseInt(status);
   if (!isNaN(statusNum) && statusNum in ReportStatus) {
     return ReportStatusColors[statusNum as ReportStatus] || 'default';
@@ -42,7 +55,12 @@ export function getReportStatusLabel(status: string | ReportStatus): string {
   if (typeof status === 'number') {
     return ReportStatusLabels[status as ReportStatus] || status.toString();
   }
-  // Try to parse string status
+  // Check string status
+  const lowerStatus = status.toLowerCase();
+  if (lowerStatus in StringToStatusMap) {
+    return ReportStatusLabels[StringToStatusMap[lowerStatus]] || status;
+  }
+  // Try to parse string status as number
   const statusNum = parseInt(status);
   if (!isNaN(statusNum) && statusNum in ReportStatus) {
     return ReportStatusLabels[statusNum as ReportStatus] || status;
@@ -98,6 +116,15 @@ export interface Report {
   updatedAt?: string;
   userId: string;
   reviewerNote?: string;
+  // User/Company info
+  companyName?: string;
+  userFullName?: string;
+  userCode?: string;
+  // Archive-specific fields
+  fileYear?: number;
+  archiveFileName?: string;
+  archiveNotes?: string;
+  archivedAt?: string;
 }
 
 // Form Types
@@ -199,4 +226,32 @@ export interface ReportStatistics {
   approvedReports: number;
   rejectedReports: number;
   reportsToday: number;
+}
+
+// Grouped Reports by Company
+export interface ReportsGroupedByCompany {
+  userId: string;
+  companyName: string;
+  fullName: string;
+  code?: string;
+  totalReports: number;
+  pendingCount: number;
+  underReviewCount: number;
+  archivedCount: number;
+  rejectedCount: number;
+  reports: Report[];
+}
+
+// Archive Form
+export interface ArchiveReportForm {
+  fileYear: number;
+  archiveFileName: string;
+  categoryId: string;
+  subCategoryId: string;
+  archiveNotes?: string;
+}
+
+// Change Status Form
+export interface ChangeStatusForm {
+  status: ReportStatus;
 }

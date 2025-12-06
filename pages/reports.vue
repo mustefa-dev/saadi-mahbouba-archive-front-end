@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Report, ReportsResponse, Category, ReportStatus } from '~/types/reports';
+import type { Report, ReportsResponse, Category, ReportStatus, ReportStatistics } from '~/types/reports';
 import { getReportStatusColor, getReportStatusLabel } from '~/types/reports';
 import { formatDate } from '~/utils/helpers';
 import AddReport from '~/views/reports/components/AddReport.vue';
@@ -26,6 +26,8 @@ const selectedSubCategoryId = ref<string | undefined>(undefined);
 const selectedStatus = ref<ReportStatus | undefined>(undefined);
 
 const categories = ref<Category[]>([]);
+const statistics = ref<ReportStatistics | null>(null);
+
 const subCategories = computed(() => {
   if (!selectedCategoryId.value) return [];
   const category = categories.value.find(c => c.id === selectedCategoryId.value);
@@ -44,6 +46,16 @@ const fetchCategories = async () => {
     categories.value = response.data || [];
   } catch (error) {
     console.error('Error fetching categories:', error);
+  }
+};
+
+// Fetch statistics
+const fetchStatistics = async () => {
+  try {
+    const response = await $fetch<any>(apiPaths.reportStatistics);
+    statistics.value = response.data || response;
+  } catch (error) {
+    console.error('Error fetching statistics:', error);
   }
 };
 
@@ -78,6 +90,7 @@ watch(selectedCategoryId, () => {
 
 onMounted(() => {
   fetchCategories();
+  fetchStatistics();
 });
 
 const clearFilters = () => {
@@ -103,6 +116,23 @@ const getFileIcon = (fileName?: string) => {
   };
 
   return iconMap[ext || ''] || 'ph:file';
+};
+
+// Get status icon
+const getStatusIcon = (status: string) => {
+  const statusLower = status?.toLowerCase();
+  switch (statusLower) {
+    case 'pending':
+      return 'ph:clock-duotone';
+    case 'under_review':
+      return 'ph:eye-duotone';
+    case 'approved':
+      return 'ph:check-circle-duotone';
+    case 'rejected':
+      return 'ph:x-circle-duotone';
+    default:
+      return 'ph:question-duotone';
+  }
 };
 </script>
 

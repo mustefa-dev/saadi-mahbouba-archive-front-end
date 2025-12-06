@@ -29,6 +29,11 @@ const reports = [
     to: "/reports",
   },
   {
+    name: "التقارير حسب الشركات",
+    icon: { name: 'ph:buildings-duotone', class: 'w-5 h-5' },
+    to: "/reports-grouped",
+  },
+  {
     name: "التصنيفات",
     icon: { name: 'ph:folders-duotone', class: 'w-5 h-5' },
     to: "/categories",
