@@ -60,6 +60,12 @@ export const useApiPaths = () => {
     subCategoryById: (id: string) => `${baseUrl}/SubCategories/${id}`,
     archive: `${baseUrl}/Archive`,
 
+    // Banners
+    banners: `${baseUrl}/Banners`,
+    bannerById: (id: string) => `${baseUrl}/Banners/${id}`,
+    activeBanners: `${baseUrl}/Banners/active`,
+    trackBanner: `${baseUrl}/Banners/track`,
+
     // Assets
     getAsset: (path: string) => {
       // If path is already a full URL, return as is

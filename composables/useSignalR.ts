@@ -89,7 +89,8 @@ export const useSignalR = () => {
 
   const onUserTyping = (callback: (data: { userId: string; isTyping: boolean }) => void) => {
     if (connection.value) {
-      connection.value.on('UserTyping', callback)
+      // Backend sends 'TypingIndicator' event
+      connection.value.on('TypingIndicator', callback)
     }
   }
 
@@ -102,7 +103,8 @@ export const useSignalR = () => {
   const sendTypingIndicator = async (userId: string, isTyping: boolean) => {
     if (connection.value && isConnected.value) {
       try {
-        await connection.value.invoke('UserTyping', userId, isTyping)
+        // Backend hub method is 'SendTypingIndicator' with (isTyping, toUserId) params
+        await connection.value.invoke('SendTypingIndicator', isTyping, userId)
       } catch (error) {
         console.error('Error sending typing indicator:', error)
       }
@@ -127,7 +129,7 @@ export const useSignalR = () => {
 
   const offUserTyping = () => {
     if (connection.value) {
-      connection.value.off('UserTyping')
+      connection.value.off('TypingIndicator')
     }
   }
 

@@ -51,6 +51,17 @@ const users = [
   },
 ]
 
+const content = [
+  {
+    header: "إدارة المحتوى",
+  },
+  {
+    name: "البانرات",
+    icon: { name: 'ph:image-duotone', class: 'w-5 h-5' },
+    to: "/banners",
+  },
+]
+
 const settings = [
   {
     header: "الإعدادات",
@@ -66,5 +77,6 @@ export default [
   ...main,
   ...reports,
   ...users,
+  ...content,
   ...settings,
 ]
