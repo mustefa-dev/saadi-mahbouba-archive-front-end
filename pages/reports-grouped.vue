@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Report, ReportsGroupedByCompany, Category, ReportStatus } from '~/types/reports';
+import type { Report, ReportsGroupedByCompany, ReportStatus } from '~/types/reports';
 import { getReportStatusColor, getReportStatusLabel } from '~/types/reports';
 import { formatDate } from '~/utils/helpers';
 import ViewReport from '~/views/reports/components/ViewReport.vue';
@@ -17,17 +17,13 @@ definePageMeta({
 });
 
 const apiPaths = useApiPaths();
-const userStore = useAppUserStore();
-
-// Check if user is admin
-const isAdmin = computed(() => userStore.isInRole('Admin'));
 
 const searchQuery = ref('');
 const selectedStatus = ref<ReportStatus | undefined>(undefined);
 const expandedCompanies = ref<Set<string>>(new Set());
 
 // Fetch grouped reports
-const { data: groupedData, refresh: refreshReports, pending: isLoading } = useLazyFetch<ReportsGroupedByCompany[]>(
+const { data: groupedData, refresh: refreshReports, pending: isLoading, error: fetchError } = useLazyFetch<ReportsGroupedByCompany[]>(
   apiPaths.reportsGrouped,
   {
     key: 'reports-grouped',
@@ -36,7 +32,10 @@ const { data: groupedData, refresh: refreshReports, pending: isLoading } = useLa
       status: selectedStatus.value,
     })),
     transform: (response: any) => response.data || response || [],
-    default: () => []
+    default: () => [],
+    onResponseError({ response }) {
+      console.error('Error fetching grouped reports:', response.status, response._data);
+    }
   }
 );
 
@@ -156,6 +155,19 @@ const canArchive = (report: Report) => {
         <BasePlaceload class="h-16 w-full rounded" />
       </BaseCard>
     </div>
+
+    <!-- Error State -->
+    <BaseCard v-else-if="fetchError" class="p-12 text-center">
+      <Icon name="ph:warning-circle" class="h-16 w-16 mx-auto text-danger-500 mb-4" />
+      <BaseHeading size="lg" weight="semibold" class="mb-2">حدث خطأ</BaseHeading>
+      <BaseParagraph class="text-muted-400 mb-4">
+        حدث خطأ أثناء تحميل البيانات. يرجى المحاولة مرة أخرى.
+      </BaseParagraph>
+      <BaseButton color="primary" @click="refreshReports">
+        <Icon name="ph:arrow-clockwise" class="h-4 w-4" />
+        <span>إعادة المحاولة</span>
+      </BaseButton>
+    </BaseCard>
 
     <!-- Empty State -->
     <BaseCard v-else-if="filteredGroups.length === 0" class="p-12 text-center">
