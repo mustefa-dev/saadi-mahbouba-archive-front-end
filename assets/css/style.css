@@ -187,3 +187,141 @@ pre{
 .nowrap{
   white-space: nowrap;
 }
+
+/* Archive Page Enhancements */
+.archive-card {
+  transition: all 0.3s ease;
+}
+
+.archive-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+.archive-card:hover .archive-icon {
+  transform: scale(1.1);
+}
+
+.archive-icon {
+  transition: transform 0.3s ease;
+}
+
+/* File type color bars */
+.file-bar-pdf {
+  background: linear-gradient(90deg, #ef4444, #dc2626);
+}
+
+.file-bar-doc {
+  background: linear-gradient(90deg, #3b82f6, #2563eb);
+}
+
+.file-bar-xls {
+  background: linear-gradient(90deg, #22c55e, #16a34a);
+}
+
+.file-bar-image {
+  background: linear-gradient(90deg, #a855f7, #9333ea);
+}
+
+/* Glassmorphism effect for stats cards */
+.glass-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Custom scrollbar for category sidebar */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.3) transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.3);
+  border-radius: 20px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(156, 163, 175, 0.5);
+}
+
+/* Quick action buttons animation */
+.quick-actions {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.group:hover .quick-actions {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Table row hover effect */
+.archive-table-row {
+  transition: background-color 0.2s ease;
+}
+
+.archive-table-row:hover {
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+.archive-table-row:hover:where([class~="dark"], [class~="dark"] *) {
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+/* Preview modal image */
+.preview-image {
+  transition: transform 0.3s ease;
+}
+
+.preview-image:hover {
+  transform: scale(1.02);
+}
+
+/* Category item animation */
+.category-item {
+  transition: all 0.2s ease;
+}
+
+.category-item:hover {
+  transform: translateX(-4px);
+}
+
+/* Search input focus effect */
+.search-input:focus {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+/* Filter tag animation */
+.filter-tag {
+  transition: all 0.2s ease;
+}
+
+.filter-tag:hover {
+  transform: scale(1.05);
+}
+
+/* Stats counter animation */
+@keyframes countUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stat-number {
+  animation: countUp 0.5s ease-out;
+}
+

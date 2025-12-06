@@ -112,21 +112,10 @@ const formatUnreadCount = (count: number): string => {
 
 let refreshInterval: ReturnType<typeof setInterval> | null = null
 
-// Watch for route changes
-watch(() => route.path, (newPath, oldPath) => {
-  if (oldPath === '/chats' && newPath !== '/chats') {
-    isOpen.value = true
-  } else if (newPath === '/chats' && oldPath !== '/chats') {
-    isOpen.value = false
-  }
-})
-
 // Initialize - Mobile app pattern
 onMounted(async () => {
   console.log('🚀 Chat page mounted')
-  
-  // Collapse navigation sidebar
-  isOpen.value = false
+
 
   // Initialize SignalR
   if (token) {
@@ -190,9 +179,6 @@ onUnmounted(() => {
   }
 
   signalR.offReceiveMessage()
-  
-  // Restore navigation sidebar
-  isOpen.value = true
 })
 </script>
 
