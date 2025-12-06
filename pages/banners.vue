@@ -61,7 +61,7 @@ const getTypeColor = (type: number) => {
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div dir="rtl" class="space-y-6">
     <div class="flex items-center justify-between">
       <div>
         <BaseHeading size="2xl" weight="bold">إدارة البانرات</BaseHeading>

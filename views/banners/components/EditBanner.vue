@@ -15,6 +15,7 @@ const apiPaths = useApiPaths();
 const isOpen = ref(false);
 const isLoading = ref(false);
 const imagePreview = ref<string | null>(null);
+const imageInputRef = ref<HTMLInputElement | null>(null);
 
 const formData = reactive({
   title: '',
@@ -51,6 +52,11 @@ const handleImageChange = (event: Event) => {
     imageFile.value = file;
     imagePreview.value = URL.createObjectURL(file);
   }
+};
+
+const removeImage = () => {
+  imageFile.value = null;
+  imagePreview.value = null;
 };
 
 const editBanner = async () => {
@@ -102,40 +108,83 @@ const editBanner = async () => {
 
     <TairoModal :open="isOpen" size="lg" @close="isOpen = false">
       <template #header>
-        <div class="flex w-full items-center justify-between p-4 md:p-6">
-          <h3 class="font-heading text-muted-900 text-lg font-medium leading-6 dark:text-white">
-            تعديل البانر
-          </h3>
+        <div dir="rtl" class="flex w-full items-center justify-between p-4 border-b border-muted-200 dark:border-muted-700">
+          <div class="flex items-center gap-3">
+            <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-info-100 dark:bg-info-500/20">
+              <Icon name="ph:pencil-simple-duotone" class="size-5 text-info-500" />
+            </div>
+            <div>
+              <h3 class="font-heading text-muted-900 text-base font-semibold dark:text-white">
+                تعديل البانر
+              </h3>
+              <p class="text-xs text-muted-400">قم بتحديث بيانات البانر</p>
+            </div>
+          </div>
           <BaseButtonClose @click="isOpen = false" />
         </div>
       </template>
 
-      <form @submit.prevent="editBanner" class="p-4 md:p-6 space-y-4">
-        <BaseInput
-          v-model="formData.title"
-          label="العنوان"
-          placeholder="أدخل عنوان البانر"
-          :disabled="isLoading"
-          required
-        />
+      <form dir="rtl" @submit.prevent="editBanner" class="p-4 space-y-4">
+        <!-- Image Upload - Compact horizontal -->
+        <div class="flex items-start gap-4">
+          <div
+            class="relative shrink-0 w-32 h-20 border-2 border-dashed border-muted-300 dark:border-muted-600 rounded-lg overflow-hidden cursor-pointer hover:border-primary-500 transition-colors group"
+            @click="imageInputRef?.click()"
+          >
+            <input
+              ref="imageInputRef"
+              type="file"
+              accept="image/*"
+              @change="handleImageChange"
+              class="hidden"
+              :disabled="isLoading"
+            />
+            <div v-if="imagePreview" class="w-full h-full">
+              <img :src="imagePreview" alt="Preview" class="w-full h-full object-cover" />
+              <button
+                type="button"
+                class="absolute top-1 left-1 bg-danger-500/90 text-white rounded-full p-1 hover:bg-danger-600 transition-colors opacity-0 group-hover:opacity-100"
+                @click.stop="removeImage"
+              >
+                <Icon name="ph:x" class="size-3" />
+              </button>
+            </div>
+            <div v-else class="w-full h-full flex flex-col items-center justify-center">
+              <Icon name="ph:image-duotone" class="size-6 text-muted-300" />
+              <span class="text-[10px] text-muted-400 mt-1">اختر صورة</span>
+            </div>
+          </div>
+          <div class="flex-1 space-y-2">
+            <BaseInput
+              v-model="formData.title"
+              label="العنوان"
+              placeholder="عنوان البانر"
+              :disabled="isLoading"
+              size="sm"
+              required
+            />
+            <BaseInput
+              v-model="formData.linkUrl"
+              label="الرابط (اختياري)"
+              placeholder="https://..."
+              :disabled="isLoading"
+              size="sm"
+            />
+          </div>
+        </div>
 
+        <!-- Description -->
         <BaseTextarea
           v-model="formData.description"
           label="الوصف (اختياري)"
-          placeholder="أدخل وصف البانر"
+          placeholder="وصف مختصر للبانر"
           :disabled="isLoading"
           rows="2"
         />
 
-        <BaseInput
-          v-model="formData.linkUrl"
-          label="رابط الإجراء (اختياري)"
-          placeholder="https://example.com"
-          :disabled="isLoading"
-        />
-
-        <div class="grid grid-cols-2 gap-4">
-          <BaseSelect v-model="formData.type" label="النوع">
+        <!-- Settings Row -->
+        <div class="grid grid-cols-4 gap-3">
+          <BaseSelect v-model="formData.type" label="النوع" size="sm">
             <option :value="0">ترويجي</option>
             <option :value="1">معلوماتي</option>
             <option :value="2">إعلان</option>
@@ -148,68 +197,48 @@ const editBanner = async () => {
             label="الترتيب"
             min="1"
             :disabled="isLoading"
+            size="sm"
           />
-        </div>
 
-        <div class="grid grid-cols-2 gap-4">
           <BaseInput
             v-model="formData.startDate"
             type="date"
-            label="تاريخ البداية (اختياري)"
+            label="من"
             :disabled="isLoading"
+            size="sm"
           />
+
           <BaseInput
             v-model="formData.endDate"
             type="date"
-            label="تاريخ النهاية (اختياري)"
+            label="إلى"
             :disabled="isLoading"
+            size="sm"
           />
         </div>
 
-        <div>
-          <label class="nui-label pb-1 text-[0.825rem]">صورة البانر</label>
-          <div class="relative">
-            <input
-              type="file"
-              accept="image/*"
-              @change="handleImageChange"
-              class="absolute inset-0 opacity-0 cursor-pointer z-10"
-              :disabled="isLoading"
-            />
-            <div class="border-2 border-dashed border-muted-300 dark:border-muted-600 rounded-lg p-4 text-center hover:border-primary-500 transition-colors">
-              <div v-if="imagePreview" class="relative">
-                <img :src="imagePreview" alt="Preview" class="max-h-32 mx-auto rounded-lg" />
-                <button
-                  type="button"
-                  class="absolute top-0 right-0 bg-danger-500 text-white rounded-full p-1"
-                  @click.stop="imageFile = null; imagePreview = null"
-                >
-                  <Icon name="ph:x" class="size-4" />
-                </button>
-              </div>
-              <div v-else class="py-4">
-                <Icon name="ph:upload-simple" class="size-8 text-muted-400 mx-auto mb-2" />
-                <p class="text-sm text-muted-500">اضغط أو اسحب صورة هنا</p>
-              </div>
-            </div>
+        <!-- Active Toggle -->
+        <div class="flex items-center justify-between py-2 px-3 bg-muted-50 dark:bg-muted-800/50 rounded-lg">
+          <div class="flex items-center gap-2">
+            <Icon name="ph:toggle-left" class="size-4 text-muted-400" />
+            <span class="text-sm text-muted-600 dark:text-muted-300">تفعيل البانر</span>
           </div>
-        </div>
-
-        <div class="flex items-center gap-2">
           <BaseCheckbox v-model="formData.isActive" :disabled="isLoading" />
-          <span class="text-sm text-muted-600 dark:text-muted-300">نشط</span>
         </div>
 
-        <div class="flex gap-x-2 justify-end pt-4 border-t">
-          <BaseButton type="button" color="default" @click="isOpen = false">
+        <!-- Footer Buttons -->
+        <div class="flex gap-2 justify-end pt-2 border-t border-muted-200 dark:border-muted-700">
+          <BaseButton type="button" color="default" size="sm" @click="isOpen = false">
             إلغاء
           </BaseButton>
           <BaseButton
             type="submit"
             color="primary"
+            size="sm"
             :loading="isLoading"
             :disabled="isLoading"
           >
+            <Icon name="ph:check" class="size-4 me-1" />
             حفظ
           </BaseButton>
         </div>

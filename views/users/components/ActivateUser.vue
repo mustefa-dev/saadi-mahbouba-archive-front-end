@@ -98,7 +98,7 @@ const activateUser = async () => {
 
     <TairoModal :open="isOpen" size="lg" @close="isOpen = false">
       <template #header>
-        <div class="flex w-full items-center justify-between p-4 md:p-6">
+        <div dir="rtl" class="flex w-full items-center justify-between p-4 md:p-6">
           <h3 class="font-heading text-muted-900 text-lg font-medium leading-6 dark:text-white">
             تفعيل حساب الشركة
           </h3>
@@ -106,7 +106,7 @@ const activateUser = async () => {
         </div>
       </template>
 
-      <div class="p-4 md:p-6">
+      <div dir="rtl" class="p-4 md:p-6">
         <!-- Step Indicator -->
         <div class="flex items-center justify-center gap-2 mb-6">
           <button

@@ -27,16 +27,16 @@ const selectedStatus = ref<ReportStatus | undefined>(undefined);
 const expandedCompanies = ref<Set<string>>(new Set());
 
 // Fetch grouped reports
-const { data: groupedData, refresh: refreshReports, pending: isLoading } = await useFetch<ReportsGroupedByCompany[]>(
+const { data: groupedData, refresh: refreshReports, pending: isLoading } = useLazyFetch<ReportsGroupedByCompany[]>(
   apiPaths.reportsGrouped,
   {
     key: 'reports-grouped',
-    lazy: true,
     query: computed(() => ({
       search: searchQuery.value,
       status: selectedStatus.value,
     })),
-    transform: (response: any) => response.data || response || []
+    transform: (response: any) => response.data || response || [],
+    default: () => []
   }
 );
 
