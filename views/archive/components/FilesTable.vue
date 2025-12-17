@@ -37,9 +37,8 @@ const subCategories = computed(() => {
   return category?.subCategories ?? []
 })
 
-// Year options
-const currentYear = new Date().getFullYear()
-const yearOptions = Array.from({ length: 50 }, (_, i) => currentYear - i)
+// Year options (from 2099 down to 1950)
+const yearOptions = Array.from({ length: 150 }, (_, i) => 2099 - i)
 
 // Watch for filter changes
 watch([search, selectedCategoryId, selectedSubCategoryId, selectedYear, sortOrder], () => {

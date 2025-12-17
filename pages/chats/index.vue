@@ -112,7 +112,7 @@ const formatUnreadCount = (count: number): string => {
 
 let refreshInterval: ReturnType<typeof setInterval> | null = null
 
-// Initialize - Mobile app pattern
+ // Initialize - Mobile app pattern
 onMounted(async () => {
   console.log('🚀 Chat page mounted')
 

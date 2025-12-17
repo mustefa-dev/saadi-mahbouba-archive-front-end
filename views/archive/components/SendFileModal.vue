@@ -41,9 +41,9 @@ const subCategories = computed(() => {
   return category?.subCategories ?? []
 })
 
-// Year options
+// Year options (from 2099 down to 1950)
 const currentYear = new Date().getFullYear()
-const yearOptions = Array.from({ length: 50 }, (_, i) => currentYear - i)
+const yearOptions = Array.from({ length: 150 }, (_, i) => 2099 - i)
 
 // Reset subcategory when category changes
 watch(selectedCategoryId, () => {

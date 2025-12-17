@@ -52,6 +52,19 @@ const fileFilter = ref<ArchiveFileFilter>({
   sortOrder: 'desc'
 })
 
+// Normalize company data to handle both PascalCase and camelCase from API
+const normalizeCompany = (company: any): CompanyArchive => ({
+  userId: company.userId || company.UserId || '',
+  companyName: company.companyName || company.CompanyName || '',
+  fullName: company.fullName || company.FullName || '',
+  code: company.code || company.Code || '',
+  subCategoriesCount: company.subCategoriesCount ?? company.SubCategoriesCount ?? 0,
+  clientFilesCount: company.clientFilesCount ?? company.ClientFilesCount ?? 0,
+  managementFilesCount: company.managementFilesCount ?? company.ManagementFilesCount ?? 0,
+  conversationsCount: company.conversationsCount ?? company.ConversationsCount ?? 0,
+  createdAt: company.createdAt || company.CreatedAt || ''
+})
+
 // Fetch companies
 const fetchCompanies = async () => {
   loadingCompanies.value = true
@@ -59,7 +72,8 @@ const fetchCompanies = async () => {
     const response = await $fetch<any>(apiPaths.archiveCompanies, {
       query: { pageNumber: pageNumber.value, pageSize: pageSize.value }
     })
-    companies.value = response.Data || response.data || []
+    const rawCompanies = response.Data || response.data || []
+    companies.value = rawCompanies.map(normalizeCompany)
     totalCount.value = response.TotalCount || response.totalCount || 0
   } catch (error) {
     console.error('Error fetching companies:', error)
@@ -68,18 +82,37 @@ const fetchCompanies = async () => {
   }
 }
 
+// Normalize folders data
+const normalizeFolders = (data: any): CompanyFolders => ({
+  clientFilesCount: data.clientFilesCount ?? data.ClientFilesCount ?? 0,
+  managementFilesCount: data.managementFilesCount ?? data.ManagementFilesCount ?? 0,
+  conversationsCount: data.conversationsCount ?? data.ConversationsCount ?? 0
+})
+
 // Fetch folders for a company
 const fetchFolders = async (userId: string) => {
   loadingFolders.value = true
   try {
-    const response = await $fetch<CompanyFolders>(apiPaths.archiveCompanyFolders(userId))
-    folders.value = response
+    const response = await $fetch<any>(apiPaths.archiveCompanyFolders(userId))
+    folders.value = normalizeFolders(response)
   } catch (error) {
     console.error('Error fetching folders:', error)
   } finally {
     loadingFolders.value = false
   }
 }
+
+// Normalize file data
+const normalizeFile = (file: any): ArchiveFile => ({
+  id: file.id || file.Id || '',
+  fileName: file.fileName || file.FileName || '',
+  fileType: file.fileType || file.FileType || '',
+  categoryName: file.categoryName || file.CategoryName || '',
+  subCategoryName: file.subCategoryName || file.SubCategoryName || '',
+  archivedAt: file.archivedAt || file.ArchivedAt || '',
+  senderName: file.senderName || file.SenderName || '',
+  fileUrl: file.fileUrl || file.FileUrl || ''
+})
 
 // Fetch files (client or management)
 const fetchFiles = async (userId: string, folderType: FolderType, filter: ArchiveFileFilter = {}) => {
@@ -96,7 +129,8 @@ const fetchFiles = async (userId: string, folderType: FolderType, filter: Archiv
         pageSize: pageSize.value
       }
     })
-    files.value = response.Data || response.data || []
+    const rawFiles = response.Data || response.data || []
+    files.value = rawFiles.map(normalizeFile)
     totalCount.value = response.TotalCount || response.totalCount || 0
   } catch (error) {
     console.error('Error fetching files:', error)
@@ -121,12 +155,23 @@ const fetchConversations = async (userId: string) => {
   }
 }
 
+// Normalize company details
+const normalizeCompanyDetails = (data: any): CompanyDetails => ({
+  managerName: data.managerName || data.ManagerName || '',
+  email: data.email || data.Email || '',
+  phoneNumber: data.phoneNumber || data.PhoneNumber || '',
+  address: data.address || data.Address || '',
+  lawyerName: data.lawyerName || data.LawyerName || '',
+  accountantName: data.accountantName || data.AccountantName || '',
+  registrationDate: data.registrationDate || data.RegistrationDate || ''
+})
+
 // Fetch company info
 const fetchCompanyInfo = async (userId: string) => {
   loadingContent.value = true
   try {
-    const response = await $fetch<CompanyDetails>(apiPaths.archiveCompanyInfo(userId))
-    companyDetails.value = response
+    const response = await $fetch<any>(apiPaths.archiveCompanyInfo(userId))
+    companyDetails.value = normalizeCompanyDetails(response)
   } catch (error) {
     console.error('Error fetching company info:', error)
   } finally {
