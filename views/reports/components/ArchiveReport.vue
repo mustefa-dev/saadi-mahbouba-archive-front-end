@@ -105,7 +105,7 @@ const yearOptions = computed(() => {
 
     <TairoModal :open="isOpen" size="lg" @close="closeModal">
       <template #header>
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-3 p-4" dir="rtl">
           <div class="flex items-center justify-center w-10 h-10 rounded-full bg-success-100 dark:bg-success-500/20">
             <Icon name="ph:archive-duotone" class="h-5 w-5 text-success-500" />
           </div>
@@ -116,7 +116,7 @@ const yearOptions = computed(() => {
         </div>
       </template>
 
-      <div class="space-y-4 p-6">
+      <div class="space-y-4 p-6" dir="rtl">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <BaseSelect
             v-model="form.fileYear"
@@ -171,7 +171,7 @@ const yearOptions = computed(() => {
       </div>
 
       <template #footer>
-        <div class="flex items-center justify-end gap-2">
+        <div class="flex items-center justify-end gap-2 p-4" dir="rtl">
           <BaseButton color="muted" @click="closeModal">
             إلغاء
           </BaseButton>

@@ -39,7 +39,7 @@ const deleteBanner = async () => {
 
     <TairoModal :open="isOpen" size="sm" @close="isOpen = false">
       <template #header>
-        <div class="flex w-full items-center justify-between p-4 md:p-6">
+        <div class="flex w-full items-center justify-between p-4 md:p-6" dir="rtl">
           <h3 class="font-heading text-muted-900 text-lg font-medium leading-6 dark:text-white">
             حذف البانر
           </h3>
@@ -47,7 +47,7 @@ const deleteBanner = async () => {
         </div>
       </template>
 
-      <div class="p-4 md:p-6">
+      <div class="p-4 md:p-6" dir="rtl">
         <div class="text-center">
           <Icon name="ph:warning-circle-duotone" class="size-16 text-danger-500 mx-auto mb-4" />
           <p class="text-muted-600 dark:text-muted-300">

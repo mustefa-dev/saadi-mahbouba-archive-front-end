@@ -54,7 +54,7 @@ defineExpose({ open: openDialog });
 
     <TairoModal :open="isOpen" size="lg" @close="isOpen = false">
       <template #header>
-        <div class="flex w-full items-center justify-between p-4 md:p-6">
+        <div class="flex w-full items-center justify-between p-4 md:p-6" dir="rtl">
           <h3 class="font-heading text-muted-900 text-lg font-medium leading-6 dark:text-white">
             تفاصيل التقرير
           </h3>
@@ -62,7 +62,7 @@ defineExpose({ open: openDialog });
         </div>
       </template>
 
-      <div class="p-4 md:p-6">
+      <div class="p-4 md:p-6" dir="rtl">
         <div v-if="isLoading" class="space-y-4">
           <BasePlaceload class="h-8 w-full rounded" />
           <BasePlaceload class="h-24 w-full rounded" />

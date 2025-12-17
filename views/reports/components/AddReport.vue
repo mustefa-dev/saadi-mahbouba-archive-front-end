@@ -119,7 +119,7 @@ const openDialog = async () => {
 
     <TairoModal :open="isOpen" size="lg" @close="isOpen = false">
       <template #header>
-        <div class="flex w-full items-center justify-between p-4 md:p-6">
+        <div class="flex w-full items-center justify-between p-4 md:p-6" dir="rtl">
           <h3 class="font-heading text-muted-900 text-lg font-medium leading-6 dark:text-white">
             إضافة تقرير جديد
           </h3>
@@ -127,7 +127,7 @@ const openDialog = async () => {
         </div>
       </template>
 
-      <form @submit.prevent="addReport" class="p-4 md:p-6 space-y-4">
+      <form @submit.prevent="addReport" class="p-4 md:p-6 space-y-4" dir="rtl">
         <BaseInput
           v-model="formData.title"
           label="عنوان التقرير"

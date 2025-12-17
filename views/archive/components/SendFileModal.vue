@@ -154,7 +154,7 @@ const handleSubmit = async () => {
 <template>
   <TairoModal :open="open" size="lg" @close="emit('close')">
     <template #header>
-      <div class="flex items-center justify-between p-4 border-b border-muted-200 dark:border-muted-700">
+      <div class="flex items-center justify-between p-4 border-b border-muted-200 dark:border-muted-700" dir="rtl">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-lg bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
             <Icon name="ph:file-arrow-up-duotone" class="w-5 h-5 text-primary-500" />
@@ -172,7 +172,7 @@ const handleSubmit = async () => {
       </div>
     </template>
 
-    <div class="p-6 space-y-6">
+    <div class="p-6 space-y-6" dir="rtl">
       <!-- Error Message -->
       <div v-if="error" class="p-4 bg-danger-100 dark:bg-danger-900/30 border border-danger-200 dark:border-danger-800 rounded-lg">
         <div class="flex items-center gap-2 text-danger-600 dark:text-danger-400">
@@ -306,7 +306,7 @@ const handleSubmit = async () => {
     </div>
 
     <template #footer>
-      <div class="flex items-center justify-end gap-3 p-4 border-t border-muted-200 dark:border-muted-700">
+      <div class="flex items-center justify-end gap-3 p-4 border-t border-muted-200 dark:border-muted-700" dir="rtl">
         <BaseButton color="muted" @click="emit('close')">
           إلغاء
         </BaseButton>

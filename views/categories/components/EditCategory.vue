@@ -67,7 +67,7 @@ const editCategory = async () => {
 
     <TairoModal :open="isOpen" size="md" @close="isOpen = false">
       <template #header>
-        <div class="flex w-full items-center justify-between p-4 md:p-6">
+        <div class="flex w-full items-center justify-between p-4 md:p-6" dir="rtl">
           <h3 class="font-heading text-muted-900 text-lg font-medium leading-6 dark:text-white">
             تعديل التصنيف
           </h3>
@@ -75,7 +75,7 @@ const editCategory = async () => {
         </div>
       </template>
 
-      <form @submit.prevent="editCategory" class="p-4 md:p-6 space-y-4">
+      <form @submit.prevent="editCategory" class="p-4 md:p-6 space-y-4" dir="rtl">
         <BaseInput
           v-model="formData.nameAr"
           label="الاسم بالعربية"

@@ -5,6 +5,7 @@ import { UserRoles } from '~/types/enums';
 import AddUser from '~/views/users/components/AddUser.vue';
 import EditUser from '~/views/users/components/EditUser.vue';
 import DeleteUser from '~/views/users/components/DeleteUser.vue';
+import ViewAdmin from '~/views/users/components/ViewAdmin.vue';
 
 useHead({
   title: "إدارة المشرفين"
@@ -94,6 +95,7 @@ watch(searchQuery, () => {
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center gap-2">
+                  <ViewAdmin :user="admin" />
                   <EditUser :user="admin" @edited="refreshAdmins" />
                   <DeleteUser :user-id="admin.id" :user-name="admin.fullName" @deleted="refreshAdmins" />
                 </div>

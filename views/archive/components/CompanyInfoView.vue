@@ -6,6 +6,10 @@ const props = defineProps<{
   loading: boolean
 }>()
 
+const emit = defineEmits<{
+  (e: 'edit'): void
+}>()
+
 const formatHijriDate = (dateString: string) => {
   if (!dateString) return '-'
   try {
@@ -22,7 +26,7 @@ const formatHijriDate = (dateString: string) => {
 </script>
 
 <template>
-  <div class="w-full space-y-6">
+  <div class="w-full space-y-6" dir="rtl">
     <!-- Loading State -->
     <template v-if="loading">
       <div v-for="i in 3" :key="i" class="p-6 bg-muted-100 dark:bg-muted-800 rounded-xl animate-pulse">
@@ -48,6 +52,18 @@ const formatHijriDate = (dateString: string) => {
 
     <!-- Company Info -->
     <template v-else>
+      <!-- Edit Button -->
+      <div class="flex justify-end mb-4">
+        <BaseButton
+          color="primary"
+          size="sm"
+          @click="emit('edit')"
+        >
+          <Icon name="ph:pencil-simple" class="w-4 h-4 ml-2" />
+          تعديل البيانات
+        </BaseButton>
+      </div>
+
       <!-- Contact Information -->
       <div class="p-6 bg-white dark:bg-muted-800 border border-muted-200 dark:border-muted-700 rounded-xl">
         <h3 class="text-lg font-semibold text-muted-800 dark:text-muted-100 mb-6 pb-3 border-b border-muted-200 dark:border-muted-700">

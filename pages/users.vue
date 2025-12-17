@@ -7,6 +7,7 @@ import AddUser from '~/views/users/components/AddUser.vue';
 import EditUser from '~/views/users/components/EditUser.vue';
 import DeleteUser from '~/views/users/components/DeleteUser.vue';
 import ActivateUser from '~/views/users/components/ActivateUser.vue';
+import ViewUser from '~/views/users/components/ViewUser.vue';
 
 useHead({
   title: "إدارة المستخدمين"
@@ -133,6 +134,7 @@ const getStatusColor = (status?: UserStatus) => {
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center gap-2">
+                  <ViewUser :user="user" />
                   <EditUser :user="user" @edited="refreshUsers" />
                   <DeleteUser :user-id="user.id" :user-name="user.fullName" @deleted="refreshUsers" />
                 </div>

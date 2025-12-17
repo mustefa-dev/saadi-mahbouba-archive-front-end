@@ -8,6 +8,7 @@ import ConversationsView from '~/views/archive/components/ConversationsView.vue'
 import CompanyInfoView from '~/views/archive/components/CompanyInfoView.vue'
 import ArchiveSidebar from '~/views/archive/components/ArchiveSidebar.vue'
 import SendFileModal from '~/views/archive/components/SendFileModal.vue'
+import EditCompanyModal from '~/views/archive/components/EditCompanyModal.vue'
 
 useHead({
   title: "الأرشيف"
@@ -21,6 +22,9 @@ const apiPaths = useApiPaths()
 
 // Send file modal state
 const showSendFileModal = ref(false)
+
+// Edit company modal state
+const showEditCompanyModal = ref(false)
 
 // Navigation state
 const currentLevel = ref<'companies' | 'folders' | 'content'>('companies')
@@ -325,6 +329,19 @@ const handleSendFileSuccess = () => {
   }
 }
 
+// Handle edit company
+const handleEditCompany = () => {
+  showEditCompanyModal.value = true
+}
+
+// Handle edit company success
+const handleEditCompanySuccess = () => {
+  // Refresh company info
+  if (selectedCompany.value) {
+    fetchCompanyInfo(selectedCompany.value.userId)
+  }
+}
+
 // Initial load
 onMounted(() => {
   fetchCompanies()
@@ -491,6 +508,7 @@ onMounted(() => {
               v-else-if="selectedFolder === FolderType.CompanyInfo"
               :details="companyDetails"
               :loading="loadingContent"
+              @edit="handleEditCompany"
             />
           </template>
         </div>
@@ -516,6 +534,14 @@ onMounted(() => {
       :company="selectedCompany"
       @close="showSendFileModal = false"
       @success="handleSendFileSuccess"
+    />
+
+    <!-- Edit Company Modal -->
+    <EditCompanyModal
+      :open="showEditCompanyModal"
+      :company="selectedCompany"
+      @close="showEditCompanyModal = false"
+      @success="handleEditCompanySuccess"
     />
   </div>
 </template>

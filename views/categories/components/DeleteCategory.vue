@@ -44,7 +44,7 @@ const deleteCategory = async () => {
 
     <TairoModal :open="isOpen" size="sm" @close="isOpen = false">
       <template #header>
-        <div class="flex w-full items-center justify-between p-4 md:p-6">
+        <div class="flex w-full items-center justify-between p-4 md:p-6" dir="rtl">
           <h3 class="font-heading text-muted-900 text-lg font-medium leading-6 dark:text-white">
             حذف التصنيف
           </h3>
@@ -52,7 +52,7 @@ const deleteCategory = async () => {
         </div>
       </template>
 
-      <div class="p-4 md:p-6">
+      <div class="p-4 md:p-6" dir="rtl">
         <div class="mx-auto w-full text-center">
           <p class="text-muted-500 dark:text-muted-400 mb-2">
             هل أنت متأكد من حذف التصنيف

@@ -41,7 +41,8 @@ export const formatDateToUtc = (date: Date): string => {
 /**
  * Convert international phone format (+964) to local (0)
  */
-export const phoneNumberFormatter = (phoneNumber: string): string => {
+export const phoneNumberFormatter = (phoneNumber: string | null | undefined): string => {
+  if (!phoneNumber) return ''
   if (phoneNumber.startsWith('+964')) {
     return phoneNumber.replace('+964', '0')
   }
@@ -51,7 +52,8 @@ export const phoneNumberFormatter = (phoneNumber: string): string => {
 /**
  * Convert local phone format (0) to international (+964)
  */
-export const phoneNumberOTP = (phoneNumber: string): string => {
+export const phoneNumberOTP = (phoneNumber: string | null | undefined): string => {
+  if (!phoneNumber) return ''
   if (phoneNumber.startsWith('0')) {
     return phoneNumber.replace('0', '+964')
   }
