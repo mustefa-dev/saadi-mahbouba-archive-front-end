@@ -7,6 +7,7 @@ import FilesTable from '~/views/archive/components/FilesTable.vue'
 import ConversationsView from '~/views/archive/components/ConversationsView.vue'
 import CompanyInfoView from '~/views/archive/components/CompanyInfoView.vue'
 import ArchiveSidebar from '~/views/archive/components/ArchiveSidebar.vue'
+import SendFileModal from '~/views/archive/components/SendFileModal.vue'
 
 useHead({
   title: "الأرشيف"
@@ -17,6 +18,9 @@ definePageMeta({
 })
 
 const apiPaths = useApiPaths()
+
+// Send file modal state
+const showSendFileModal = ref(false)
 
 // Navigation state
 const currentLevel = ref<'companies' | 'folders' | 'content'>('companies')
@@ -52,11 +56,11 @@ const fileFilter = ref<ArchiveFileFilter>({
 const fetchCompanies = async () => {
   loadingCompanies.value = true
   try {
-    const response = await $fetch<{ data: CompanyArchive[], totalCount: number }>(apiPaths.archiveCompanies, {
+    const response = await $fetch<any>(apiPaths.archiveCompanies, {
       query: { pageNumber: pageNumber.value, pageSize: pageSize.value }
     })
-    companies.value = response.data || []
-    totalCount.value = response.totalCount || 0
+    companies.value = response.Data || response.data || []
+    totalCount.value = response.TotalCount || response.totalCount || 0
   } catch (error) {
     console.error('Error fetching companies:', error)
   } finally {
@@ -85,15 +89,15 @@ const fetchFiles = async (userId: string, folderType: FolderType, filter: Archiv
       ? apiPaths.archiveClientFiles(userId)
       : apiPaths.archiveManagementFiles(userId)
 
-    const response = await $fetch<{ data: ArchiveFile[], totalCount: number }>(endpoint, {
+    const response = await $fetch<any>(endpoint, {
       query: {
         ...filter,
         pageNumber: pageNumber.value,
         pageSize: pageSize.value
       }
     })
-    files.value = response.data || []
-    totalCount.value = response.totalCount || 0
+    files.value = response.Data || response.data || []
+    totalCount.value = response.TotalCount || response.totalCount || 0
   } catch (error) {
     console.error('Error fetching files:', error)
   } finally {
@@ -105,11 +109,11 @@ const fetchFiles = async (userId: string, folderType: FolderType, filter: Archiv
 const fetchConversations = async (userId: string) => {
   loadingContent.value = true
   try {
-    const response = await $fetch<{ data: ConversationMessage[], totalCount: number }>(
+    const response = await $fetch<any>(
       apiPaths.archiveCompanyConversations(userId),
-      { query: { pageNumber: 1, pageSize: 100 } }
+      { query: { pageNumber: 0, pageSize: 100 } }
     )
-    conversations.value = response.data || []
+    conversations.value = response.Data || response.data || []
   } catch (error) {
     console.error('Error fetching conversations:', error)
   } finally {
@@ -264,6 +268,18 @@ const refresh = () => {
   }
 }
 
+// Handle send file success
+const handleSendFileSuccess = () => {
+  // Refresh folders to update counts
+  if (selectedCompany.value) {
+    fetchFolders(selectedCompany.value.userId)
+  }
+  // If currently viewing management files, refresh the list
+  if (selectedFolder.value === FolderType.ManagementFiles && selectedCompany.value) {
+    fetchFiles(selectedCompany.value.userId, FolderType.ManagementFiles, fileFilter.value)
+  }
+}
+
 // Initial load
 onMounted(() => {
   fetchCompanies()
@@ -303,6 +319,18 @@ onMounted(() => {
           >
             <Icon name="ph:arrows-clockwise" class="w-4 h-4" />
           </BaseButtonIcon>
+
+          <!-- Send File Button (only when company is selected) -->
+          <BaseButton
+            v-if="selectedCompany"
+            size="sm"
+            color="primary"
+            rounded="lg"
+            @click="showSendFileModal = true"
+          >
+            <Icon name="ph:file-arrow-up" class="w-4 h-4 ml-2" />
+            إرسال ملف
+          </BaseButton>
         </div>
 
         <!-- Breadcrumb -->
@@ -436,6 +464,14 @@ onMounted(() => {
         </div>
       </div>
     </div>
+
+    <!-- Send File Modal -->
+    <SendFileModal
+      :open="showSendFileModal"
+      :company="selectedCompany"
+      @close="showSendFileModal = false"
+      @success="handleSendFileSuccess"
+    />
   </div>
 </template>
 

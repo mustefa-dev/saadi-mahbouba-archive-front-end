@@ -70,6 +70,7 @@ export const useApiPaths = () => {
     archiveManagementFiles: (userId: string) => `${baseUrl}/Archive/companies/${userId}/management-files`,
     archiveCompanyInfo: (userId: string) => `${baseUrl}/Archive/companies/${userId}/info`,
     archiveCompanyConversations: (userId: string) => `${baseUrl}/Archive/companies/${userId}/conversations`,
+    archiveSendFile: `${baseUrl}/Archive/send-file`,
 
     // Banners
     banners: `${baseUrl}/Banners`,

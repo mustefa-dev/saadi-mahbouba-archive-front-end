@@ -2,9 +2,11 @@
 import type { ConversationMessage } from '~/types/archive'
 
 const props = defineProps<{
-  messages: ConversationMessage[]
+  messages: any[]
   loading: boolean
 }>()
+
+const apiPaths = useApiPaths()
 
 const formatDateTime = (dateString: string) => {
   if (!dateString) return ''
@@ -16,6 +18,26 @@ const formatDateTime = (dateString: string) => {
   } catch {
     return dateString
   }
+}
+
+// Normalize message to always have camelCase properties
+const normalizeMessage = (msg: any): ConversationMessage => ({
+  id: msg.id || msg.Id || '',
+  fromUserId: msg.fromUserId || msg.FromUserId || '',
+  fromUserName: msg.fromUserName || msg.FromUserName || '',
+  toUserId: msg.toUserId || msg.ToUserId,
+  content: msg.content || msg.Content || '',
+  type: msg.type ?? msg.Type ?? 0,
+  attachmentUrl: msg.attachmentUrl || msg.AttachmentUrl,
+  isAdminMessage: msg.isAdminMessage ?? msg.IsAdminMessage ?? false,
+  sentAt: msg.sentAt || msg.SentAt || ''
+})
+
+const normalizedMessages = computed(() => props.messages.map(normalizeMessage))
+
+const getAttachmentUrl = (url: string | undefined) => {
+  if (!url) return ''
+  return apiPaths.getAsset(url)
 }
 </script>
 
@@ -41,7 +63,7 @@ const formatDateTime = (dateString: string) => {
     </div>
 
     <!-- Empty State -->
-    <div v-else-if="!messages.length" class="flex flex-col items-center justify-center py-16 text-muted-400">
+    <div v-else-if="!normalizedMessages.length" class="flex flex-col items-center justify-center py-16 text-muted-400">
       <Icon name="ph:chat-circle-dashed-duotone" class="w-16 h-16 mb-4" />
       <p class="text-lg">لا توجد محادثات</p>
     </div>
@@ -49,7 +71,7 @@ const formatDateTime = (dateString: string) => {
     <!-- Messages List -->
     <div v-else class="space-y-4">
       <div
-        v-for="message in messages"
+        v-for="message in normalizedMessages"
         :key="message.id"
         class="p-4 bg-white dark:bg-muted-800 border border-muted-200 dark:border-muted-700 rounded-xl"
       >
@@ -105,7 +127,7 @@ const formatDateTime = (dateString: string) => {
             <!-- Attachment if any -->
             <div v-if="message.attachmentUrl" class="mt-3">
               <a
-                :href="message.attachmentUrl"
+                :href="getAttachmentUrl(message.attachmentUrl)"
                 target="_blank"
                 class="inline-flex items-center gap-2 px-3 py-2 bg-muted-100 dark:bg-muted-700 rounded-lg text-sm text-muted-600 dark:text-muted-300 hover:bg-muted-200 dark:hover:bg-muted-600 transition-colors"
               >
