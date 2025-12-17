@@ -63,6 +63,14 @@ export const useApiPaths = () => {
     subCategoryById: (id: string) => `${baseUrl}/SubCategories/${id}`,
     archive: `${baseUrl}/Archive`,
 
+    // Archive Companies
+    archiveCompanies: `${baseUrl}/Archive/companies`,
+    archiveCompanyFolders: (userId: string) => `${baseUrl}/Archive/companies/${userId}/folders`,
+    archiveClientFiles: (userId: string) => `${baseUrl}/Archive/companies/${userId}/client-files`,
+    archiveManagementFiles: (userId: string) => `${baseUrl}/Archive/companies/${userId}/management-files`,
+    archiveCompanyInfo: (userId: string) => `${baseUrl}/Archive/companies/${userId}/info`,
+    archiveCompanyConversations: (userId: string) => `${baseUrl}/Archive/companies/${userId}/conversations`,
+
     // Banners
     banners: `${baseUrl}/Banners`,
     bannerById: (id: string) => `${baseUrl}/Banners/${id}`,

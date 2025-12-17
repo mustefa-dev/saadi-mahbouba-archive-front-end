@@ -1,0 +1,243 @@
+<script setup lang="ts">
+import type { ArchiveFile, ArchiveFileFilter } from '~/types/archive'
+import type { Category, SubCategory } from '~/types/reports'
+
+const props = defineProps<{
+  files: ArchiveFile[]
+  loading: boolean
+  totalCount: number
+  folderTitle: string
+}>()
+
+const emit = defineEmits<{
+  (e: 'filter', filter: ArchiveFileFilter): void
+  (e: 'view', file: ArchiveFile): void
+  (e: 'download', file: ArchiveFile): void
+}>()
+
+const apiPaths = useApiPaths()
+
+// Filter state
+const search = ref('')
+const selectedCategoryId = ref<string | undefined>()
+const selectedSubCategoryId = ref<string | undefined>()
+const selectedYear = ref<number | undefined>()
+const sortOrder = ref<'asc' | 'desc'>('desc')
+
+// Categories data
+const { data: categoriesData } = await useFetch<{ data: Category[] }>(apiPaths.categories, {
+  query: { pageSize: 100, isActive: true }
+})
+
+const categories = computed(() => categoriesData.value?.data ?? [])
+
+const subCategories = computed(() => {
+  if (!selectedCategoryId.value) return []
+  const category = categories.value.find(c => c.id === selectedCategoryId.value)
+  return category?.subCategories ?? []
+})
+
+// Year options
+const currentYear = new Date().getFullYear()
+const yearOptions = Array.from({ length: 50 }, (_, i) => currentYear - i)
+
+// Watch for filter changes
+watch([search, selectedCategoryId, selectedSubCategoryId, selectedYear, sortOrder], () => {
+  emit('filter', {
+    search: search.value || undefined,
+    categoryId: selectedCategoryId.value,
+    subCategoryId: selectedSubCategoryId.value,
+    year: selectedYear.value,
+    sortOrder: sortOrder.value
+  })
+}, { debounce: 300 })
+
+// Reset subcategory when category changes
+watch(selectedCategoryId, () => {
+  selectedSubCategoryId.value = undefined
+})
+
+const formatHijriDate = (dateString: string) => {
+  if (!dateString) return '-'
+  try {
+    const date = new Date(dateString)
+    return new Intl.DateTimeFormat('ar-SA-u-ca-islamic', {
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric'
+    }).format(date)
+  } catch {
+    return dateString
+  }
+}
+
+const getFileTypeColor = (type: string) => {
+  const colors: Record<string, string> = {
+    PDF: 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400',
+    DOCX: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
+    XLSX: 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400',
+    IMG: 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400'
+  }
+  return colors[type] || 'bg-muted-100 text-muted-600 dark:bg-muted-700 dark:text-muted-300'
+}
+
+const toggleSort = () => {
+  sortOrder.value = sortOrder.value === 'desc' ? 'asc' : 'desc'
+}
+</script>
+
+<template>
+  <div class="w-full space-y-4">
+    <!-- Filters Section -->
+    <div class="p-4 bg-muted-50 dark:bg-muted-800/50 rounded-xl border border-muted-200 dark:border-muted-700">
+      <div class="flex items-center gap-2 mb-4 text-muted-600 dark:text-muted-300">
+        <Icon name="ph:funnel-duotone" class="w-5 h-5" />
+        <span class="font-medium">البحث والفلاتر</span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Search -->
+        <BaseInput
+          v-model="search"
+          icon="ph:magnifying-glass"
+          placeholder="ابحث باسم الملف..."
+          :classes="{ wrapper: 'w-full' }"
+        />
+
+        <!-- Category -->
+        <BaseSelect
+          v-model="selectedCategoryId"
+          :classes="{ wrapper: 'w-full' }"
+        >
+          <option :value="undefined">جميع الفئات</option>
+          <option v-for="cat in categories" :key="cat.id" :value="cat.id">
+            {{ cat.nameAr || cat.name }}
+          </option>
+        </BaseSelect>
+
+        <!-- SubCategory -->
+        <BaseSelect
+          v-model="selectedSubCategoryId"
+          :disabled="!selectedCategoryId"
+          :classes="{ wrapper: 'w-full' }"
+        >
+          <option :value="undefined">جميع الفئات الفرعية</option>
+          <option v-for="sub in subCategories" :key="sub.id" :value="sub.id">
+            {{ sub.nameAr || sub.name }}
+          </option>
+        </BaseSelect>
+
+        <!-- Year -->
+        <BaseSelect
+          v-model="selectedYear"
+          :classes="{ wrapper: 'w-full' }"
+        >
+          <option :value="undefined">جميع السنوات</option>
+          <option v-for="year in yearOptions" :key="year" :value="year">
+            {{ year }}
+          </option>
+        </BaseSelect>
+      </div>
+
+      <!-- Sort Button -->
+      <div class="mt-4 flex items-center gap-4">
+        <button
+          class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-muted-800 border border-muted-200 dark:border-muted-700 rounded-lg hover:bg-muted-50 dark:hover:bg-muted-700 transition-colors"
+          @click="toggleSort"
+        >
+          <Icon :name="sortOrder === 'desc' ? 'ph:sort-descending' : 'ph:sort-ascending'" class="w-5 h-5" />
+          <span>ترتيب حسب التاريخ</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Files Count -->
+    <div class="text-sm text-muted-500 dark:text-muted-400">
+      {{ totalCount }} ملف
+    </div>
+
+    <!-- Loading State -->
+    <div v-if="loading" class="space-y-3">
+      <div v-for="i in 5" :key="i" class="flex items-center gap-4 p-4 bg-muted-100 dark:bg-muted-800 rounded-lg animate-pulse">
+        <div class="w-10 h-10 bg-muted-200 dark:bg-muted-700 rounded"></div>
+        <div class="flex-1 space-y-2">
+          <div class="h-4 bg-muted-200 dark:bg-muted-700 rounded w-1/3"></div>
+          <div class="h-3 bg-muted-200 dark:bg-muted-700 rounded w-1/4"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div v-else-if="!files.length" class="flex flex-col items-center justify-center py-16 text-muted-400">
+      <Icon name="ph:file-dashed-duotone" class="w-16 h-16 mb-4" />
+      <p class="text-lg">لا توجد ملفات</p>
+    </div>
+
+    <!-- Files Table -->
+    <table v-else class="w-full">
+      <thead>
+        <tr class="border-b border-muted-200 dark:border-muted-700">
+          <th class="py-3 px-4 text-right text-sm font-medium text-muted-500 dark:text-muted-400">اسم الملف</th>
+          <th class="py-3 px-4 text-center text-sm font-medium text-muted-500 dark:text-muted-400">النوع</th>
+          <th class="py-3 px-4 text-right text-sm font-medium text-muted-500 dark:text-muted-400">الفئة</th>
+          <th class="py-3 px-4 text-right text-sm font-medium text-muted-500 dark:text-muted-400">تاريخ الأرشفة</th>
+          <th class="py-3 px-4 text-right text-sm font-medium text-muted-500 dark:text-muted-400">المرسل</th>
+          <th class="py-3 px-4 text-center text-sm font-medium text-muted-500 dark:text-muted-400">الإجراء</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          v-for="file in files"
+          :key="file.id"
+          class="border-b border-muted-100 dark:border-muted-800 hover:bg-muted-50 dark:hover:bg-muted-800/50 transition-colors"
+        >
+          <td class="py-4 px-4">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg bg-muted-100 dark:bg-muted-700 flex items-center justify-center">
+                <Icon name="ph:file-text-duotone" class="w-5 h-5 text-muted-500" />
+              </div>
+              <span class="font-medium text-muted-800 dark:text-muted-100">{{ file.fileName }}</span>
+            </div>
+          </td>
+          <td class="py-4 px-4 text-center">
+            <span :class="['px-3 py-1 rounded-full text-xs font-medium', getFileTypeColor(file.fileType)]">
+              {{ file.fileType }}
+            </span>
+          </td>
+          <td class="py-4 px-4">
+            <div class="text-sm">
+              <p class="text-muted-800 dark:text-muted-200">{{ file.categoryName || '-' }}</p>
+              <p v-if="file.subCategoryName" class="text-muted-400 text-xs">{{ file.subCategoryName }}</p>
+            </div>
+          </td>
+          <td class="py-4 px-4 text-muted-500 dark:text-muted-400 text-sm">
+            {{ formatHijriDate(file.archivedAt) }} هـ
+          </td>
+          <td class="py-4 px-4 text-muted-600 dark:text-muted-300">
+            {{ file.senderName || '-' }}
+          </td>
+          <td class="py-4 px-4">
+            <div class="flex items-center justify-center gap-2">
+              <BaseButtonIcon
+                size="sm"
+                rounded="lg"
+                data-nui-tooltip="عرض"
+                @click="emit('view', file)"
+              >
+                <Icon name="ph:eye" class="w-4 h-4" />
+              </BaseButtonIcon>
+              <BaseButtonIcon
+                size="sm"
+                rounded="lg"
+                data-nui-tooltip="تحميل"
+                @click="emit('download', file)"
+              >
+                <Icon name="ph:download-simple" class="w-4 h-4" />
+              </BaseButtonIcon>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</template>
