@@ -19,7 +19,7 @@ export enum FolderType {
 
 export interface ArchiveFolder {
   id: FolderType;
-  nameAr: string;
+  name: string;
   filesCount: number;
   icon: string;
 }
@@ -29,7 +29,7 @@ export interface ArchiveFile {
   fileName: string;
   fileType: string;
   categoryName: string;
-  subCategoryName: string;
+  categoryPath: string; // Full path like "المستندات > العقود"
   archivedAt: string;
   senderName: string;
   fileUrl: string;
@@ -66,28 +66,109 @@ export interface ConversationMessage {
 export interface ArchiveFileFilter {
   search?: string;
   categoryId?: string;
-  subCategoryId?: string;
   year?: number;
   sortOrder?: 'asc' | 'desc';
   pageNumber?: number;
   pageSize?: number;
 }
 
-export const FOLDER_CONFIG: Record<FolderType, { nameAr: string; icon: string }> = {
+// Category tree structure for unlimited nesting
+export interface Category {
+  id: string;
+  name: string;
+  description?: string;
+  icon?: string;
+  displayOrder: number;
+  isActive: boolean;
+  creationDate: string;
+  parentId?: string;
+  parentName?: string;
+  level: number;
+  childrenCount: number;
+  reportsCount: number;
+  totalReportsCount: number;
+  children?: Category[];
+}
+
+export interface CategoryBreadcrumb {
+  id: string;
+  name: string;
+  level: number;
+}
+
+export interface CategoryListItem {
+  id: string;
+  name: string;
+  parentId?: string;
+  level: number;
+  fullPath: string;
+}
+
+export interface CategoryForm {
+  name: string;
+  description?: string;
+  icon?: string;
+  displayOrder?: number;
+  isActive?: boolean;
+  parentId?: string;
+}
+
+export interface CategoryFilter {
+  isActive?: boolean;
+  searchTerm?: string;
+  parentId?: string;
+  rootOnly?: boolean;
+  includeChildren?: boolean;
+  maxDepth?: number;
+  includeStatistics?: boolean;
+  pageNumber?: number;
+  pageSize?: number;
+}
+
+// Search result types
+export interface ArchiveSearchResult {
+  files: SearchResultFile[];
+  companies: SearchResultCompany[];
+  totalFilesCount: number;
+  totalCompaniesCount: number;
+}
+
+export interface SearchResultFile {
+  id: string;
+  fileName: string;
+  fileType: string;
+  categoryName?: string;
+  categoryPath?: string;
+  archivedAt?: string;
+  fileUrl?: string;
+  companyId: string;
+  companyName: string;
+  fileSource: 'client' | 'management';
+}
+
+export interface SearchResultCompany {
+  userId: string;
+  companyName: string;
+  fullName?: string;
+  code?: string;
+  totalFilesCount: number;
+}
+
+export const FOLDER_CONFIG: Record<FolderType, { name: string; icon: string }> = {
   [FolderType.ClientFiles]: {
-    nameAr: 'ملفات العميل',
+    name: 'ملفات العميل',
     icon: 'ph:user-circle-duotone'
   },
   [FolderType.ManagementFiles]: {
-    nameAr: 'ملفات الإدارة',
+    name: 'ملفات الإدارة',
     icon: 'ph:buildings-duotone'
   },
   [FolderType.Conversations]: {
-    nameAr: 'المحادثات',
+    name: 'المحادثات',
     icon: 'ph:chat-circle-text-duotone'
   },
   [FolderType.CompanyInfo]: {
-    nameAr: 'معلومات الشركة',
+    name: 'معلومات الشركة',
     icon: 'ph:info-duotone'
   }
 };

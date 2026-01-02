@@ -12,7 +12,6 @@ const isLoading = ref(false);
 
 const formData = reactive<CategoryForm>({
   name: '',
-  nameAr: '',
   description: '',
   icon: '',
   displayOrder: 0,
@@ -32,7 +31,6 @@ const addCategory = async () => {
 
     // Reset form
     formData.name = '';
-    formData.nameAr = '';
     formData.description = '';
     formData.icon = '';
     formData.displayOrder = 0;
@@ -69,17 +67,9 @@ const addCategory = async () => {
 
       <form @submit.prevent="addCategory" class="p-4 md:p-6 space-y-4" dir="rtl">
         <BaseInput
-          v-model="formData.nameAr"
-          label="الاسم بالعربية"
-          placeholder="أدخل اسم التصنيف بالعربية"
-          :disabled="isLoading"
-          required
-        />
-
-        <BaseInput
           v-model="formData.name"
-          label="الاسم بالإنجليزية"
-          placeholder="Enter category name in English"
+          label="اسم التصنيف"
+          placeholder="أدخل اسم التصنيف"
           :disabled="isLoading"
           required
         />

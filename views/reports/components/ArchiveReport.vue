@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Report, Category, ArchiveReportForm } from '~/types/reports';
+import type { Report, ArchiveReportForm } from '~/types/reports';
 
 const props = defineProps<{
   report: Report;
@@ -12,42 +12,21 @@ const emit = defineEmits<{
 const apiPaths = useApiPaths();
 const isOpen = ref(false);
 const isLoading = ref(false);
-const categories = ref<Category[]>([]);
 
 const form = ref<ArchiveReportForm>({
   fileYear: new Date().getFullYear(),
   archiveFileName: '',
   categoryId: '',
-  subCategoryId: '',
   archiveNotes: ''
 });
-
-const subCategories = computed(() => {
-  if (!form.value.categoryId) return [];
-  const category = categories.value.find(c => c.id === form.value.categoryId);
-  return category?.subCategories?.filter(sc => sc.isActive) || [];
-});
-
-const fetchCategories = async () => {
-  try {
-    const response = await $fetch<any>(apiPaths.categories, {
-      query: { pageSize: 100, isActive: true }
-    });
-    categories.value = response.data || [];
-  } catch (error) {
-    console.error('Error fetching categories:', error);
-  }
-};
 
 const openModal = () => {
   form.value = {
     fileYear: new Date().getFullYear(),
     archiveFileName: props.report.fileName || props.report.title || '',
     categoryId: props.report.categoryId || '',
-    subCategoryId: props.report.subCategoryId || '',
     archiveNotes: ''
   };
-  fetchCategories();
   isOpen.value = true;
 };
 
@@ -55,12 +34,8 @@ const closeModal = () => {
   isOpen.value = false;
 };
 
-watch(() => form.value.categoryId, () => {
-  form.value.subCategoryId = '';
-});
-
 const handleArchive = async () => {
-  if (!form.value.archiveFileName || !form.value.categoryId || !form.value.subCategoryId) {
+  if (!form.value.archiveFileName || !form.value.categoryId) {
     return;
   }
 
@@ -136,29 +111,14 @@ const yearOptions = computed(() => {
           />
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <BaseSelect
+        <div>
+          <label class="block text-sm font-medium text-muted-700 dark:text-muted-300 mb-2">
+            التصنيف <span class="text-danger-500">*</span>
+          </label>
+          <CategorySelector
             v-model="form.categoryId"
-            label="الصنف الرئيسي"
-            :classes="{ wrapper: 'w-full' }"
-          >
-            <option value="">اختر الصنف</option>
-            <option v-for="category in categories" :key="category.id" :value="category.id">
-              {{ category.nameAr }}
-            </option>
-          </BaseSelect>
-
-          <BaseSelect
-            v-model="form.subCategoryId"
-            label="العنوان الفرعي"
-            :disabled="!form.categoryId || subCategories.length === 0"
-            :classes="{ wrapper: 'w-full' }"
-          >
-            <option value="">اختر العنوان الفرعي</option>
-            <option v-for="subCategory in subCategories" :key="subCategory.id" :value="subCategory.id">
-              {{ subCategory.nameAr }}
-            </option>
-          </BaseSelect>
+            placeholder="اختر التصنيف..."
+          />
         </div>
 
         <BaseTextarea
@@ -178,7 +138,7 @@ const yearOptions = computed(() => {
           <BaseButton
             color="success"
             :loading="isLoading"
-            :disabled="!form.archiveFileName || !form.categoryId || !form.subCategoryId"
+            :disabled="!form.archiveFileName || !form.categoryId"
             @click="handleArchive"
           >
             <Icon name="ph:archive-duotone" class="h-4 w-4" />

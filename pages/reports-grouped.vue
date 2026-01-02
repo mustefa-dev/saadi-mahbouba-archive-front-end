@@ -261,8 +261,7 @@ const canArchive = (report: Report) => {
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
                     <div class="text-sm text-muted-600 dark:text-muted-300">
-                      {{ report.categoryName || '-' }}
-                      <div v-if="report.subCategoryName" class="text-xs text-muted-400">{{ report.subCategoryName }}</div>
+                      {{ report.categoryPath || report.categoryName || '-' }}
                     </div>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">

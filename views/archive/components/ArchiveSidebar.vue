@@ -138,7 +138,7 @@ const getFolderCount = (company: CompanyArchive, folder: FolderType) => {
                 @click="emit('select-folder', company, folderType)"
               >
                 <Icon name="ph:folder-duotone" class="w-4 h-4 text-amber-400" />
-                <span class="flex-1">{{ FOLDER_CONFIG[folderType].nameAr }}</span>
+                <span class="flex-1">{{ FOLDER_CONFIG[folderType].name }}</span>
                 <span v-if="getFolderCount(company, folderType) !== null" class="text-xs text-muted-400">
                   ({{ getFolderCount(company, folderType) }})
                 </span>

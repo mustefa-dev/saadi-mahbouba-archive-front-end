@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Report, Category, SubCategory } from '~/types/reports';
+import type { Report } from '~/types/reports';
 
 const props = defineProps<{
   report: Report;
@@ -14,47 +14,8 @@ const apiPaths = useApiPaths();
 
 const isOpen = ref(false);
 const isLoading = ref(false);
-const categories = ref<Category[]>([]);
-const subCategories = ref<SubCategory[]>([]);
 
 const selectedCategoryId = ref<string | undefined>(props.report.categoryId);
-const selectedSubCategoryId = ref<string | undefined>(props.report.subCategoryId);
-
-// Fetch categories
-const fetchCategories = async () => {
-  try {
-    const response = await $fetch<any>(apiPaths.categories, {
-      query: { pageSize: 100, isActive: true }
-    });
-    categories.value = response.data || [];
-
-    // Load subcategories if category is already selected
-    if (selectedCategoryId.value) {
-      loadSubCategories(selectedCategoryId.value);
-    }
-  } catch (error) {
-    console.error('Error fetching categories:', error);
-  }
-};
-
-const loadSubCategories = (categoryId: string) => {
-  const category = categories.value.find(c => c.id === categoryId);
-  if (category && category.subCategories) {
-    subCategories.value = category.subCategories.filter(sc => sc.isActive);
-  } else {
-    subCategories.value = [];
-  }
-};
-
-// Watch category selection to load subcategories
-watch(selectedCategoryId, (categoryId) => {
-  selectedSubCategoryId.value = undefined;
-  subCategories.value = [];
-
-  if (categoryId) {
-    loadSubCategories(categoryId);
-  }
-});
 
 const assignCategory = async () => {
   isLoading.value = true;
@@ -62,8 +23,7 @@ const assignCategory = async () => {
     await $fetch(apiPaths.assignReportCategory(props.report.id), {
       method: 'PUT',
       body: {
-        categoryId: selectedCategoryId.value || null,
-        subCategoryId: selectedSubCategoryId.value || null
+        categoryId: selectedCategoryId.value || null
       }
     });
 
@@ -77,16 +37,9 @@ const assignCategory = async () => {
   }
 };
 
-const openDialog = async () => {
+const openDialog = () => {
   selectedCategoryId.value = props.report.categoryId;
-  selectedSubCategoryId.value = props.report.subCategoryId;
-  await fetchCategories();
   isOpen.value = true;
-};
-
-const clearSelection = () => {
-  selectedCategoryId.value = undefined;
-  selectedSubCategoryId.value = undefined;
 };
 </script>
 
@@ -124,20 +77,14 @@ const clearSelection = () => {
         </div>
 
         <!-- Current Assignment -->
-        <div v-if="report.categoryName || report.subCategoryName" class="p-3 rounded-lg bg-info-50 dark:bg-info-900/20 border border-info-200 dark:border-info-800">
+        <div v-if="report.categoryName || report.categoryPath" class="p-3 rounded-lg bg-info-50 dark:bg-info-900/20 border border-info-200 dark:border-info-800">
           <div class="flex items-center gap-2 text-info-700 dark:text-info-400 mb-2">
             <Icon name="ph:info" class="h-4 w-4" />
             <span class="text-sm font-medium">التصنيف الحالي:</span>
           </div>
-          <div class="mr-6 text-sm">
-            <div v-if="report.categoryName" class="text-info-900 dark:text-info-200">
-              <Icon name="ph:folder" class="h-4 w-4 inline ml-1" />
-              {{ report.categoryName }}
-            </div>
-            <div v-if="report.subCategoryName" class="text-info-800 dark:text-info-300 mr-4 mt-1">
-              <Icon name="ph:folder-simple" class="h-4 w-4 inline ml-1" />
-              {{ report.subCategoryName }}
-            </div>
+          <div class="mr-6 text-sm text-info-900 dark:text-info-200">
+            <Icon name="ph:folder" class="h-4 w-4 inline ml-1" />
+            {{ report.categoryPath || report.categoryName }}
           </div>
         </div>
 
@@ -146,59 +93,20 @@ const clearSelection = () => {
           <label class="block text-sm font-medium text-muted-700 dark:text-muted-300 mb-2">
             اختر التصنيف
           </label>
-          <BaseSelect v-model="selectedCategoryId" placeholder="اختر التصنيف" :disabled="isLoading">
-            <option :value="undefined">-- بدون تصنيف --</option>
-            <option v-for="category in categories" :key="category.id" :value="category.id">
-              {{ category.nameAr }}
-            </option>
-          </BaseSelect>
+          <CategorySelector
+            v-model="selectedCategoryId"
+            placeholder="اختر التصنيف..."
+          />
         </div>
 
-        <!-- SubCategory Selection -->
-        <div v-if="selectedCategoryId && subCategories.length > 0">
-          <label class="block text-sm font-medium text-muted-700 dark:text-muted-300 mb-2">
-            اختر التصنيف الفرعي (اختياري)
-          </label>
-          <BaseSelect v-model="selectedSubCategoryId" placeholder="اختر التصنيف الفرعي" :disabled="isLoading">
-            <option :value="undefined">-- بدون تصنيف فرعي --</option>
-            <option v-for="subCategory in subCategories" :key="subCategory.id" :value="subCategory.id">
-              {{ subCategory.nameAr }}
-            </option>
-          </BaseSelect>
-        </div>
-
-        <!-- Preview of Selection -->
-        <div v-if="selectedCategoryId" class="p-3 rounded-lg bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-800">
-          <div class="flex items-center gap-2 text-success-700 dark:text-success-400 mb-2">
-            <Icon name="ph:check-circle" class="h-4 w-4" />
-            <span class="text-sm font-medium">التصنيف الجديد:</span>
-          </div>
-          <div class="mr-6 text-sm">
-            <div class="text-success-900 dark:text-success-200">
-              <Icon name="ph:folder" class="h-4 w-4 inline ml-1" />
-              {{ categories.find(c => c.id === selectedCategoryId)?.nameAr }}
-            </div>
-            <div v-if="selectedSubCategoryId" class="text-success-800 dark:text-success-300 mr-4 mt-1">
-              <Icon name="ph:folder-simple" class="h-4 w-4 inline ml-1" />
-              {{ subCategories.find(sc => sc.id === selectedSubCategoryId)?.nameAr }}
-            </div>
-          </div>
-        </div>
-
-        <div class="flex items-center justify-between pt-4">
-          <BaseButton @click="clearSelection" color="default" variant="outline" size="sm" type="button" :disabled="isLoading">
-            <Icon name="ph:x" class="h-4 w-4" />
-            <span>مسح الاختيار</span>
+        <div class="flex items-center justify-end gap-2 pt-4">
+          <BaseButton @click="isOpen = false" color="default" type="button" :disabled="isLoading">
+            إلغاء
           </BaseButton>
-          <div class="flex items-center gap-2">
-            <BaseButton @click="isOpen = false" color="default" type="button" :disabled="isLoading">
-              إلغاء
-            </BaseButton>
-            <BaseButton type="submit" color="primary" :loading="isLoading" :disabled="isLoading">
-              <Icon name="ph:check" class="h-4 w-4" />
-              <span>حفظ</span>
-            </BaseButton>
-          </div>
+          <BaseButton type="submit" color="primary" :loading="isLoading" :disabled="isLoading">
+            <Icon name="ph:check" class="h-4 w-4" />
+            <span>حفظ</span>
+          </BaseButton>
         </div>
       </form>
     </TairoModal>

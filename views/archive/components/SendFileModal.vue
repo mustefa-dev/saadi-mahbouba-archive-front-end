@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import type { CompanyArchive } from '~/types/archive'
-import type { Category, SubCategory } from '~/types/reports'
+import type { CompanyArchive, CategoryListItem } from '~/types/archive'
 
 const props = defineProps<{
   open: boolean
@@ -18,7 +17,6 @@ const apiPaths = useApiPaths()
 const title = ref('')
 const description = ref('')
 const selectedCategoryId = ref<string | undefined>()
-const selectedSubCategoryId = ref<string | undefined>()
 const fileYear = ref<number>(new Date().getFullYear())
 const message = ref('')
 const file = ref<File | null>(null)
@@ -28,31 +26,31 @@ const fileInput = ref<HTMLInputElement | null>(null)
 const isSubmitting = ref(false)
 const error = ref<string | null>(null)
 
-// Categories data
-const { data: categoriesData } = await useFetch<{ data: Category[] }>(apiPaths.categories, {
-  query: { pageSize: 100, isActive: true }
-})
+// Categories data (flat list for dropdown with tree structure)
+const categoriesFlat = ref<CategoryListItem[]>([])
+const loadingCategories = ref(false)
 
-const categories = computed(() => categoriesData.value?.data ?? [])
-
-const subCategories = computed(() => {
-  if (!selectedCategoryId.value) return []
-  const category = categories.value.find(c => c.id === selectedCategoryId.value)
-  return category?.subCategories ?? []
-})
+const fetchCategories = async () => {
+  loadingCategories.value = true
+  try {
+    const response = await $fetch<any>(apiPaths.categoryFlat)
+    categoriesFlat.value = response || []
+  } catch (err) {
+    console.error('Error fetching categories:', err)
+  } finally {
+    loadingCategories.value = false
+  }
+}
 
 // Year options (from 2099 down to 1950)
 const currentYear = new Date().getFullYear()
 const yearOptions = Array.from({ length: 150 }, (_, i) => 2099 - i)
 
-// Reset subcategory when category changes
-watch(selectedCategoryId, () => {
-  selectedSubCategoryId.value = undefined
-})
-
 // Reset form when modal opens/closes
 watch(() => props.open, (isOpen) => {
-  if (!isOpen) {
+  if (isOpen) {
+    fetchCategories()
+  } else {
     resetForm()
   }
 })
@@ -61,7 +59,6 @@ const resetForm = () => {
   title.value = ''
   description.value = ''
   selectedCategoryId.value = undefined
-  selectedSubCategoryId.value = undefined
   fileYear.value = currentYear
   message.value = ''
   file.value = null
@@ -104,6 +101,12 @@ const formatFileSize = (bytes: number) => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
 }
 
+// Format category option with indentation based on level
+const formatCategoryOption = (category: CategoryListItem) => {
+  const indent = '—'.repeat(category.level)
+  return indent ? `${indent} ${category.name}` : category.name
+}
+
 const handleSubmit = async () => {
   if (!props.company || !file.value || !title.value.trim()) {
     error.value = 'يرجى ملء جميع الحقول المطلوبة'
@@ -124,9 +127,6 @@ const handleSubmit = async () => {
     }
     if (selectedCategoryId.value) {
       formData.append('CategoryId', selectedCategoryId.value)
-    }
-    if (selectedSubCategoryId.value) {
-      formData.append('SubCategoryId', selectedSubCategoryId.value)
     }
     if (fileYear.value) {
       formData.append('FileYear', fileYear.value.toString())
@@ -246,46 +246,36 @@ const handleSubmit = async () => {
         />
       </div>
 
-      <!-- Category & SubCategory -->
+      <!-- Category (Tree-based) -->
       <div class="grid grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium text-muted-700 dark:text-muted-300 mb-2">
-            الفئة
+            التصنيف
           </label>
-          <BaseSelect v-model="selectedCategoryId" :classes="{ wrapper: 'w-full' }">
-            <option :value="undefined">اختر الفئة</option>
-            <option v-for="cat in categories" :key="cat.id" :value="cat.id">
-              {{ cat.nameAr || cat.name }}
+          <BaseSelect
+            v-model="selectedCategoryId"
+            :classes="{ wrapper: 'w-full' }"
+            :loading="loadingCategories"
+          >
+            <option :value="undefined">اختر التصنيف</option>
+            <option v-for="cat in categoriesFlat" :key="cat.id" :value="cat.id">
+              {{ formatCategoryOption(cat) }}
             </option>
           </BaseSelect>
+          <p v-if="selectedCategoryId" class="text-xs text-muted-400 mt-1">
+            {{ categoriesFlat.find(c => c.id === selectedCategoryId)?.fullPath }}
+          </p>
         </div>
         <div>
           <label class="block text-sm font-medium text-muted-700 dark:text-muted-300 mb-2">
-            الفئة الفرعية
+            السنة
           </label>
-          <BaseSelect
-            v-model="selectedSubCategoryId"
-            :disabled="!selectedCategoryId"
-            :classes="{ wrapper: 'w-full' }"
-          >
-            <option :value="undefined">اختر الفئة الفرعية</option>
-            <option v-for="sub in subCategories" :key="sub.id" :value="sub.id">
-              {{ sub.nameAr || sub.name }}
+          <BaseSelect v-model="fileYear" :classes="{ wrapper: 'w-full' }">
+            <option v-for="year in yearOptions" :key="year" :value="year">
+              {{ year }}
             </option>
           </BaseSelect>
         </div>
-      </div>
-
-      <!-- Year -->
-      <div>
-        <label class="block text-sm font-medium text-muted-700 dark:text-muted-300 mb-2">
-          السنة
-        </label>
-        <BaseSelect v-model="fileYear" :classes="{ wrapper: 'w-full' }">
-          <option v-for="year in yearOptions" :key="year" :value="year">
-            {{ year }}
-          </option>
-        </BaseSelect>
       </div>
 
       <!-- Message (optional) -->

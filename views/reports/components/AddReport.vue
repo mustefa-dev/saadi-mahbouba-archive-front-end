@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ReportForm, Category, SubCategory } from '~/types/reports';
+import type { ReportForm } from '~/types/reports';
 
 const emit = defineEmits<{
   added: [];
@@ -10,44 +10,16 @@ const apiPaths = useApiPaths();
 
 const isOpen = ref(false);
 const isLoading = ref(false);
-const categories = ref<Category[]>([]);
-const subCategories = ref<SubCategory[]>([]);
 
 const formData = reactive<ReportForm>({
   title: '',
   description: '',
   categoryId: undefined,
-  subCategoryId: undefined,
   file: null
 });
 
 const fileInput = ref<HTMLInputElement | null>(null);
 const selectedFileName = ref('');
-
-// Fetch categories
-const fetchCategories = async () => {
-  try {
-    const response = await $fetch<any>(apiPaths.categories, {
-      query: { pageSize: 100, isActive: true }
-    });
-    categories.value = response.data || [];
-  } catch (error) {
-    console.error('Error fetching categories:', error);
-  }
-};
-
-// Watch category selection to load subcategories
-watch(() => formData.categoryId, async (categoryId) => {
-  formData.subCategoryId = undefined;
-  subCategories.value = [];
-
-  if (categoryId) {
-    const category = categories.value.find(c => c.id === categoryId);
-    if (category && category.subCategories) {
-      subCategories.value = category.subCategories.filter(sc => sc.isActive);
-    }
-  }
-});
 
 const handleFileChange = (event: Event) => {
   const target = event.target as HTMLInputElement;
@@ -61,7 +33,6 @@ const resetForm = () => {
   formData.title = '';
   formData.description = '';
   formData.categoryId = undefined;
-  formData.subCategoryId = undefined;
   formData.file = null;
   selectedFileName.value = '';
   if (fileInput.value) {
@@ -81,7 +52,6 @@ const addReport = async () => {
     formDataToSend.append('title', formData.title);
     formDataToSend.append('description', formData.description);
     if (formData.categoryId) formDataToSend.append('categoryId', formData.categoryId);
-    if (formData.subCategoryId) formDataToSend.append('subCategoryId', formData.subCategoryId);
     formDataToSend.append('file', formData.file);
 
     await $fetch(apiPaths.reports, {
@@ -101,8 +71,7 @@ const addReport = async () => {
   }
 };
 
-const openDialog = async () => {
-  await fetchCategories();
+const openDialog = () => {
   isOpen.value = true;
 };
 </script>
@@ -145,30 +114,15 @@ const openDialog = async () => {
           rows="4"
         />
 
-        <BaseSelect
-          v-model="formData.categoryId"
-          label="التصنيف"
-          placeholder="اختر التصنيف"
-          :disabled="isLoading"
-        >
-          <option :value="undefined">-- اختر التصنيف --</option>
-          <option v-for="category in categories" :key="category.id" :value="category.id">
-            {{ category.nameAr }}
-          </option>
-        </BaseSelect>
-
-        <BaseSelect
-          v-if="formData.categoryId && subCategories.length > 0"
-          v-model="formData.subCategoryId"
-          label="التصنيف الفرعي"
-          placeholder="اختر التصنيف الفرعي (اختياري)"
-          :disabled="isLoading"
-        >
-          <option :value="undefined">-- اختر التصنيف الفرعي --</option>
-          <option v-for="subCategory in subCategories" :key="subCategory.id" :value="subCategory.id">
-            {{ subCategory.nameAr }}
-          </option>
-        </BaseSelect>
+        <div>
+          <label class="block text-sm font-medium text-muted-700 dark:text-muted-300 mb-2">
+            التصنيف
+          </label>
+          <CategorySelector
+            v-model="formData.categoryId"
+            placeholder="اختر التصنيف..."
+          />
+        </div>
 
         <div>
           <label class="block text-sm font-medium text-muted-700 dark:text-muted-300 mb-2">

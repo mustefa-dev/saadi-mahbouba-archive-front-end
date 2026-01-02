@@ -56,11 +56,14 @@ export const useApiPaths = () => {
     myReportFiles: `${baseUrl}/reports/files/my`,
     reportFilesByType: (fileType: string) => `${baseUrl}/reports/files/my/type/${fileType}`,
 
-    // Categories
+    // Categories (tree structure with unlimited nesting)
     categories: `${baseUrl}/Categories`,
     categoryById: (id: string) => `${baseUrl}/Categories/${id}`,
-    subCategories: `${baseUrl}/SubCategories`,
-    subCategoryById: (id: string) => `${baseUrl}/SubCategories/${id}`,
+    categoryTree: `${baseUrl}/Categories/tree`,
+    categoryBreadcrumbs: (id: string) => `${baseUrl}/Categories/${id}/breadcrumbs`,
+    categoryChildren: (id: string) => `${baseUrl}/Categories/${id}/children`,
+    categoryFlat: `${baseUrl}/Categories/flat`,
+    categoryMove: (id: string) => `${baseUrl}/Categories/${id}/move`,
     archive: `${baseUrl}/Archive`,
 
     // Archive Companies
@@ -71,6 +74,7 @@ export const useApiPaths = () => {
     archiveCompanyInfo: (userId: string) => `${baseUrl}/Archive/companies/${userId}/info`,
     archiveCompanyConversations: (userId: string) => `${baseUrl}/Archive/companies/${userId}/conversations`,
     archiveSendFile: `${baseUrl}/Archive/send-file`,
+    archiveSearch: `${baseUrl}/Archive/search`,
 
     // Banners
     banners: `${baseUrl}/Banners`,

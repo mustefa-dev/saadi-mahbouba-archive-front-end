@@ -1,6 +1,6 @@
 /**
  * Report Types
- * Matches backend DTOs for Reports, Categories, and SubCategories
+ * Matches backend DTOs for Reports and Categories
  */
 
 // Report Status Enum
@@ -68,33 +68,22 @@ export function getReportStatusLabel(status: string | ReportStatus): string {
   return status;
 }
 
-// Category Type
+// Category Type (tree structure with unlimited depth)
 export interface Category {
   id: string;
   name: string;
-  nameAr: string;
   description?: string;
   icon?: string;
   displayOrder: number;
   isActive: boolean;
   creationDate: string;
-  subCategoriesCount: number;
+  parentId?: string;
+  parentName?: string;
+  level: number;
+  childrenCount: number;
   reportsCount: number;
-  subCategories?: SubCategory[];
-}
-
-// SubCategory Type
-export interface SubCategory {
-  id: string;
-  name: string;
-  nameAr: string;
-  description?: string;
-  displayOrder: number;
-  isActive: boolean;
-  categoryId: string;
-  categoryName?: string;
-  creationDate: string;
-  reportsCount: number;
+  totalReportsCount: number;
+  children?: Category[];
 }
 
 // Report Type
@@ -102,11 +91,9 @@ export interface Report {
   id: string;
   title: string;
   description: string;
-  category?: string; // Deprecated field
   categoryId?: string;
   categoryName?: string;
-  subCategoryId?: string;
-  subCategoryName?: string;
+  categoryPath?: string;
   status: string; // String representation
   statusValue?: ReportStatus; // Enum value
   fileUrl?: string;
@@ -132,7 +119,6 @@ export interface ReportForm {
   title: string;
   description: string;
   categoryId?: string;
-  subCategoryId?: string;
   file: File | null;
 }
 
@@ -140,7 +126,6 @@ export interface ReportUpdate {
   title?: string;
   description?: string;
   categoryId?: string;
-  subCategoryId?: string;
 }
 
 export interface ReportReview {
@@ -150,48 +135,28 @@ export interface ReportReview {
 
 export interface CategoryForm {
   name: string;
-  nameAr: string;
   description?: string;
   icon?: string;
   displayOrder?: number;
   isActive?: boolean;
+  parentId?: string;
 }
 
 export interface CategoryUpdate {
   name?: string;
-  nameAr?: string;
   description?: string;
   icon?: string;
-  displayOrder?: number;
-  isActive?: boolean;
-}
-
-export interface SubCategoryForm {
-  name: string;
-  nameAr: string;
-  categoryId: string;
-  description?: string;
-  displayOrder?: number;
-  isActive?: boolean;
-}
-
-export interface SubCategoryUpdate {
-  name?: string;
-  nameAr?: string;
-  description?: string;
   displayOrder?: number;
   isActive?: boolean;
 }
 
 export interface AssignCategoryForm {
   categoryId?: string;
-  subCategoryId?: string;
 }
 
 // Filter Types
 export interface ReportFilter {
   categoryId?: string;
-  subCategoryId?: string;
   status?: ReportStatus;
   search?: string;
   pageNumber?: number;
@@ -201,6 +166,8 @@ export interface ReportFilter {
 export interface CategoryFilter {
   isActive?: boolean;
   search?: string;
+  parentId?: string;
+  rootOnly?: boolean;
   pageNumber?: number;
   pageSize?: number;
 }
@@ -247,7 +214,6 @@ export interface ArchiveReportForm {
   fileYear: number;
   archiveFileName: string;
   categoryId: string;
-  subCategoryId: string;
   archiveNotes?: string;
 }
 

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Report, ReportsResponse, Category, ReportStatus, ReportStatistics } from '~/types/reports';
+import type { CategoryListItem } from '~/types/archive';
 import { getReportStatusColor, getReportStatusLabel } from '~/types/reports';
 import { formatDate } from '~/utils/helpers';
 import AddReport from '~/views/reports/components/AddReport.vue';
@@ -22,28 +23,19 @@ const pageNumber = ref(1);
 const pageSize = ref(10);
 const searchQuery = ref('');
 const selectedCategoryId = ref<string | undefined>(undefined);
-const selectedSubCategoryId = ref<string | undefined>(undefined);
 const selectedStatus = ref<ReportStatus | undefined>(undefined);
 
-const categories = ref<Category[]>([]);
+const categoriesFlat = ref<CategoryListItem[]>([]);
 const statistics = ref<ReportStatistics | null>(null);
-
-const subCategories = computed(() => {
-  if (!selectedCategoryId.value) return [];
-  const category = categories.value.find(c => c.id === selectedCategoryId.value);
-  return category?.subCategories?.filter(sc => sc.isActive) || [];
-});
 
 // Determine if user is admin
 const isAdmin = computed(() => userStore.isInRole('Admin'));
 
-// Fetch categories for filtering
+// Fetch categories (flat list for dropdown)
 const fetchCategories = async () => {
   try {
-    const response = await $fetch<any>(apiPaths.categories, {
-      query: { pageSize: 100, isActive: true }
-    });
-    categories.value = response.data || [];
+    const response = await $fetch<any>(apiPaths.categoryFlat);
+    categoriesFlat.value = response || [];
   } catch (error) {
     console.error('Error fetching categories:', error);
   }
@@ -68,7 +60,6 @@ const { data: reportsData, refresh: refreshReports, pending: isLoading } = await
     query: computed(() => ({
       search: searchQuery.value,
       categoryId: selectedCategoryId.value,
-      subCategoryId: selectedSubCategoryId.value,
       status: selectedStatus.value,
       pageNumber: pageNumber.value,
       pageSize: pageSize.value,
@@ -80,12 +71,8 @@ const reports = computed<Report[]>(() => reportsData.value?.data || []);
 const totalCount = computed(() => reportsData.value?.totalCount || 0);
 const pageCount = computed(() => reportsData.value?.pageCount || 0);
 
-watch([searchQuery, selectedCategoryId, selectedSubCategoryId, selectedStatus], () => {
+watch([searchQuery, selectedCategoryId, selectedStatus], () => {
   pageNumber.value = 1;
-});
-
-watch(selectedCategoryId, () => {
-  selectedSubCategoryId.value = undefined;
 });
 
 onMounted(() => {
@@ -96,8 +83,13 @@ onMounted(() => {
 const clearFilters = () => {
   searchQuery.value = '';
   selectedCategoryId.value = undefined;
-  selectedSubCategoryId.value = undefined;
   selectedStatus.value = undefined;
+};
+
+// Format category option with indentation based on level
+const formatCategoryOption = (category: CategoryListItem) => {
+  const indent = '—'.repeat(category.level);
+  return indent ? `${indent} ${category.name}` : category.name;
 };
 
 const getFileIcon = (fileName?: string) => {
@@ -160,22 +152,11 @@ const getStatusIcon = (status: string) => {
         </div>
 
         <!-- Filters -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <BaseSelect v-model="selectedCategoryId" placeholder="التصنيف">
             <option :value="undefined">جميع التصنيفات</option>
-            <option v-for="category in categories" :key="category.id" :value="category.id">
-              {{ category.nameAr }}
-            </option>
-          </BaseSelect>
-
-          <BaseSelect
-            v-model="selectedSubCategoryId"
-            placeholder="التصنيف الفرعي"
-            :disabled="!selectedCategoryId || subCategories.length === 0"
-          >
-            <option :value="undefined">جميع التصنيفات الفرعية</option>
-            <option v-for="subCategory in subCategories" :key="subCategory.id" :value="subCategory.id">
-              {{ subCategory.nameAr }}
+            <option v-for="category in categoriesFlat" :key="category.id" :value="category.id">
+              {{ formatCategoryOption(category) }}
             </option>
           </BaseSelect>
 
@@ -229,8 +210,13 @@ const getStatusIcon = (status: string) => {
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="text-sm text-muted-600 dark:text-muted-300">
-                  {{ report.categoryName || '-' }}
-                  <div v-if="report.subCategoryName" class="text-xs text-muted-400">{{ report.subCategoryName }}</div>
+                  <template v-if="report.categoryPath">
+                    {{ report.categoryPath }}
+                  </template>
+                  <template v-else-if="report.categoryName">
+                    {{ report.categoryName }}
+                  </template>
+                  <template v-else>-</template>
                 </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">

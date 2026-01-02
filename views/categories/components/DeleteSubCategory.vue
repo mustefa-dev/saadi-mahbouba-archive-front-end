@@ -5,6 +5,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits(['deleted']);
+const helpers = useHelpers();
 const apiPaths = useApiPaths();
 
 const isOpen = ref(false);
@@ -13,24 +14,15 @@ const isLoading = ref(false);
 const handleDelete = async () => {
   isLoading.value = true;
   try {
-    await $fetch(apiPaths.subCategoryById(props.subCategoryId), {
+    await $fetch(apiPaths.categoryById(props.subCategoryId), {
       method: 'DELETE'
     });
 
-    useToast().add({
-      title: 'تم بنجاح',
-      description: 'تم حذف التصنيف الفرعي بنجاح',
-      color: 'success'
-    });
-
+    helpers.setSuccessMessage('ar', 'Subcategory deleted successfully', 'تم حذف التصنيف الفرعي بنجاح');
     isOpen.value = false;
     emit('deleted');
   } catch (error: any) {
-    useToast().add({
-      title: 'خطأ',
-      description: error.data?.message || 'حدث خطأ أثناء حذف التصنيف الفرعي',
-      color: 'danger'
-    });
+    helpers.setErrorMessage(error, 'ar', 'Failed to delete subcategory', 'حدث خطأ أثناء حذف التصنيف الفرعي');
   } finally {
     isLoading.value = false;
   }

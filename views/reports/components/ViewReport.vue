@@ -83,16 +83,9 @@ defineExpose({ open: openDialog });
               <p class="text-muted-900 dark:text-white mt-1">{{ report.description }}</p>
             </div>
 
-            <div class="grid grid-cols-2 gap-4">
-              <div v-if="report.categoryName">
-                <label class="text-sm font-medium text-muted-500">التصنيف</label>
-                <p class="text-muted-900 dark:text-white mt-1">{{ report.categoryName }}</p>
-              </div>
-
-              <div v-if="report.subCategoryName">
-                <label class="text-sm font-medium text-muted-500">التصنيف الفرعي</label>
-                <p class="text-muted-900 dark:text-white mt-1">{{ report.subCategoryName }}</p>
-              </div>
+            <div v-if="report.categoryPath || report.categoryName">
+              <label class="text-sm font-medium text-muted-500">التصنيف</label>
+              <p class="text-muted-900 dark:text-white mt-1">{{ report.categoryPath || report.categoryName }}</p>
             </div>
 
             <div class="grid grid-cols-2 gap-4">

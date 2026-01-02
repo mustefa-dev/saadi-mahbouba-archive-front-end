@@ -16,7 +16,6 @@ const isLoading = ref(false);
 
 const formData = reactive<CategoryUpdate>({
   name: '',
-  nameAr: '',
   description: '',
   icon: '',
   displayOrder: 0,
@@ -27,7 +26,6 @@ const formData = reactive<CategoryUpdate>({
 watch(isOpen, (newVal) => {
   if (newVal && props.category) {
     formData.name = props.category.name;
-    formData.nameAr = props.category.nameAr;
     formData.description = props.category.description;
     formData.icon = props.category.icon;
     formData.displayOrder = props.category.displayOrder;
@@ -77,17 +75,9 @@ const editCategory = async () => {
 
       <form @submit.prevent="editCategory" class="p-4 md:p-6 space-y-4" dir="rtl">
         <BaseInput
-          v-model="formData.nameAr"
-          label="الاسم بالعربية"
-          placeholder="أدخل اسم التصنيف بالعربية"
-          :disabled="isLoading"
-          required
-        />
-
-        <BaseInput
           v-model="formData.name"
-          label="الاسم بالإنجليزية"
-          placeholder="Enter category name in English"
+          label="اسم التصنيف"
+          placeholder="أدخل اسم التصنيف"
           :disabled="isLoading"
           required
         />

@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import type { ArchiveFile, ArchiveFileFilter } from '~/types/archive'
-import type { Category, SubCategory } from '~/types/reports'
+import type { ArchiveFile, ArchiveFileFilter, CategoryListItem } from '~/types/archive'
 
 const props = defineProps<{
   files: ArchiveFile[]
@@ -20,41 +19,41 @@ const apiPaths = useApiPaths()
 // Filter state
 const search = ref('')
 const selectedCategoryId = ref<string | undefined>()
-const selectedSubCategoryId = ref<string | undefined>()
 const selectedYear = ref<number | undefined>()
 const sortOrder = ref<'asc' | 'desc'>('desc')
 
-// Categories data
-const { data: categoriesData } = await useFetch<{ data: Category[] }>(apiPaths.categories, {
-  query: { pageSize: 100, isActive: true }
-})
+// Categories data (flat list for dropdown)
+const categoriesFlat = ref<CategoryListItem[]>([])
+const loadingCategories = ref(false)
 
-const categories = computed(() => categoriesData.value?.data ?? [])
+const fetchCategories = async () => {
+  loadingCategories.value = true
+  try {
+    const response = await $fetch<any>(apiPaths.categoryFlat)
+    categoriesFlat.value = response || []
+  } catch (error) {
+    console.error('Error fetching categories:', error)
+  } finally {
+    loadingCategories.value = false
+  }
+}
 
-const subCategories = computed(() => {
-  if (!selectedCategoryId.value) return []
-  const category = categories.value.find(c => c.id === selectedCategoryId.value)
-  return category?.subCategories ?? []
+onMounted(() => {
+  fetchCategories()
 })
 
 // Year options (from 2099 down to 1950)
 const yearOptions = Array.from({ length: 150 }, (_, i) => 2099 - i)
 
 // Watch for filter changes
-watch([search, selectedCategoryId, selectedSubCategoryId, selectedYear, sortOrder], () => {
+watch([search, selectedCategoryId, selectedYear, sortOrder], () => {
   emit('filter', {
     search: search.value || undefined,
     categoryId: selectedCategoryId.value,
-    subCategoryId: selectedSubCategoryId.value,
     year: selectedYear.value,
     sortOrder: sortOrder.value
   })
 }, { debounce: 300 })
-
-// Reset subcategory when category changes
-watch(selectedCategoryId, () => {
-  selectedSubCategoryId.value = undefined
-})
 
 const formatHijriDate = (dateString: string) => {
   if (!dateString) return '-'
@@ -83,6 +82,12 @@ const getFileTypeColor = (type: string) => {
 const toggleSort = () => {
   sortOrder.value = sortOrder.value === 'desc' ? 'asc' : 'desc'
 }
+
+// Format category option with indentation based on level
+const formatCategoryOption = (category: CategoryListItem) => {
+  const indent = '—'.repeat(category.level)
+  return indent ? `${indent} ${category.name}` : category.name
+}
 </script>
 
 <template>
@@ -94,7 +99,7 @@ const toggleSort = () => {
         <span class="font-medium">البحث والفلاتر</span>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <!-- Search -->
         <BaseInput
           v-model="search"
@@ -103,26 +108,15 @@ const toggleSort = () => {
           :classes="{ wrapper: 'w-full' }"
         />
 
-        <!-- Category -->
+        <!-- Category (with tree structure) -->
         <BaseSelect
           v-model="selectedCategoryId"
           :classes="{ wrapper: 'w-full' }"
+          :loading="loadingCategories"
         >
           <option :value="undefined">جميع الفئات</option>
-          <option v-for="cat in categories" :key="cat.id" :value="cat.id">
-            {{ cat.nameAr || cat.name }}
-          </option>
-        </BaseSelect>
-
-        <!-- SubCategory -->
-        <BaseSelect
-          v-model="selectedSubCategoryId"
-          :disabled="!selectedCategoryId"
-          :classes="{ wrapper: 'w-full' }"
-        >
-          <option :value="undefined">جميع الفئات الفرعية</option>
-          <option v-for="sub in subCategories" :key="sub.id" :value="sub.id">
-            {{ sub.nameAr || sub.name }}
+          <option v-for="cat in categoriesFlat" :key="cat.id" :value="cat.id">
+            {{ formatCategoryOption(cat) }}
           </option>
         </BaseSelect>
 
@@ -178,7 +172,7 @@ const toggleSort = () => {
         <tr class="border-b border-muted-200 dark:border-muted-700">
           <th class="py-3 px-4 text-right text-sm font-medium text-muted-500 dark:text-muted-400">اسم الملف</th>
           <th class="py-3 px-4 text-center text-sm font-medium text-muted-500 dark:text-muted-400">النوع</th>
-          <th class="py-3 px-4 text-right text-sm font-medium text-muted-500 dark:text-muted-400">الفئة</th>
+          <th class="py-3 px-4 text-right text-sm font-medium text-muted-500 dark:text-muted-400">التصنيف</th>
           <th class="py-3 px-4 text-right text-sm font-medium text-muted-500 dark:text-muted-400">تاريخ الأرشفة</th>
           <th class="py-3 px-4 text-right text-sm font-medium text-muted-500 dark:text-muted-400">المرسل</th>
           <th class="py-3 px-4 text-center text-sm font-medium text-muted-500 dark:text-muted-400">الإجراء</th>
@@ -205,8 +199,13 @@ const toggleSort = () => {
           </td>
           <td class="py-4 px-4">
             <div class="text-sm">
-              <p class="text-muted-800 dark:text-muted-200">{{ file.categoryName || '-' }}</p>
-              <p v-if="file.subCategoryName" class="text-muted-400 text-xs">{{ file.subCategoryName }}</p>
+              <p v-if="file.categoryPath" class="text-muted-600 dark:text-muted-300 text-xs">
+                {{ file.categoryPath }}
+              </p>
+              <p v-else-if="file.categoryName" class="text-muted-800 dark:text-muted-200">
+                {{ file.categoryName }}
+              </p>
+              <p v-else class="text-muted-400">-</p>
             </div>
           </td>
           <td class="py-4 px-4 text-muted-500 dark:text-muted-400 text-sm">

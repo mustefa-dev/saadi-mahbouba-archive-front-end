@@ -23,13 +23,9 @@ const reports = [
     icon: { name: 'ph:archive-box-duotone', class: 'w-5 h-5' },
     to: "/archive",
   },
+
   {
-    name: "التقارير",
-    icon: { name: 'ph:file-text-duotone', class: 'w-5 h-5' },
-    to: "/reports",
-  },
-  {
-    name: "التقارير حسب الشركات",
+    name: "تقارير الشركات",
     icon: { name: 'ph:buildings-duotone', class: 'w-5 h-5' },
     to: "/reports-grouped",
   },
@@ -61,7 +57,7 @@ const content = [
     header: "إدارة المحتوى",
   },
   {
-    name: "البانرات",
+    name: "الاعلانات",
     icon: { name: 'ph:image-duotone', class: 'w-5 h-5' },
     to: "/banners",
   },

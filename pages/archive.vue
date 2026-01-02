@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CompanyArchive, CompanyFolders, CompanyDetails, ArchiveFile, ConversationMessage, ArchiveFileFilter } from '~/types/archive'
+import type { CompanyArchive, CompanyFolders, CompanyDetails, ArchiveFile, ConversationMessage, ArchiveFileFilter, ArchiveSearchResult } from '~/types/archive'
 import { FolderType, FOLDER_CONFIG } from '~/types/archive'
 import CompaniesList from '~/views/archive/components/CompaniesList.vue'
 import FoldersGrid from '~/views/archive/components/FoldersGrid.vue'
@@ -9,6 +9,7 @@ import CompanyInfoView from '~/views/archive/components/CompanyInfoView.vue'
 import ArchiveSidebar from '~/views/archive/components/ArchiveSidebar.vue'
 import SendFileModal from '~/views/archive/components/SendFileModal.vue'
 import EditCompanyModal from '~/views/archive/components/EditCompanyModal.vue'
+import ArchiveSearchResults from '~/views/archive/components/ArchiveSearchResults.vue'
 
 useHead({
   title: "الأرشيف"
@@ -25,6 +26,12 @@ const showSendFileModal = ref(false)
 
 // Edit company modal state
 const showEditCompanyModal = ref(false)
+
+// Search state
+const searchQuery = ref('')
+const searchResults = ref<ArchiveSearchResult | null>(null)
+const isSearching = ref(false)
+const showSearchResults = ref(false)
 
 // Navigation state
 const currentLevel = ref<'companies' | 'folders' | 'content'>('companies')
@@ -112,7 +119,7 @@ const normalizeFile = (file: any): ArchiveFile => ({
   fileName: file.fileName || file.FileName || '',
   fileType: file.fileType || file.FileType || '',
   categoryName: file.categoryName || file.CategoryName || '',
-  subCategoryName: file.subCategoryName || file.SubCategoryName || '',
+  categoryPath: file.categoryPath || file.CategoryPath || '',
   archivedAt: file.archivedAt || file.ArchivedAt || '',
   senderName: file.senderName || file.SenderName || '',
   fileUrl: file.fileUrl || file.FileUrl || ''
@@ -276,7 +283,7 @@ const breadcrumbs = computed(() => {
 
   if (selectedFolder.value) {
     items.push({
-      label: FOLDER_CONFIG[selectedFolder.value].nameAr,
+      label: FOLDER_CONFIG[selectedFolder.value].name,
       level: 'content' as const,
       onClick: () => {}
     })
@@ -287,8 +294,11 @@ const breadcrumbs = computed(() => {
 
 // Content title
 const contentTitle = computed(() => {
+  if (showSearchResults.value) {
+    return `نتائج البحث: "${searchQuery.value}"`
+  }
   if (selectedFolder.value) {
-    return FOLDER_CONFIG[selectedFolder.value].nameAr
+    return FOLDER_CONFIG[selectedFolder.value].name
   }
   if (selectedCompany.value) {
     return selectedCompany.value.companyName || selectedCompany.value.fullName
@@ -342,6 +352,52 @@ const handleEditCompanySuccess = () => {
   }
 }
 
+// Search functions
+const performSearch = async () => {
+  if (!searchQuery.value.trim()) {
+    clearSearch()
+    return
+  }
+
+  isSearching.value = true
+  showSearchResults.value = true
+  try {
+    const response = await $fetch<ArchiveSearchResult>(apiPaths.archiveSearch, {
+      query: { query: searchQuery.value, pageNumber: 1, pageSize: 20 }
+    })
+    searchResults.value = response
+  } catch (error) {
+    console.error('Error searching:', error)
+    searchResults.value = null
+  } finally {
+    isSearching.value = false
+  }
+}
+
+const clearSearch = () => {
+  searchQuery.value = ''
+  searchResults.value = null
+  showSearchResults.value = false
+}
+
+const handleSearchSelectCompany = (company: CompanyArchive) => {
+  clearSearch()
+  navigateToCompany(company)
+}
+
+// Debounced search
+let searchTimeout: ReturnType<typeof setTimeout> | null = null
+const onSearchInput = () => {
+  if (searchTimeout) clearTimeout(searchTimeout)
+  if (!searchQuery.value.trim()) {
+    clearSearch()
+    return
+  }
+  searchTimeout = setTimeout(() => {
+    performSearch()
+  }, 300)
+}
+
 // Initial load
 onMounted(() => {
   fetchCompanies()
@@ -393,6 +449,23 @@ onMounted(() => {
             <Icon name="ph:file-arrow-up" class="w-4 h-4 ml-2" />
             إرسال ملف
           </BaseButton>
+        </div>
+
+        <!-- Search Input -->
+        <div class="relative w-80">
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="بحث في الأرشيف..."
+            class="w-full px-4 py-2 pr-10 bg-muted-100 dark:bg-muted-800 border border-muted-200 dark:border-muted-700 rounded-lg text-sm focus:outline-none focus:border-primary-500 dark:focus:border-primary-500 transition-colors"
+            @input="onSearchInput"
+            @keyup.enter="performSearch"
+          />
+          <div class="absolute right-3 top-1/2 -translate-y-1/2">
+            <Icon v-if="isSearching" name="ph:spinner" class="w-4 h-4 text-muted-400 animate-spin" />
+            <Icon v-else-if="searchQuery" name="ph:x" class="w-4 h-4 text-muted-400 cursor-pointer hover:text-muted-600" @click="clearSearch" />
+            <Icon v-else name="ph:magnifying-glass" class="w-4 h-4 text-muted-400" />
+          </div>
         </div>
 
         <!-- Breadcrumb -->
@@ -466,9 +539,19 @@ onMounted(() => {
 
         <!-- Content -->
         <div class="flex-1 overflow-y-auto p-6">
+          <!-- Search Results -->
+          <ArchiveSearchResults
+            v-if="showSearchResults"
+            :results="searchResults"
+            :loading="isSearching"
+            :query="searchQuery"
+            @select-company="handleSearchSelectCompany"
+            @close="clearSearch"
+          />
+
           <!-- Companies List -->
           <CompaniesList
-            v-if="currentLevel === 'companies'"
+            v-else-if="currentLevel === 'companies'"
             :companies="companies"
             :loading="loadingCompanies"
             @select="navigateToCompany"
@@ -490,7 +573,7 @@ onMounted(() => {
               :files="files"
               :loading="loadingContent"
               :total-count="totalCount"
-              :folder-title="selectedFolder ? FOLDER_CONFIG[selectedFolder].nameAr : ''"
+              :folder-title="selectedFolder ? FOLDER_CONFIG[selectedFolder].name : ''"
               @filter="handleFilterChange"
               @view="handleViewFile"
               @download="handleDownloadFile"

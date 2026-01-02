@@ -1,19 +1,19 @@
 <script setup lang="ts">
-import type { SubCategory, SubCategoryUpdate } from '~/types/reports';
+import type { Category, CategoryUpdate } from '~/types/reports';
 
 const props = defineProps<{
-  subCategory: SubCategory;
+  subCategory: Category;
 }>();
 
 const emit = defineEmits(['edited']);
+const helpers = useHelpers();
 const apiPaths = useApiPaths();
 
 const isOpen = ref(false);
 const isLoading = ref(false);
 
-const form = ref<SubCategoryUpdate>({
+const form = ref<CategoryUpdate>({
   name: props.subCategory.name,
-  nameAr: props.subCategory.nameAr,
   description: props.subCategory.description,
   displayOrder: props.subCategory.displayOrder,
   isActive: props.subCategory.isActive
@@ -22,7 +22,6 @@ const form = ref<SubCategoryUpdate>({
 watch(() => props.subCategory, (newSubCategory) => {
   form.value = {
     name: newSubCategory.name,
-    nameAr: newSubCategory.nameAr,
     description: newSubCategory.description,
     displayOrder: newSubCategory.displayOrder,
     isActive: newSubCategory.isActive
@@ -32,25 +31,16 @@ watch(() => props.subCategory, (newSubCategory) => {
 const handleSubmit = async () => {
   isLoading.value = true;
   try {
-    await $fetch(apiPaths.subCategoryById(props.subCategory.id), {
+    await $fetch(apiPaths.categoryById(props.subCategory.id), {
       method: 'PUT',
       body: form.value
     });
 
-    useToast().add({
-      title: 'تم بنجاح',
-      description: 'تم تحديث التصنيف الفرعي بنجاح',
-      color: 'success'
-    });
-
+    helpers.setSuccessMessage('ar', 'Subcategory updated successfully', 'تم تحديث التصنيف الفرعي بنجاح');
     isOpen.value = false;
     emit('edited');
   } catch (error: any) {
-    useToast().add({
-      title: 'خطأ',
-      description: error.data?.message || 'حدث خطأ أثناء تحديث التصنيف الفرعي',
-      color: 'danger'
-    });
+    helpers.setErrorMessage(error, 'ar', 'Failed to update subcategory', 'حدث خطأ أثناء تحديث التصنيف الفرعي');
   } finally {
     isLoading.value = false;
   }
@@ -73,16 +63,9 @@ const handleSubmit = async () => {
 
       <div class="space-y-4">
         <BaseInput
-          v-model="form.nameAr"
-          label="الاسم بالعربية"
-          placeholder="أدخل اسم التصنيف الفرعي بالعربية"
-          :required="true"
-        />
-
-        <BaseInput
           v-model="form.name"
-          label="الاسم بالإنجليزية"
-          placeholder="Enter subcategory name in English"
+          label="اسم التصنيف"
+          placeholder="أدخل اسم التصنيف الفرعي"
           :required="true"
         />
 

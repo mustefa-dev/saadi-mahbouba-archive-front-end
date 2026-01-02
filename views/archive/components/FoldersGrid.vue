@@ -68,7 +68,7 @@ const folderItems = computed(() => [
 
           <!-- Folder Name -->
           <h3 class="font-medium text-muted-800 dark:text-muted-100 mb-1">
-            {{ folder.nameAr }}
+            {{ folder.name }}
           </h3>
 
           <!-- File Count -->

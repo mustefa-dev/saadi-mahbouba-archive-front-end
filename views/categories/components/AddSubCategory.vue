@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { SubCategoryForm } from '~/types/reports';
+import type { CategoryForm } from '~/types/reports';
 
 const props = defineProps<{
   categoryId: string;
@@ -15,19 +15,18 @@ const apiPaths = useApiPaths();
 const isOpen = ref(false);
 const isLoading = ref(false);
 
-const formData = reactive<SubCategoryForm>({
+const formData = reactive<CategoryForm>({
   name: '',
-  nameAr: '',
-  categoryId: props.categoryId,
   description: '',
   displayOrder: 0,
-  isActive: true
+  isActive: true,
+  parentId: props.categoryId
 });
 
 const addSubCategory = async () => {
   isLoading.value = true;
   try {
-    await $fetch(apiPaths.subCategories, {
+    await $fetch(apiPaths.categories, {
       method: 'POST',
       body: formData
     });
@@ -37,11 +36,10 @@ const addSubCategory = async () => {
 
     // Reset form
     formData.name = '';
-    formData.nameAr = '';
-    formData.categoryId = props.categoryId;
     formData.description = '';
     formData.displayOrder = 0;
     formData.isActive = true;
+    formData.parentId = props.categoryId;
 
     emit('added');
   } catch (error: any) {
@@ -75,17 +73,9 @@ const addSubCategory = async () => {
 
       <form @submit.prevent="addSubCategory" class="p-4 md:p-6 space-y-4" dir="rtl">
         <BaseInput
-          v-model="formData.nameAr"
-          label="الاسم بالعربية"
-          placeholder="أدخل اسم التصنيف الفرعي بالعربية"
-          :disabled="isLoading"
-          required
-        />
-
-        <BaseInput
           v-model="formData.name"
-          label="الاسم بالإنجليزية"
-          placeholder="Enter subcategory name in English"
+          label="اسم التصنيف"
+          placeholder="أدخل اسم التصنيف الفرعي"
           :disabled="isLoading"
           required
         />
