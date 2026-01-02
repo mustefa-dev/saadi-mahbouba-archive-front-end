@@ -2,10 +2,8 @@
 import type { Report, ReportsGroupedByCompany, ReportStatus } from '~/types/reports';
 import { getReportStatusColor, getReportStatusLabel } from '~/types/reports';
 import { formatDate } from '~/utils/helpers';
-import ViewReport from '~/views/reports/components/ViewReport.vue';
 import ArchiveReport from '~/views/reports/components/ArchiveReport.vue';
 import ChangeStatus from '~/views/reports/components/ChangeStatus.vue';
-import AssignCategory from '~/views/reports/components/AssignCategory.vue';
 
 useHead({
   title: "التقارير حسب الشركات"
@@ -287,14 +285,12 @@ const canArchive = (report: Report) => {
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
                     <div class="flex items-center gap-2">
-                      <ViewReport :report-id="report.id" />
                       <ChangeStatus :report="report" @status-changed="refreshReports" />
                       <ArchiveReport
                         v-if="canArchive(report)"
                         :report="report"
                         @archived="refreshReports"
                       />
-                      <AssignCategory :report="report" @assigned="refreshReports" />
                     </div>
                   </td>
                 </tr>
