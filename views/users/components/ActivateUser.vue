@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import axios from '~/services/app-client/axios';
-import type { ApproveUserRequest } from '~/types/users';
+import type { ApproveUserRequest, User } from '~/types/users';
 
 const props = defineProps<{
   userId: string;
+  user?: User;
 }>();
 
 const emit = defineEmits<{
@@ -11,8 +12,10 @@ const emit = defineEmits<{
 }>();
 
 const helpers = useHelpers();
+const apiPaths = useApiPaths();
 const isOpen = ref(false);
 const isLoading = ref(false);
+const isFetchingUser = ref(false);
 const activeTab = ref(0);
 
 const tabs = [
@@ -37,6 +40,51 @@ const formData = reactive<ApproveUserRequest>({
   password: '',
   code: '',
 });
+
+// Populate form with existing user data
+const populateForm = (userData: User) => {
+  formData.code = userData.code || '';
+  formData.email = userData.email || '';
+  formData.address = userData.address || '';
+  formData.managerName = userData.managerName || '';
+  formData.managerPhone = userData.managerPhone || '';
+  formData.managerPhoneSecondary = userData.managerPhoneSecondary || '';
+  formData.lawyerName = userData.lawyerName || '';
+  formData.lawyerPhone = userData.lawyerPhone || '';
+  formData.lawyerPhoneSecondary = userData.lawyerPhoneSecondary || '';
+  formData.accountantName = userData.accountantName || '';
+  formData.accountantPhone = userData.accountantPhone || '';
+  formData.accountantPhoneSecondary = userData.accountantPhoneSecondary || '';
+  // Password is intentionally left empty for security
+  formData.password = '';
+};
+
+// Fetch user data when modal opens
+const fetchUserData = async () => {
+  // If user prop is provided and has data, use it
+  if (props.user && (props.user.code || props.user.email || props.user.managerName)) {
+    populateForm(props.user);
+    return;
+  }
+
+  // Otherwise fetch from API
+  isFetchingUser.value = true;
+  try {
+    const response = await axios.get(apiPaths.userById(props.userId));
+    const userData = response.data;
+    populateForm(userData);
+  } catch (error) {
+    console.error('Failed to fetch user data:', error);
+  } finally {
+    isFetchingUser.value = false;
+  }
+};
+
+// Open modal and fetch user data
+const openModal = async () => {
+  isOpen.value = true;
+  await fetchUserData();
+};
 
 const resetForm = () => {
   formData.managerName = '';
@@ -91,7 +139,7 @@ const activateUser = async () => {
       size="sm"
       color="success"
       variant="pastel"
-      @click="isOpen = true"
+      @click="openModal"
     >
       تفعيل الحساب
     </BaseButton>
@@ -107,6 +155,13 @@ const activateUser = async () => {
       </template>
 
       <div dir="rtl" class="p-4 md:p-6">
+        <!-- Loading State -->
+        <div v-if="isFetchingUser" class="flex flex-col items-center justify-center py-12">
+          <Icon name="svg-spinners:ring-resize" class="size-10 text-primary-500 mb-4" />
+          <p class="text-muted-500">جاري تحميل بيانات الشركة...</p>
+        </div>
+
+        <template v-else>
         <!-- Step Indicator -->
         <div class="flex items-center justify-center gap-2 mb-6">
           <button
@@ -293,6 +348,7 @@ const activateUser = async () => {
             </div>
           </div>
         </form>
+        </template>
       </div>
     </TairoModal>
   </div>

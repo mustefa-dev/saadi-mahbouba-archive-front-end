@@ -62,3 +62,21 @@ export interface ApproveUserRequest {
   password: string
   code: string
 }
+
+export interface CreateCompanyRequest {
+  companyName: string
+  phoneNumber: string
+  managerName: string
+  managerPhone: string
+  managerPhoneSecondary?: string
+  lawyerName: string
+  lawyerPhone: string
+  lawyerPhoneSecondary?: string
+  address: string
+  accountantName: string
+  accountantPhone: string
+  accountantPhoneSecondary?: string
+  email: string
+  password: string
+  code: string
+}

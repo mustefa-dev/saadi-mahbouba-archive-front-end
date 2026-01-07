@@ -18,9 +18,13 @@ export const useApiPaths = () => {
     users: `${baseUrl}/users`,
     userById: (id: string) => `${baseUrl}/users/${id}`,
     approveUser: (id: string) => `${baseUrl}/users/${id}/approve`,
+    deactivateUser: (id: string) => `${baseUrl}/users/${id}/deactivate`,
 
     // Admins
     admins: `${baseUrl}/admins`,
+
+    // Companies
+    companies: `${baseUrl}/Companies`,
 
     // Messages
     messageHistory: `${baseUrl}/message/history`,
@@ -67,6 +71,7 @@ export const useApiPaths = () => {
     archive: `${baseUrl}/Archive`,
 
     // Archive Companies
+    archiveDashboard: `${baseUrl}/Archive/dashboard`,
     archiveCompanies: `${baseUrl}/Archive/companies`,
     archiveCompanyFolders: (userId: string) => `${baseUrl}/Archive/companies/${userId}/folders`,
     archiveClientFiles: (userId: string) => `${baseUrl}/Archive/companies/${userId}/client-files`,

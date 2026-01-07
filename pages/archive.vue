@@ -9,6 +9,7 @@ import CompanyInfoView from '~/views/archive/components/CompanyInfoView.vue'
 import ArchiveSidebar from '~/views/archive/components/ArchiveSidebar.vue'
 import SendFileModal from '~/views/archive/components/SendFileModal.vue'
 import EditCompanyModal from '~/views/archive/components/EditCompanyModal.vue'
+import AddCompanyModal from '~/views/archive/components/AddCompanyModal.vue'
 import ArchiveSearchResults from '~/views/archive/components/ArchiveSearchResults.vue'
 
 useHead({
@@ -26,6 +27,9 @@ const showSendFileModal = ref(false)
 
 // Edit company modal state
 const showEditCompanyModal = ref(false)
+
+// Add company modal state
+const showAddCompanyModal = ref(false)
 
 // Search state
 const searchQuery = ref('')
@@ -352,6 +356,12 @@ const handleEditCompanySuccess = () => {
   }
 }
 
+// Handle add company success
+const handleAddCompanySuccess = () => {
+  // Refresh companies list
+  fetchCompanies()
+}
+
 // Search functions
 const performSearch = async () => {
   if (!searchQuery.value.trim()) {
@@ -437,6 +447,18 @@ onMounted(() => {
           >
             <Icon name="ph:arrows-clockwise" class="w-4 h-4" />
           </BaseButtonIcon>
+
+          <!-- Add Company Button (only when at companies level) -->
+          <BaseButton
+            v-if="currentLevel === 'companies'"
+            size="sm"
+            color="primary"
+            rounded="lg"
+            @click="showAddCompanyModal = true"
+          >
+            <Icon name="ph:plus" class="w-4 h-4 ml-2" />
+            إضافة شركة
+          </BaseButton>
 
           <!-- Send File Button (only when company is selected) -->
           <BaseButton
@@ -625,6 +647,13 @@ onMounted(() => {
       :company="selectedCompany"
       @close="showEditCompanyModal = false"
       @success="handleEditCompanySuccess"
+    />
+
+    <!-- Add Company Modal -->
+    <AddCompanyModal
+      :open="showAddCompanyModal"
+      @close="showAddCompanyModal = false"
+      @success="handleAddCompanySuccess"
     />
   </div>
 </template>

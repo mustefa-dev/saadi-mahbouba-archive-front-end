@@ -7,6 +7,7 @@ import AddUser from '~/views/users/components/AddUser.vue';
 import EditUser from '~/views/users/components/EditUser.vue';
 import DeleteUser from '~/views/users/components/DeleteUser.vue';
 import ActivateUser from '~/views/users/components/ActivateUser.vue';
+import DeactivateUser from '~/views/users/components/DeactivateUser.vue';
 import ViewUser from '~/views/users/components/ViewUser.vue';
 
 useHead({
@@ -130,12 +131,13 @@ const getStatusColor = (status?: UserStatus) => {
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <BaseTag v-if="user.status === UserStatus.Active" :color="getStatusColor(user.status)" flavor="pastel" size="sm">{{ getStatusLabel(user.status) }}</BaseTag>
-                <ActivateUser v-else :user-id="user.id" @activated="refreshUsers" />
+                <ActivateUser v-else :user-id="user.id" :user="user" @activated="refreshUsers" />
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center gap-2">
                   <ViewUser :user="user" />
                   <EditUser :user="user" @edited="refreshUsers" />
+                  <DeactivateUser v-if="user.status === UserStatus.Active" :user-id="user.id" :user-name="user.companyName || user.fullName" @deactivated="refreshUsers" />
                   <DeleteUser :user-id="user.id" :user-name="user.fullName" @deleted="refreshUsers" />
                 </div>
               </td>
