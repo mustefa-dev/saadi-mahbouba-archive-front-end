@@ -1,20 +1,22 @@
 <script setup lang="ts">
-import type { ArchiveFile, ArchiveFileFilter, CategoryListItem } from '~/types/archive'
+import type { ArchiveFile, ArchiveFileFilter } from '~/types/archive'
+import CategoryBrowser from '~/views/archive/components/CategoryBrowser.vue'
 
 const props = defineProps<{
   files: ArchiveFile[]
   loading: boolean
   totalCount: number
   folderTitle: string
+  isClientFiles?: boolean // True if viewing client files (enables resend button)
 }>()
 
 const emit = defineEmits<{
   (e: 'filter', filter: ArchiveFileFilter): void
   (e: 'view', file: ArchiveFile): void
   (e: 'download', file: ArchiveFile): void
+  (e: 'resend', file: ArchiveFile): void
+  (e: 'edit', file: ArchiveFile): void
 }>()
-
-const apiPaths = useApiPaths()
 
 // Filter state
 const search = ref('')
@@ -22,31 +24,14 @@ const selectedCategoryId = ref<string | undefined>()
 const selectedYear = ref<number | undefined>()
 const sortOrder = ref<'asc' | 'desc'>('desc')
 
-// Categories data (flat list for dropdown)
-const categoriesFlat = ref<CategoryListItem[]>([])
-const loadingCategories = ref(false)
-
-const fetchCategories = async () => {
-  loadingCategories.value = true
-  try {
-    const response = await $fetch<any>(apiPaths.categoryFlat)
-    categoriesFlat.value = response || []
-  } catch (error) {
-    console.error('Error fetching categories:', error)
-  } finally {
-    loadingCategories.value = false
-  }
-}
-
-onMounted(() => {
-  fetchCategories()
-})
+// Category browser visibility
+const showCategoryBrowser = ref(false)
 
 // Year options (from 2099 down to 1950)
 const yearOptions = Array.from({ length: 150 }, (_, i) => 2099 - i)
 
-// Watch for filter changes
-watch([search, selectedCategoryId, selectedYear, sortOrder], () => {
+// Watch for filter changes with debounce
+watchDebounced([search, selectedCategoryId, selectedYear, sortOrder], () => {
   emit('filter', {
     search: search.value || undefined,
     categoryId: selectedCategoryId.value,
@@ -83,10 +68,9 @@ const toggleSort = () => {
   sortOrder.value = sortOrder.value === 'desc' ? 'asc' : 'desc'
 }
 
-// Format category option with indentation based on level
-const formatCategoryOption = (category: CategoryListItem) => {
-  const indent = '—'.repeat(category.level)
-  return indent ? `${indent} ${category.name}` : category.name
+// Clear category selection
+const clearCategoryFilter = () => {
+  selectedCategoryId.value = undefined
 }
 </script>
 
@@ -108,17 +92,22 @@ const formatCategoryOption = (category: CategoryListItem) => {
           :classes="{ wrapper: 'w-full' }"
         />
 
-        <!-- Category (with tree structure) -->
-        <BaseSelect
-          v-model="selectedCategoryId"
-          :classes="{ wrapper: 'w-full' }"
-          :loading="loadingCategories"
+        <!-- Category Browser Toggle Button -->
+        <button
+          class="flex items-center justify-between w-full px-4 py-2.5 bg-white dark:bg-muted-800 border border-muted-200 dark:border-muted-700 rounded-lg hover:bg-muted-50 dark:hover:bg-muted-700 transition-colors text-right"
+          @click="showCategoryBrowser = !showCategoryBrowser"
         >
-          <option :value="undefined">جميع الفئات</option>
-          <option v-for="cat in categoriesFlat" :key="cat.id" :value="cat.id">
-            {{ formatCategoryOption(cat) }}
-          </option>
-        </BaseSelect>
+          <span class="text-muted-600 dark:text-muted-300">
+            {{ selectedCategoryId ? 'تصنيف محدد' : 'اختر التصنيف' }}
+          </span>
+          <div class="flex items-center gap-2">
+            <span v-if="selectedCategoryId" class="w-2 h-2 rounded-full bg-primary-500"></span>
+            <Icon
+              :name="showCategoryBrowser ? 'ph:caret-up' : 'ph:caret-down'"
+              class="w-4 h-4 text-muted-400"
+            />
+          </div>
+        </button>
 
         <!-- Year -->
         <BaseSelect
@@ -130,6 +119,21 @@ const formatCategoryOption = (category: CategoryListItem) => {
             {{ year }}
           </option>
         </BaseSelect>
+      </div>
+
+      <!-- Category Browser (Expandable) -->
+      <div v-if="showCategoryBrowser" class="mt-4 p-4 bg-white dark:bg-muted-800 rounded-lg border border-muted-200 dark:border-muted-700">
+        <div class="flex items-center justify-between mb-3">
+          <span class="font-medium text-muted-700 dark:text-muted-200">تصفح التصنيفات</span>
+          <button
+            v-if="selectedCategoryId"
+            class="text-sm text-danger-500 hover:text-danger-600 transition-colors"
+            @click="clearCategoryFilter"
+          >
+            مسح الفلتر
+          </button>
+        </div>
+        <CategoryBrowser v-model="selectedCategoryId" />
       </div>
 
       <!-- Sort Button -->
@@ -231,6 +235,26 @@ const formatCategoryOption = (category: CategoryListItem) => {
                 @click="emit('download', file)"
               >
                 <Icon name="ph:download-simple" class="w-4 h-4" />
+              </BaseButtonIcon>
+              <!-- Edit button -->
+              <BaseButtonIcon
+                size="sm"
+                rounded="lg"
+                data-nui-tooltip="تعديل"
+                @click="emit('edit', file)"
+              >
+                <Icon name="ph:pencil-simple" class="w-4 h-4" />
+              </BaseButtonIcon>
+              <!-- Resend to Management button (only for client files) -->
+              <BaseButtonIcon
+                v-if="isClientFiles"
+                size="sm"
+                rounded="lg"
+                color="primary"
+                data-nui-tooltip="إعادة إرسال لملفات الإدارة"
+                @click="emit('resend', file)"
+              >
+                <Icon name="ph:arrow-bend-up-right" class="w-4 h-4" />
               </BaseButtonIcon>
             </div>
           </td>

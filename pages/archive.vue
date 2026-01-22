@@ -11,6 +11,7 @@ import SendFileModal from '~/views/archive/components/SendFileModal.vue'
 import EditCompanyModal from '~/views/archive/components/EditCompanyModal.vue'
 import AddCompanyModal from '~/views/archive/components/AddCompanyModal.vue'
 import ArchiveSearchResults from '~/views/archive/components/ArchiveSearchResults.vue'
+import EditArchiveFileModal from '~/views/archive/components/EditArchiveFileModal.vue'
 
 useHead({
   title: "الأرشيف"
@@ -30,6 +31,10 @@ const showEditCompanyModal = ref(false)
 
 // Add company modal state
 const showAddCompanyModal = ref(false)
+
+// Edit archive file modal state
+const showEditFileModal = ref(false)
+const fileToEdit = ref<ArchiveFile | null>(null)
 
 // Search state
 const searchQuery = ref('')
@@ -254,6 +259,46 @@ const handleDownloadFile = (file: ArchiveFile) => {
     link.href = apiPaths.getAsset(file.fileUrl)
     link.download = file.fileName
     link.click()
+  }
+}
+
+// Resend file to management
+const resendingFile = ref(false)
+const handleResendFile = async (file: ArchiveFile) => {
+  if (resendingFile.value) return
+
+  resendingFile.value = true
+  try {
+    await $fetch(apiPaths.archiveResendToManagement(file.id), {
+      method: 'POST'
+    })
+
+    // Show success message (you can use a toast notification)
+    alert('تم إعادة إرسال الملف إلى ملفات الإدارة بنجاح')
+
+    // Optionally refresh the files list
+    if (selectedCompany.value && selectedFolder.value) {
+      fetchFiles(selectedCompany.value.userId, selectedFolder.value, fileFilter.value)
+    }
+  } catch (error: any) {
+    console.error('Error resending file:', error)
+    alert(error?.data?.message || 'حدث خطأ أثناء إعادة إرسال الملف')
+  } finally {
+    resendingFile.value = false
+  }
+}
+
+// Handle edit file
+const handleEditFile = (file: ArchiveFile) => {
+  fileToEdit.value = file
+  showEditFileModal.value = true
+}
+
+// Handle edit file success
+const handleEditFileSuccess = () => {
+  // Refresh the files list
+  if (selectedCompany.value && selectedFolder.value) {
+    fetchFiles(selectedCompany.value.userId, selectedFolder.value, fileFilter.value)
   }
 }
 
@@ -596,9 +641,12 @@ onMounted(() => {
               :loading="loadingContent"
               :total-count="totalCount"
               :folder-title="selectedFolder ? FOLDER_CONFIG[selectedFolder].name : ''"
+              :is-client-files="selectedFolder === FolderType.ClientFiles"
               @filter="handleFilterChange"
               @view="handleViewFile"
               @download="handleDownloadFile"
+              @resend="handleResendFile"
+              @edit="handleEditFile"
             />
 
             <!-- Conversations -->
@@ -654,6 +702,14 @@ onMounted(() => {
       :open="showAddCompanyModal"
       @close="showAddCompanyModal = false"
       @success="handleAddCompanySuccess"
+    />
+
+    <!-- Edit Archive File Modal -->
+    <EditArchiveFileModal
+      :open="showEditFileModal"
+      :file="fileToEdit"
+      @close="showEditFileModal = false"
+      @saved="handleEditFileSuccess"
     />
   </div>
 </template>

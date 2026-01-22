@@ -79,6 +79,7 @@ export const useApiPaths = () => {
     archiveCompanyInfo: (userId: string) => `${baseUrl}/Archive/companies/${userId}/info`,
     archiveCompanyConversations: (userId: string) => `${baseUrl}/Archive/companies/${userId}/conversations`,
     archiveSendFile: `${baseUrl}/Archive/send-file`,
+    archiveResendToManagement: (reportId: string) => `${baseUrl}/Archive/resend-to-management/${reportId}`,
     archiveSearch: `${baseUrl}/Archive/search`,
 
     // Banners
