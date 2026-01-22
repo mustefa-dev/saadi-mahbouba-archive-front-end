@@ -81,6 +81,7 @@ export const useApiPaths = () => {
     archiveSendFile: `${baseUrl}/Archive/send-file`,
     archiveResendToManagement: (reportId: string) => `${baseUrl}/Archive/resend-to-management/${reportId}`,
     archiveSearch: `${baseUrl}/Archive/search`,
+    archiveFileById: (fileId: string) => `${baseUrl}/Archive/files/${fileId}`,
 
     // Banners
     banners: `${baseUrl}/Banners`,

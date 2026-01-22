@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { ArchiveFile, ArchiveFileFilter } from '~/types/archive'
-import CategoryBrowser from '~/views/archive/components/CategoryBrowser.vue'
 
 const props = defineProps<{
   files: ArchiveFile[]
@@ -23,9 +22,6 @@ const search = ref('')
 const selectedCategoryId = ref<string | undefined>()
 const selectedYear = ref<number | undefined>()
 const sortOrder = ref<'asc' | 'desc'>('desc')
-
-// Category browser visibility
-const showCategoryBrowser = ref(false)
 
 // Year options (from 2099 down to 1950)
 const yearOptions = Array.from({ length: 150 }, (_, i) => 2099 - i)
@@ -67,11 +63,6 @@ const getFileTypeColor = (type: string) => {
 const toggleSort = () => {
   sortOrder.value = sortOrder.value === 'desc' ? 'asc' : 'desc'
 }
-
-// Clear category selection
-const clearCategoryFilter = () => {
-  selectedCategoryId.value = undefined
-}
 </script>
 
 <template>
@@ -92,22 +83,11 @@ const clearCategoryFilter = () => {
           :classes="{ wrapper: 'w-full' }"
         />
 
-        <!-- Category Browser Toggle Button -->
-        <button
-          class="flex items-center justify-between w-full px-4 py-2.5 bg-white dark:bg-muted-800 border border-muted-200 dark:border-muted-700 rounded-lg hover:bg-muted-50 dark:hover:bg-muted-700 transition-colors text-right"
-          @click="showCategoryBrowser = !showCategoryBrowser"
-        >
-          <span class="text-muted-600 dark:text-muted-300">
-            {{ selectedCategoryId ? 'تصنيف محدد' : 'اختر التصنيف' }}
-          </span>
-          <div class="flex items-center gap-2">
-            <span v-if="selectedCategoryId" class="w-2 h-2 rounded-full bg-primary-500"></span>
-            <Icon
-              :name="showCategoryBrowser ? 'ph:caret-up' : 'ph:caret-down'"
-              class="w-4 h-4 text-muted-400"
-            />
-          </div>
-        </button>
+        <!-- Category Selector (Tree-based like add/edit) -->
+        <CategorySelector
+          v-model="selectedCategoryId"
+          placeholder="اختر التصنيف..."
+        />
 
         <!-- Year -->
         <BaseSelect
@@ -119,21 +99,6 @@ const clearCategoryFilter = () => {
             {{ year }}
           </option>
         </BaseSelect>
-      </div>
-
-      <!-- Category Browser (Expandable) -->
-      <div v-if="showCategoryBrowser" class="mt-4 p-4 bg-white dark:bg-muted-800 rounded-lg border border-muted-200 dark:border-muted-700">
-        <div class="flex items-center justify-between mb-3">
-          <span class="font-medium text-muted-700 dark:text-muted-200">تصفح التصنيفات</span>
-          <button
-            v-if="selectedCategoryId"
-            class="text-sm text-danger-500 hover:text-danger-600 transition-colors"
-            @click="clearCategoryFilter"
-          >
-            مسح الفلتر
-          </button>
-        </div>
-        <CategoryBrowser v-model="selectedCategoryId" />
       </div>
 
       <!-- Sort Button -->
