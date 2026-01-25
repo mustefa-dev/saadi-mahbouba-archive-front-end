@@ -270,13 +270,16 @@ onMounted(() => {
     <!-- Add Category Modal -->
     <TairoModal :open="showAddCategoryModal" size="sm" @close="showAddCategoryModal = false">
       <template #header>
-        <div class="flex items-center gap-2">
-          <Icon name="ph:folder-plus-duotone" class="w-5 h-5 text-primary-500" />
-          <span>إضافة تصنيف جديد</span>
+        <div dir="rtl" class="flex w-full items-center justify-between p-4 md:p-6">
+          <div class="flex items-center gap-2">
+            <Icon name="ph:folder-plus-duotone" class="w-5 h-5 text-primary-500" />
+            <span>إضافة تصنيف جديد</span>
+          </div>
+          <BaseButtonClose @click="showAddCategoryModal = false" />
         </div>
       </template>
 
-      <div class="p-4 space-y-4">
+      <div dir="rtl" class="p-4 space-y-4">
         <p v-if="currentCategory" class="text-sm text-muted-500">
           سيتم إضافة التصنيف داخل: <span class="font-semibold">{{ currentCategory.name }}</span>
         </p>
@@ -299,7 +302,7 @@ onMounted(() => {
       </div>
 
       <template #footer>
-        <div class="flex justify-end gap-2">
+        <div dir="rtl" class="flex justify-end gap-2 p-4">
           <BaseButton color="muted" @click="showAddCategoryModal = false">إلغاء</BaseButton>
           <BaseButton
             color="primary"

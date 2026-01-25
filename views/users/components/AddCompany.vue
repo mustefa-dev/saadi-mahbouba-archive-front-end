@@ -1,106 +1,115 @@
 <script setup lang="ts">
 import axios from '~/services/app-client/axios';
-import type { ApproveUserRequest, User } from '~/types/users';
-
-const props = defineProps<{
-  userId: string;
-  user?: User;
-}>();
+import type { CreateCompanyRequest } from '~/types/users';
 
 const emit = defineEmits<{
-  activated: [];
+  added: [];
 }>();
 
 const helpers = useHelpers();
 const apiPaths = useApiPaths();
 const isOpen = ref(false);
 const isLoading = ref(false);
-const isFetchingUser = ref(false);
-const activeTab = ref(0);
 
+// Tabs for step-by-step creation
 const tabs = [
-  { label: 'البيانات الأساسية', icon: 'ph:user-circle' },
+  { label: 'المعلومات الأساسية', icon: 'ph:buildings' },
   { label: 'المدير المفوض', icon: 'ph:user-gear' },
   { label: 'المحامي', icon: 'ph:scales' },
   { label: 'المحاسب', icon: 'ph:calculator' },
 ];
+const activeTab = ref(0);
 
-const formData = reactive<ApproveUserRequest>({
+const formData = reactive<CreateCompanyRequest>({
+  companyName: '',
+  phoneNumber: '',
+  email: '',
+  code: '',
+  password: '',
+  address: '',
   managerName: '',
   managerPhone: '',
   managerPhoneSecondary: '',
   lawyerName: '',
   lawyerPhone: '',
   lawyerPhoneSecondary: '',
-  address: '',
   accountantName: '',
   accountantPhone: '',
   accountantPhoneSecondary: '',
-  email: '',
-  password: '',
-  code: '',
 });
 
-// Populate form with existing user data
-const populateForm = (userData: User) => {
-  formData.code = userData.code || '';
-  formData.email = userData.email || '';
-  formData.address = userData.address || '';
-  formData.managerName = userData.managerName || '';
-  formData.managerPhone = userData.managerPhone || '';
-  formData.managerPhoneSecondary = userData.managerPhoneSecondary || '';
-  formData.lawyerName = userData.lawyerName || '';
-  formData.lawyerPhone = userData.lawyerPhone || '';
-  formData.lawyerPhoneSecondary = userData.lawyerPhoneSecondary || '';
-  formData.accountantName = userData.accountantName || '';
-  formData.accountantPhone = userData.accountantPhone || '';
-  formData.accountantPhoneSecondary = userData.accountantPhoneSecondary || '';
-  // Password is intentionally left empty for security
-  formData.password = '';
-};
-
-// Fetch user data when modal opens
-const fetchUserData = async () => {
-  // If user prop is provided and has data, use it
-  if (props.user && (props.user.code || props.user.email || props.user.managerName)) {
-    populateForm(props.user);
-    return;
-  }
-
-  // Otherwise fetch from API
-  isFetchingUser.value = true;
-  try {
-    const response = await axios.get(apiPaths.userById(props.userId));
-    const userData = response.data;
-    populateForm(userData);
-  } catch (error) {
-    console.error('Failed to fetch user data:', error);
-  } finally {
-    isFetchingUser.value = false;
-  }
-};
-
-// Open modal and fetch user data
-const openModal = async () => {
-  isOpen.value = true;
-  await fetchUserData();
-};
-
 const resetForm = () => {
+  formData.companyName = '';
+  formData.phoneNumber = '';
+  formData.email = '';
+  formData.code = '';
+  formData.password = '';
+  formData.address = '';
   formData.managerName = '';
   formData.managerPhone = '';
   formData.managerPhoneSecondary = '';
   formData.lawyerName = '';
   formData.lawyerPhone = '';
   formData.lawyerPhoneSecondary = '';
-  formData.address = '';
   formData.accountantName = '';
   formData.accountantPhone = '';
   formData.accountantPhoneSecondary = '';
-  formData.email = '';
-  formData.password = '';
-  formData.code = '';
   activeTab.value = 0;
+};
+
+const openModal = () => {
+  resetForm();
+  isOpen.value = true;
+};
+
+// Validation for required fields only
+const isFormValid = computed(() => {
+  return !!(
+    formData.code?.trim() &&
+    formData.password?.trim() &&
+    formData.managerName?.trim() &&
+    formData.managerPhone?.trim()
+  );
+});
+
+const handleSubmit = async () => {
+  if (!isFormValid.value) {
+    helpers.setErrorMessage(null, 'ar', 'Please fill all required fields', 'يرجى ملء جميع الحقول المطلوبة');
+    return;
+  }
+
+  isLoading.value = true;
+  try {
+    const dataToSend: CreateCompanyRequest = {
+      companyName: formData.companyName || undefined,
+      phoneNumber: formData.phoneNumber || undefined,
+      email: formData.email || undefined,
+      code: formData.code,
+      password: formData.password || undefined,
+      address: formData.address || undefined,
+      managerName: formData.managerName,
+      managerPhone: formData.managerPhone,
+      managerPhoneSecondary: formData.managerPhoneSecondary || undefined,
+      lawyerName: formData.lawyerName || undefined,
+      lawyerPhone: formData.lawyerPhone || undefined,
+      lawyerPhoneSecondary: formData.lawyerPhoneSecondary || undefined,
+      accountantName: formData.accountantName || undefined,
+      accountantPhone: formData.accountantPhone || undefined,
+      accountantPhoneSecondary: formData.accountantPhoneSecondary || undefined,
+    };
+
+    await axios.post(apiPaths.companies, dataToSend);
+
+    helpers.setSuccessMessage('ar', 'Company created successfully', 'تم إنشاء الشركة بنجاح');
+    isOpen.value = false;
+    resetForm();
+    emit('added');
+  } catch (error: any) {
+    const errorMessage = error?.response?.data?.error || error?.response?.data?.Error || 'فشل إنشاء الشركة';
+    helpers.setErrorMessage(error, 'ar', 'Failed to create company', errorMessage);
+  } finally {
+    isLoading.value = false;
+  }
 };
 
 const nextTab = () => {
@@ -114,69 +123,29 @@ const prevTab = () => {
     activeTab.value--;
   }
 };
-
-// Validation for required fields
-const isFormValid = computed(() => {
-  return !!(
-    formData.code?.trim() &&
-    formData.password?.trim() &&
-    formData.managerName?.trim() &&
-    formData.managerPhone?.trim()
-  );
-});
-
-const activateUser = async () => {
-  // Validate required fields before submission
-  if (!isFormValid.value) {
-    helpers.setErrorMessage(null, 'ar', 'Please fill all required fields', 'يرجى ملء جميع الحقول المطلوبة');
-    return;
-  }
-  isLoading.value = true;
-  try {
-    const apiPaths = useApiPaths();
-    await axios.put(apiPaths.approveUser(props.userId), formData);
-
-    helpers.setSuccessMessage('ar', 'User activated successfully', 'تم تفعيل المستخدم بنجاح');
-    isOpen.value = false;
-    resetForm();
-    emit('activated');
-  } catch (error: any) {
-    helpers.setErrorMessage(error, 'ar', 'Failed to activate user', 'فشل تفعيل المستخدم');
-  } finally {
-    isLoading.value = false;
-  }
-};
 </script>
 
 <template>
   <div>
     <BaseButton
-      size="sm"
-      color="success"
-      variant="pastel"
+      color="primary"
       @click="openModal"
     >
-      تفعيل الحساب
+      <Icon name="ph:plus" class="size-4" />
+      <span>إضافة شركة</span>
     </BaseButton>
 
     <TairoModal :open="isOpen" size="lg" @close="isOpen = false">
       <template #header>
         <div dir="rtl" class="flex w-full items-center justify-between p-4 md:p-6">
           <h3 class="font-heading text-muted-900 text-lg font-medium leading-6 dark:text-white">
-            تفعيل حساب الشركة
+            إضافة شركة جديدة
           </h3>
           <BaseButtonClose @click="isOpen = false" />
         </div>
       </template>
 
       <div dir="rtl" class="p-4 md:p-6">
-        <!-- Loading State -->
-        <div v-if="isFetchingUser" class="flex flex-col items-center justify-center py-12">
-          <Icon name="svg-spinners:ring-resize" class="size-10 text-primary-500 mb-4" />
-          <p class="text-muted-500">جاري تحميل بيانات الشركة...</p>
-        </div>
-
-        <template v-else>
         <!-- Step Indicator -->
         <div class="flex items-center justify-center gap-2 mb-6">
           <button
@@ -195,9 +164,24 @@ const activateUser = async () => {
           </button>
         </div>
 
-        <form @submit.prevent="activateUser">
+        <form @submit.prevent="handleSubmit">
           <!-- Tab 0: Basic Info -->
           <div v-show="activeTab === 0" class="space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+              <BaseInput
+                v-model="formData.companyName"
+                label="اسم الشركة"
+                placeholder="أدخل اسم الشركة"
+                :disabled="isLoading"
+              />
+              <BaseInput
+                v-model="formData.phoneNumber"
+                type="tel"
+                label="رقم الهاتف"
+                placeholder="077xxxxxxxx"
+                :disabled="isLoading"
+              />
+            </div>
             <div class="grid grid-cols-2 gap-4">
               <BaseInput
                 v-model="formData.code"
@@ -357,17 +341,16 @@ const activateUser = async () => {
               <BaseButton
                 v-else
                 type="submit"
-                color="success"
+                color="primary"
                 :loading="isLoading"
                 :disabled="isLoading || !isFormValid"
               >
-                <Icon name="ph:check" class="size-4 me-1" />
-                موافقة وتفعيل
+                <Icon name="ph:plus" class="size-4 me-1" />
+                إنشاء الشركة
               </BaseButton>
             </div>
           </div>
         </form>
-        </template>
       </div>
     </TairoModal>
   </div>

@@ -4,6 +4,7 @@ import { UserStatus } from '~/types/users';
 import { formatDate, phoneNumberFormatter } from '~/utils/helpers';
 import { UserRoles } from '~/types/enums';
 import AddUser from '~/views/users/components/AddUser.vue';
+import AddCompany from '~/views/users/components/AddCompany.vue';
 import EditUser from '~/views/users/components/EditUser.vue';
 import DeleteUser from '~/views/users/components/DeleteUser.vue';
 import ActivateUser from '~/views/users/components/ActivateUser.vue';
@@ -11,7 +12,7 @@ import DeactivateUser from '~/views/users/components/DeactivateUser.vue';
 import ViewUser from '~/views/users/components/ViewUser.vue';
 
 useHead({
-  title: "إدارة المستخدمين"
+  title: "إدارة العملاء"
 })
 
 definePageMeta({
@@ -77,9 +78,10 @@ const getStatusColor = (status?: UserStatus) => {
   <div class="space-y-6">
     <div class="flex items-center justify-between">
       <div>
-        <BaseHeading size="2xl" weight="bold">إدارة المستخدمين</BaseHeading>
+        <BaseHeading size="2xl" weight="bold">إدارة العملاء</BaseHeading>
         <BaseParagraph size="sm" class="text-muted-400">إدارة حسابات الشركات</BaseParagraph>
       </div>
+      <AddCompany @added="refreshUsers" />
     </div>
 
     <BaseCard class="p-6">

@@ -17,7 +17,7 @@ const apiPaths = useApiPaths();
 const isLoading = ref(false);
 
 // Tabs for step-by-step editing
-const tabs = ['المعلومات الأساسية', 'المدير المفوض', 'المحامي', 'المحاسب القانوني'];
+const tabs = ['المعلومات الأساسية', 'المدير المفوض', 'المحامي', 'المحاسب'];
 const activeTab = ref(0);
 
 const formData = reactive({
@@ -312,14 +312,14 @@ const prevTab = () => {
           <div class="p-4 bg-teal-50 dark:bg-teal-900/20 rounded-xl border border-teal-200 dark:border-teal-800">
             <div class="flex items-center gap-2 mb-4 text-teal-600 dark:text-teal-400">
               <Icon name="ph:bank-duotone" class="w-5 h-5" />
-              <span class="font-medium">معلومات المحاسب القانوني</span>
+              <span class="font-medium">معلومات المحاسب</span>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <BaseInput
                 v-model="formData.accountantName"
                 label="الاسم"
-                placeholder="اسم المحاسب القانوني"
+                placeholder="اسم المحاسب"
                 :disabled="isLoading"
               />
               <BaseInput

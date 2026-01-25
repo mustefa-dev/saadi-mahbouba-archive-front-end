@@ -208,7 +208,7 @@ const formatHijriDate = (dateString?: string) => {
         <!-- Accountant Information -->
         <div class="p-4 bg-muted-50 dark:bg-muted-900/50 border border-muted-200 dark:border-muted-700 rounded-lg">
           <h4 class="text-sm font-semibold text-muted-800 dark:text-muted-100 mb-3 pb-2 border-b border-muted-200 dark:border-muted-700">
-            المحاسب القانوني
+            المحاسب
           </h4>
 
           <div class="grid grid-cols-3 gap-3">
