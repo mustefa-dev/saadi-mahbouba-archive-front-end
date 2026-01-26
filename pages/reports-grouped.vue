@@ -4,6 +4,7 @@ import { getReportStatusColor, getReportStatusLabel } from '~/types/reports';
 import { formatDate } from '~/utils/helpers';
 import ArchiveReport from '~/views/reports/components/ArchiveReport.vue';
 import ChangeStatus from '~/views/reports/components/ChangeStatus.vue';
+import AddReportForCompany from '~/views/reports/components/AddReportForCompany.vue';
 
 useHead({
   title: "التقارير حسب الشركات"
@@ -216,7 +217,14 @@ const canArchive = (report: Report) => {
               </BaseTag>
             </div>
 
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-3">
+              <!-- Add Report Button -->
+              <AddReportForCompany
+                :user-id="group.userId"
+                :company-name="group.companyName || group.fullName"
+                @added="refreshReports"
+              />
+
               <span class="text-sm font-medium text-muted-600 dark:text-muted-300">
                 {{ group.totalReports }} تقرير
               </span>
