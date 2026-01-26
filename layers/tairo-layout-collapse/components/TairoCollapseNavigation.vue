@@ -2,7 +2,7 @@
 import { useCollapse } from '../composables/collapse'
 import TairoCollapseNavigationMenuToggle from './TairoCollapseNavigationMenuToggle.vue';
 
-const { isOpen, isMobileOpen, menuItems } = useCollapse()
+const { isOpen, isMobileOpen, menuItems, toggle } = useCollapse()
 const appUserStore = useAppUserStore();
 const app = useAppConfig()
 
@@ -21,21 +21,24 @@ const isUserInRole = (roles? : string[])=>{
 
 <template>
   <div
-    class="border-muted-200  fixed h-full start-0 top-0 z-[60] flex flex-col border-r transition-all duration-300"
+    class="border-muted-200 fixed h-full start-0 top-0 z-[60] flex flex-col border-r transition-all duration-300"
     :class="[
       !isOpen ? 'w-[60px] p-0 py-2' : 'w-[300px] p-4',
     ]"
   >
-    <!--
-    <div class="absolute"
-    :class="[
-      !isOpen ? 'w-[60px] p-0 py-2' : 'w-[300px] p-4',
-    ]"
+    <!-- Toggle Button -->
+    <button
+      @click="toggle"
+      class="absolute top-6 z-[70] flex h-6 w-6 items-center justify-center rounded-full bg-primary-500 text-white shadow-lg hover:bg-primary-600 transition-all duration-300"
+      :style="{ left: isOpen ? '287px' : '47px' }"
     >
-      <TairoCollapseNavigationMenuToggle v-if="isMobileOpen"/>
-    </div>
-    -->
-    <div class="rounded-lg h-full"
+      <Icon
+        :name="isOpen ? 'ph:caret-right' : 'ph:caret-left'"
+        class="h-4 w-4"
+      />
+    </button>
+
+    <div class="rounded-lg h-full flex flex-col overflow-hidden"
       :class="isOpen && isMobileOpen ? 'bg-[#2f2f2ff0]':'bg-[#2f2f2f]'"
     >
       <!--Header-->
@@ -51,8 +54,8 @@ const isUserInRole = (roles? : string[])=>{
       </slot>
       <!--Body-->
       <div
-        class=" relative flex w-full grow flex-col py-6"
-        :class="!isOpen ? 'px-4' : 'px-6 nui-slimscroll overflow-y-auto'"
+        class="relative flex w-full grow flex-col py-6 overflow-y-auto nui-slimscroll"
+        :class="!isOpen ? 'px-4' : 'px-6'"
       >
         <!--Menu-->
         <ul v-if="startMenuItems?.length" class="space-y-2">
@@ -129,3 +132,20 @@ const isUserInRole = (roles? : string[])=>{
     </div>
   </div>
 </template>
+
+<style scoped>
+/* Custom scrollbar for dark sidebar */
+.nui-slimscroll::-webkit-scrollbar {
+  width: 6px;
+}
+.nui-slimscroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.nui-slimscroll::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+.nui-slimscroll::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.4);
+}
+</style>
