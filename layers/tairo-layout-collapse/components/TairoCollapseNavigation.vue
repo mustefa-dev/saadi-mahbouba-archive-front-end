@@ -26,21 +26,24 @@ const isUserInRole = (roles? : string[])=>{
       !isOpen ? 'w-[60px] p-0 py-2' : 'w-[300px] p-4',
     ]"
   >
-    <!-- Toggle Button -->
-    <button
-      @click="toggle"
-      class="absolute top-6 z-[70] flex h-6 w-6 items-center justify-center rounded-full bg-primary-500 text-white shadow-lg hover:bg-primary-600 transition-all duration-300"
-      :style="{ left: isOpen ? '287px' : '47px' }"
-    >
-      <Icon
-        :name="isOpen ? 'ph:caret-right' : 'ph:caret-left'"
-        class="h-4 w-4"
-      />
-    </button>
-
     <div class="rounded-lg h-full flex flex-col overflow-hidden"
       :class="isOpen && isMobileOpen ? 'bg-[#2f2f2ff0]':'bg-[#2f2f2f]'"
     >
+      <!-- Toggle Button - Inside sidebar at top -->
+      <div class="flex items-center p-3" :class="isOpen ? 'justify-between' : 'justify-center'">
+        <span v-if="isOpen" class="text-white font-semibold text-lg">القائمة</span>
+        <button
+          @click="toggle"
+          class="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-white hover:bg-white/20 transition-all duration-300"
+          :title="isOpen ? 'طي القائمة' : 'توسيع القائمة'"
+        >
+          <Icon
+            :name="isOpen ? 'ph:caret-right' : 'ph:caret-left'"
+            class="h-5 w-5"
+          />
+        </button>
+      </div>
+
       <!--Header-->
       <slot name="header">
         <component
@@ -54,8 +57,8 @@ const isUserInRole = (roles? : string[])=>{
       </slot>
       <!--Body-->
       <div
-        class="relative flex w-full grow flex-col py-6 overflow-y-auto nui-slimscroll"
-        :class="!isOpen ? 'px-4' : 'px-6'"
+        class="relative flex w-full grow flex-col py-4 overflow-y-auto nui-slimscroll"
+        :class="!isOpen ? 'px-2' : 'px-4'"
       >
         <!--Menu-->
         <ul v-if="startMenuItems?.length" class="space-y-2">
