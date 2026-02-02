@@ -12,7 +12,10 @@
       "Bash(cat:*)",
       "Bash(dotnet ef migrations:*)",
       "Bash(dotnet ef database:*)",
-      "Bash(dotnet build:*)"
+      "Bash(dotnet build:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push)"
     ],
     "deny": [],
     "ask": []

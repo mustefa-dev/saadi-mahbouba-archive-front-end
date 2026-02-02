@@ -111,18 +111,10 @@ export function useCollapse() {
     const route = useRoute()
     const { lg} = useTailwindBreakpoints()
 
-    // Routes that should have sidebar collapsed for full-screen experience
-    const collapsedRoutes = ['/archive', '/chats']
-
-    const shouldCollapseForRoute = (path: string) => {
-      return collapsedRoutes.some(r => path.startsWith(r))
-    }
-
     watch(lg, (isLg,wasLg) => {
       if(!wasLg && isLg)
       {
-        // When switching to desktop, check if current route needs collapse
-        isOpen.value = !shouldCollapseForRoute(route.path);
+        // When switching to desktop, keep current state
         isMobileOpen.value = false;
       }
       else if(wasLg && !isLg)
@@ -134,15 +126,9 @@ export function useCollapse() {
     watch(
       () => route.fullPath,
       () => {
+        // Only close mobile sidebar on route change
         if (!lg.value) {
           isMobileOpen.value = false
-        } else {
-          // On desktop, auto-collapse/expand based on route
-          if (shouldCollapseForRoute(route.path)) {
-            isOpen.value = false
-          } else {
-            isOpen.value = true
-          }
         }
       },
     )
@@ -150,9 +136,6 @@ export function useCollapse() {
       const {lg} = useTailwindBreakpoints();
       if(!lg.value){
         isOpen.value = false;
-      } else {
-        // On mount, check if current route needs collapse
-        isOpen.value = !shouldCollapseForRoute(route.path);
       }
     })
   }
