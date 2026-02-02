@@ -131,7 +131,8 @@ const normalizeFile = (file: any): ArchiveFile => ({
   categoryPath: file.categoryPath || file.CategoryPath || '',
   archivedAt: file.archivedAt || file.ArchivedAt || '',
   senderName: file.senderName || file.SenderName || '',
-  fileUrl: file.fileUrl || file.FileUrl || ''
+  fileUrl: file.fileUrl || file.FileUrl || '',
+  isVisibleToClient: file.isVisibleToClient ?? file.IsVisibleToClient ?? true
 })
 
 // Fetch files (client or management)
@@ -285,6 +286,29 @@ const handleResendFile = async (file: ArchiveFile) => {
     alert(error?.data?.message || 'حدث خطأ أثناء إعادة إرسال الملف')
   } finally {
     resendingFile.value = false
+  }
+}
+
+// Toggle client visibility
+const togglingVisibility = ref(false)
+const handleToggleVisibility = async (file: ArchiveFile) => {
+  if (togglingVisibility.value) return
+
+  togglingVisibility.value = true
+  try {
+    await $fetch(apiPaths.archiveToggleVisibility(file.id), {
+      method: 'POST'
+    })
+
+    // Refresh the files list
+    if (selectedCompany.value && selectedFolder.value) {
+      fetchFiles(selectedCompany.value.userId, selectedFolder.value, fileFilter.value)
+    }
+  } catch (error: any) {
+    console.error('Error toggling visibility:', error)
+    alert(error?.data?.message || 'حدث خطأ أثناء تحديث إعدادات الرؤية')
+  } finally {
+    togglingVisibility.value = false
   }
 }
 
@@ -647,6 +671,7 @@ onMounted(() => {
               @download="handleDownloadFile"
               @resend="handleResendFile"
               @edit="handleEditFile"
+              @toggle-visibility="handleToggleVisibility"
             />
 
             <!-- Conversations -->

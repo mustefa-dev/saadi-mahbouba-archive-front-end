@@ -31,7 +31,6 @@ const isSubmitting = ref(false);
 const reportForm = reactive({
   title: '',
   description: '',
-  categoryId: undefined as string | undefined,
   file: null as File | null
 });
 const fileInput = ref<HTMLInputElement | null>(null);
@@ -93,7 +92,6 @@ const handleFileChange = (event: Event) => {
 const resetReportForm = () => {
   reportForm.title = '';
   reportForm.description = '';
-  reportForm.categoryId = undefined;
   reportForm.file = null;
   selectedFileName.value = '';
   selectedCompany.value = null;
@@ -140,9 +138,6 @@ const submitReport = async () => {
     formData.append('AutoApprove', 'false'); // Don't auto-archive, start as Pending
     if (reportForm.description) {
       formData.append('Description', reportForm.description);
-    }
-    if (reportForm.categoryId) {
-      formData.append('CategoryId', reportForm.categoryId);
     }
 
     const token = userStore.getToken();
@@ -607,16 +602,6 @@ const canArchive = (report: Report) => {
           :disabled="isSubmitting"
           rows="3"
         />
-
-        <div>
-          <label class="block text-sm font-medium text-muted-700 dark:text-muted-300 mb-2">
-            التصنيف
-          </label>
-          <CategorySelector
-            v-model="reportForm.categoryId"
-            placeholder="اختر التصنيف..."
-          />
-        </div>
 
         <div>
           <label class="block text-sm font-medium text-muted-700 dark:text-muted-300 mb-2">

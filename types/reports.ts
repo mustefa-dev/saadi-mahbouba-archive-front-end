@@ -215,6 +215,8 @@ export interface ArchiveReportForm {
   archiveFileName: string;
   categoryId: string;
   archiveNotes?: string;
+  archiveType?: 'client' | 'management'; // Optional - defaults to 'client' on backend
+  isVisibleToClient: boolean; // Controls if client can see this archived file
 }
 
 // Change Status Form

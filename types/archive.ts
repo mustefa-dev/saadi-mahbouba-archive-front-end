@@ -33,6 +33,7 @@ export interface ArchiveFile {
   archivedAt: string;
   senderName: string;
   fileUrl: string;
+  isVisibleToClient: boolean;
 }
 
 export interface CompanyFolders {

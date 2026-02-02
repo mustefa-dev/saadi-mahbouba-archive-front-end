@@ -80,6 +80,7 @@ export const useApiPaths = () => {
     archiveCompanyConversations: (userId: string) => `${baseUrl}/Archive/companies/${userId}/conversations`,
     archiveSendFile: `${baseUrl}/Archive/send-file`,
     archiveResendToManagement: (reportId: string) => `${baseUrl}/Archive/resend-to-management/${reportId}`,
+    archiveToggleVisibility: (reportId: string) => `${baseUrl}/Archive/toggle-visibility/${reportId}`,
     archiveSearch: `${baseUrl}/Archive/search`,
     archiveFileById: (fileId: string) => `${baseUrl}/Archive/files/${fileId}`,
 

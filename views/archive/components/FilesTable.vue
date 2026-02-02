@@ -15,6 +15,7 @@ const emit = defineEmits<{
   (e: 'download', file: ArchiveFile): void
   (e: 'resend', file: ArchiveFile): void
   (e: 'edit', file: ArchiveFile): void
+  (e: 'toggleVisibility', file: ArchiveFile): void
 }>()
 
 // Filter state
@@ -220,6 +221,16 @@ const toggleSort = () => {
                 @click="emit('resend', file)"
               >
                 <Icon name="ph:arrow-bend-up-right" class="w-4 h-4" />
+              </BaseButtonIcon>
+              <!-- Toggle client visibility button -->
+              <BaseButtonIcon
+                size="sm"
+                rounded="lg"
+                :color="file.isVisibleToClient ? 'success' : 'danger'"
+                :data-nui-tooltip="file.isVisibleToClient ? 'مرئي للعميل - اضغط للإخفاء' : 'مخفي عن العميل - اضغط للإظهار'"
+                @click="emit('toggleVisibility', file)"
+              >
+                <Icon :name="file.isVisibleToClient ? 'ph:eye' : 'ph:eye-slash'" class="w-4 h-4" />
               </BaseButtonIcon>
             </div>
           </td>

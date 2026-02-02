@@ -17,7 +17,8 @@ const form = ref<ArchiveReportForm>({
   fileYear: new Date().getFullYear(),
   archiveFileName: '',
   categoryId: '',
-  archiveNotes: ''
+  archiveNotes: '',
+  isVisibleToClient: true
 });
 
 const openModal = () => {
@@ -25,7 +26,8 @@ const openModal = () => {
     fileYear: new Date().getFullYear(),
     archiveFileName: props.report.fileName || props.report.title || '',
     categoryId: props.report.categoryId || '',
-    archiveNotes: ''
+    archiveNotes: '',
+    isVisibleToClient: true
   };
   isOpen.value = true;
 };
@@ -118,6 +120,14 @@ const yearOptions = computed(() => {
           <CategorySelector
             v-model="form.categoryId"
             placeholder="اختر التصنيف..."
+          />
+        </div>
+
+        <div class="flex items-center gap-3">
+          <BaseCheckbox
+            v-model="form.isVisibleToClient"
+            label="العميل يمكنه رؤية هذا الملف"
+            color="primary"
           />
         </div>
 

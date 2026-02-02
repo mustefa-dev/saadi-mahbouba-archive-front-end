@@ -16,10 +16,9 @@ const apiPaths = useApiPaths();
 const isOpen = ref(false);
 const isLoading = ref(false);
 
-const formData = reactive<ReportForm>({
+const formData = reactive<Omit<ReportForm, 'categoryId'>>({
   title: '',
   description: '',
-  categoryId: undefined,
   file: null
 });
 
@@ -37,7 +36,6 @@ const handleFileChange = (event: Event) => {
 const resetForm = () => {
   formData.title = '';
   formData.description = '';
-  formData.categoryId = undefined;
   formData.file = null;
   selectedFileName.value = '';
   if (fileInput.value) {
@@ -62,7 +60,6 @@ const addReport = async () => {
     formDataToSend.append('title', formData.title);
     formDataToSend.append('description', formData.description || '');
     formDataToSend.append('userId', props.userId);
-    if (formData.categoryId) formDataToSend.append('categoryId', formData.categoryId);
     formDataToSend.append('file', formData.file);
 
     await $fetch(apiPaths.reports, {
@@ -131,16 +128,6 @@ const openDialog = () => {
           :disabled="isLoading"
           rows="3"
         />
-
-        <div>
-          <label class="block text-sm font-medium text-muted-700 dark:text-muted-300 mb-2">
-            التصنيف
-          </label>
-          <CategorySelector
-            v-model="formData.categoryId"
-            placeholder="اختر التصنيف..."
-          />
-        </div>
 
         <div>
           <label class="block text-sm font-medium text-muted-700 dark:text-muted-300 mb-2">

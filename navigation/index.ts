@@ -38,10 +38,10 @@ const reports = [
 
 const users = [
   {
-    header: "إدارة المستخدمين",
+    header: "العملاء",
   },
   {
-    name: "المستخدمون",
+    name: "العملاء",
     icon: { name: 'ph:users-duotone', class: 'w-5 h-5' },
     to: "/users",
   },
