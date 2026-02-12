@@ -20,7 +20,8 @@
       "Bash(gh run watch:*)",
       "Bash(gh run view:*)",
       "Bash(gh secret:*)",
-      "Bash(gh run:*)"
+      "Bash(gh run:*)",
+      "Bash(gh api:*)"
     ],
     "deny": [],
     "ask": []

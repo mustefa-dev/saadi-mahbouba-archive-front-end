@@ -6,7 +6,7 @@ on:
       - master
 
 env:
-  IMAGE_NAME: ghcr.io/${{ github.repository }}
+  IMAGE_NAME: ghcr.io/mustefa-dev/saadi-mahbouba-archive-front-end
 
 jobs:
   build-and-deploy:
@@ -49,13 +49,14 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           envs: GHCR_TOKEN,GHCR_USER,IMAGE
           script: |
+            set -e
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
-            docker pull $IMAGE:latest
+            docker pull "$IMAGE:latest"
             docker stop saadi-archive-frontend || true
             docker rm saadi-archive-frontend || true
             docker run -d \
               --name saadi-archive-frontend \
               --restart unless-stopped \
               -p 3000:3000 \
-              $IMAGE:latest
+              "$IMAGE:latest"
             docker image prune -f
