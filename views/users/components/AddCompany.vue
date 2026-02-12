@@ -62,39 +62,66 @@ const openModal = () => {
   isOpen.value = true;
 };
 
-// Validation for required fields only
+const phoneRegex = /^(077|078|079)\d{8}$/;
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const validateForm = (): string | null => {
+  // Tab 0: Basic Info
+  if (!formData.companyName.trim()) return 'اسم الشركة مطلوب';
+  if (!formData.phoneNumber.trim()) return 'رقم الهاتف مطلوب';
+  if (!phoneRegex.test(formData.phoneNumber.trim())) return 'رقم الهاتف غير صالح (مثال: 07712345678)';
+  if (!formData.email.trim()) return 'البريد الإلكتروني مطلوب';
+  if (!emailRegex.test(formData.email.trim())) return 'البريد الإلكتروني غير صالح';
+  if (!formData.code.trim()) return 'الكود مطلوب';
+  if (!formData.password.trim()) return 'كلمة المرور مطلوبة';
+  if (formData.password.length < 6) return 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
+  if (!formData.address.trim()) return 'العنوان مطلوب';
+  // Tab 1: Manager
+  if (!formData.managerName.trim()) return 'اسم المدير المفوض مطلوب';
+  if (!formData.managerPhone.trim()) return 'رقم هاتف المدير مطلوب';
+  if (!phoneRegex.test(formData.managerPhone.trim())) return 'رقم هاتف المدير غير صالح';
+  if (formData.managerPhoneSecondary?.trim() && !phoneRegex.test(formData.managerPhoneSecondary.trim())) return 'رقم الهاتف الثاني للمدير غير صالح';
+  // Tab 2: Lawyer
+  if (!formData.lawyerName.trim()) return 'اسم المحامي مطلوب';
+  if (!formData.lawyerPhone.trim()) return 'رقم هاتف المحامي مطلوب';
+  if (!phoneRegex.test(formData.lawyerPhone.trim())) return 'رقم هاتف المحامي غير صالح';
+  if (formData.lawyerPhoneSecondary?.trim() && !phoneRegex.test(formData.lawyerPhoneSecondary.trim())) return 'رقم الهاتف الثاني للمحامي غير صالح';
+  // Tab 3: Accountant
+  if (!formData.accountantName.trim()) return 'اسم المحاسب القانوني مطلوب';
+  if (!formData.accountantPhone.trim()) return 'رقم هاتف المحاسب مطلوب';
+  if (!phoneRegex.test(formData.accountantPhone.trim())) return 'رقم هاتف المحاسب غير صالح';
+  if (formData.accountantPhoneSecondary?.trim() && !phoneRegex.test(formData.accountantPhoneSecondary.trim())) return 'رقم الهاتف الثاني للمحاسب غير صالح';
+  return null;
+};
+
 const isFormValid = computed(() => {
-  return !!(
-    formData.code?.trim() &&
-    formData.password?.trim() &&
-    formData.managerName?.trim() &&
-    formData.managerPhone?.trim()
-  );
+  return validateForm() === null;
 });
 
 const handleSubmit = async () => {
-  if (!isFormValid.value) {
-    helpers.setErrorMessage(null, 'ar', 'Please fill all required fields', 'يرجى ملء جميع الحقول المطلوبة');
+  const error = validateForm();
+  if (error) {
+    helpers.setErrorMessage(null, 'ar', error, error);
     return;
   }
 
   isLoading.value = true;
   try {
     const dataToSend: CreateCompanyRequest = {
-      companyName: formData.companyName || undefined,
-      phoneNumber: formData.phoneNumber || undefined,
-      email: formData.email || undefined,
+      companyName: formData.companyName,
+      phoneNumber: formData.phoneNumber,
+      email: formData.email,
       code: formData.code,
-      password: formData.password || undefined,
-      address: formData.address || undefined,
+      password: formData.password,
+      address: formData.address,
       managerName: formData.managerName,
       managerPhone: formData.managerPhone,
       managerPhoneSecondary: formData.managerPhoneSecondary || undefined,
-      lawyerName: formData.lawyerName || undefined,
-      lawyerPhone: formData.lawyerPhone || undefined,
+      lawyerName: formData.lawyerName,
+      lawyerPhone: formData.lawyerPhone,
       lawyerPhoneSecondary: formData.lawyerPhoneSecondary || undefined,
-      accountantName: formData.accountantName || undefined,
-      accountantPhone: formData.accountantPhone || undefined,
+      accountantName: formData.accountantName,
+      accountantPhone: formData.accountantPhone,
       accountantPhoneSecondary: formData.accountantPhoneSecondary || undefined,
     };
 
@@ -170,16 +197,18 @@ const prevTab = () => {
             <div class="grid grid-cols-2 gap-4">
               <BaseInput
                 v-model="formData.companyName"
-                label="اسم الشركة"
+                label="اسم الشركة *"
                 placeholder="أدخل اسم الشركة"
                 :disabled="isLoading"
+                required
               />
               <BaseInput
                 v-model="formData.phoneNumber"
                 type="tel"
-                label="رقم الهاتف"
+                label="رقم الهاتف *"
                 placeholder="077xxxxxxxx"
                 :disabled="isLoading"
+                required
               />
             </div>
             <div class="grid grid-cols-2 gap-4">
@@ -194,7 +223,7 @@ const prevTab = () => {
                 v-model="formData.password"
                 type="password"
                 label="كلمة المرور *"
-                placeholder="أدخل كلمة المرور"
+                placeholder="أدخل كلمة المرور (6 أحرف على الأقل)"
                 :disabled="isLoading"
                 required
               />
@@ -202,15 +231,17 @@ const prevTab = () => {
             <BaseInput
               v-model="formData.email"
               type="email"
-              label="البريد الإلكتروني"
+              label="البريد الإلكتروني *"
               placeholder="أدخل البريد الإلكتروني"
               :disabled="isLoading"
+              required
             />
             <BaseInput
               v-model="formData.address"
-              label="العنوان الكامل"
+              label="العنوان الكامل *"
               placeholder="أدخل العنوان الكامل"
               :disabled="isLoading"
+              required
             />
           </div>
 
@@ -254,17 +285,19 @@ const prevTab = () => {
             </div>
             <BaseInput
               v-model="formData.lawyerName"
-              label="الاسم"
+              label="الاسم *"
               placeholder="اسم المحامي"
               :disabled="isLoading"
+              required
             />
             <div class="grid grid-cols-2 gap-4">
               <BaseInput
                 v-model="formData.lawyerPhone"
                 type="tel"
-                label="رقم الهاتف"
+                label="رقم الهاتف *"
                 placeholder="077xxxxxxxx"
                 :disabled="isLoading"
+                required
               />
               <BaseInput
                 v-model="formData.lawyerPhoneSecondary"
@@ -284,17 +317,19 @@ const prevTab = () => {
             </div>
             <BaseInput
               v-model="formData.accountantName"
-              label="الاسم"
+              label="الاسم *"
               placeholder="اسم المحاسب"
               :disabled="isLoading"
+              required
             />
             <div class="grid grid-cols-2 gap-4">
               <BaseInput
                 v-model="formData.accountantPhone"
                 type="tel"
-                label="رقم الهاتف"
+                label="رقم الهاتف *"
                 placeholder="077xxxxxxxx"
                 :disabled="isLoading"
+                required
               />
               <BaseInput
                 v-model="formData.accountantPhoneSecondary"

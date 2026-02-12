@@ -109,6 +109,7 @@ const getStatusColor = (status?: UserStatus) => {
               <th class="px-6 py-3 text-right text-xs font-medium text-muted-500 uppercase tracking-wider">الاسم الكامل</th>
               <th class="px-6 py-3 text-right text-xs font-medium text-muted-500 uppercase tracking-wider">رقم الهاتف</th>
               <th class="px-6 py-3 text-right text-xs font-medium text-muted-500 uppercase tracking-wider">الكود</th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-muted-500 uppercase tracking-wider">كلمة المرور</th>
               <th class="px-6 py-3 text-right text-xs font-medium text-muted-500 uppercase tracking-wider">تاريخ الإنشاء</th>
               <th class="px-6 py-3 text-right text-xs font-medium text-muted-500 uppercase tracking-wider">الحالة</th>
               <th class="px-6 py-3 text-right text-xs font-medium text-muted-500 uppercase tracking-wider">الإجراءات</th>
@@ -127,6 +128,9 @@ const getStatusColor = (status?: UserStatus) => {
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="text-sm text-muted-600 dark:text-muted-300">{{ user.code || '-' }}</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-muted-600 dark:text-muted-300">{{ user.passwordPlain || '-' }}</div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="text-sm text-muted-600 dark:text-muted-300">{{ formatDate(user.creationDate) }}</div>

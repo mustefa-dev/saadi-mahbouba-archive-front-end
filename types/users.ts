@@ -6,6 +6,7 @@ export interface User {
   isVerified: boolean
   creationDate: string
   password?: string
+  passwordPlain?: string
   email?: string
   companyName?: string
   code?: string
