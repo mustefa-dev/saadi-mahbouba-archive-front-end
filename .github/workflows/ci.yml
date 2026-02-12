@@ -38,19 +38,24 @@ jobs:
 
       - name: Deploy to server via SSH
         uses: appleboy/ssh-action@v1
+        env:
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          GHCR_USER: ${{ github.actor }}
+          IMAGE: ${{ env.IMAGE_NAME }}
         with:
           host: ${{ secrets.SSH_HOST }}
           port: ${{ secrets.SSH_PORT }}
           username: ${{ secrets.SSH_USERNAME }}
           password: ${{ secrets.SSH_PASSWORD }}
+          envs: GHCR_TOKEN,GHCR_USER,IMAGE
           script: |
-            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            docker pull ${{ env.IMAGE_NAME }}:latest
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+            docker pull $IMAGE:latest
             docker stop saadi-archive-frontend || true
             docker rm saadi-archive-frontend || true
             docker run -d \
               --name saadi-archive-frontend \
               --restart unless-stopped \
               -p 3000:3000 \
-              ${{ env.IMAGE_NAME }}:latest
+              $IMAGE:latest
             docker image prune -f
