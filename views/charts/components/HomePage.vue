@@ -197,7 +197,7 @@ onMounted(async () => {
                 <Icon name="ph:users-duotone" class="w-6 h-6 text-info-500" />
               </div>
               <div>
-                <p class="font-semibold text-muted-800 dark:text-white">المستخدمين</p>
+                <p class="font-semibold text-muted-800 dark:text-white">العملاء</p>
                 <p class="text-sm text-muted-500">إدارة حسابات الشركات</p>
               </div>
             </div>

@@ -55,8 +55,8 @@ const populateForm = (userData: User) => {
   formData.accountantName = userData.accountantName || '';
   formData.accountantPhone = userData.accountantPhone || '';
   formData.accountantPhoneSecondary = userData.accountantPhoneSecondary || '';
-  // Password is intentionally left empty for security
-  formData.password = '';
+  // Pre-fill password from existing data to preserve it on reactivation
+  formData.password = userData.passwordPlain || '';
 };
 
 // Fetch user data when modal opens
@@ -115,11 +115,10 @@ const prevTab = () => {
   }
 };
 
-// Validation for required fields
+// Validation for required fields (password optional if already set)
 const isFormValid = computed(() => {
   return !!(
     formData.code?.trim() &&
-    formData.password?.trim() &&
     formData.managerName?.trim() &&
     formData.managerPhone?.trim()
   );
@@ -208,11 +207,9 @@ const activateUser = async () => {
               />
               <BaseInput
                 v-model="formData.password"
-                type="password"
-                label="كلمة المرور *"
-                placeholder="أدخل كلمة المرور"
+                label="كلمة المرور"
+                placeholder="اتركها فارغة للاحتفاظ بالقديمة"
                 :disabled="isLoading"
-                required
               />
             </div>
             <BaseInput

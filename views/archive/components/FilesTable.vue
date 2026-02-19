@@ -24,8 +24,31 @@ const selectedCategoryId = ref<string | undefined>()
 const selectedYear = ref<number | undefined>()
 const sortOrder = ref<'asc' | 'desc'>('desc')
 
-// Year options (from 2099 down to 1950)
-const yearOptions = Array.from({ length: 150 }, (_, i) => 2099 - i)
+// Year options: from 2000 to (current year + 3)
+const currentYear = new Date().getFullYear()
+const yearOptions = Array.from({ length: currentYear + 3 - 2000 + 1 }, (_, i) => currentYear + 3 - i)
+
+// Toggle visibility confirmation
+const showVisibilityConfirm = ref(false)
+const fileToToggle = ref<ArchiveFile | null>(null)
+
+const openVisibilityConfirm = (file: ArchiveFile) => {
+  fileToToggle.value = file
+  showVisibilityConfirm.value = true
+}
+
+const confirmToggleVisibility = () => {
+  if (fileToToggle.value) {
+    emit('toggleVisibility', fileToToggle.value)
+  }
+  showVisibilityConfirm.value = false
+  fileToToggle.value = null
+}
+
+const cancelToggleVisibility = () => {
+  showVisibilityConfirm.value = false
+  fileToToggle.value = null
+}
 
 // Watch for filter changes with debounce
 watchDebounced([search, selectedCategoryId, selectedYear, sortOrder], () => {
@@ -145,6 +168,7 @@ const toggleSort = () => {
           <th class="py-3 px-4 text-right text-sm font-medium text-muted-500 dark:text-muted-400">التصنيف</th>
           <th class="py-3 px-4 text-right text-sm font-medium text-muted-500 dark:text-muted-400">تاريخ الأرشفة</th>
           <th class="py-3 px-4 text-right text-sm font-medium text-muted-500 dark:text-muted-400">المرسل</th>
+          <th class="py-3 px-4 text-center text-sm font-medium text-muted-500 dark:text-muted-400">مرئي للعميل</th>
           <th class="py-3 px-4 text-center text-sm font-medium text-muted-500 dark:text-muted-400">الإجراء</th>
         </tr>
       </thead>
@@ -184,6 +208,16 @@ const toggleSort = () => {
           <td class="py-4 px-4 text-muted-600 dark:text-muted-300">
             {{ file.senderName || '-' }}
           </td>
+          <!-- Visibility Toggle Switch -->
+          <td class="py-4 px-4">
+            <div class="flex items-center justify-center">
+              <BaseSwitchBall
+                :model-value="file.isVisibleToClient"
+                :color="file.isVisibleToClient ? 'success' : 'danger'"
+                @update:model-value="openVisibilityConfirm(file)"
+              />
+            </div>
+          </td>
           <td class="py-4 px-4">
             <div class="flex items-center justify-center gap-2">
               <BaseButtonIcon
@@ -222,20 +256,60 @@ const toggleSort = () => {
               >
                 <Icon name="ph:arrow-bend-up-right" class="w-4 h-4" />
               </BaseButtonIcon>
-              <!-- Toggle client visibility button -->
-              <BaseButtonIcon
-                size="sm"
-                rounded="lg"
-                :color="file.isVisibleToClient ? 'success' : 'danger'"
-                :data-nui-tooltip="file.isVisibleToClient ? 'مرئي للعميل - اضغط للإخفاء' : 'مخفي عن العميل - اضغط للإظهار'"
-                @click="emit('toggleVisibility', file)"
-              >
-                <Icon :name="file.isVisibleToClient ? 'ph:eye' : 'ph:eye-slash'" class="w-4 h-4" />
-              </BaseButtonIcon>
             </div>
           </td>
         </tr>
       </tbody>
     </table>
+
+    <!-- Visibility Toggle Confirmation Dialog -->
+    <TairoModal :open="showVisibilityConfirm" size="sm" @close="cancelToggleVisibility">
+      <template #header>
+        <div class="flex w-full items-center justify-between p-4 md:p-6" dir="rtl">
+          <h3 class="font-heading text-muted-900 text-lg font-medium leading-6 dark:text-white">
+            تأكيد تغيير الرؤية
+          </h3>
+          <BaseButtonClose @click="cancelToggleVisibility" />
+        </div>
+      </template>
+
+      <div class="p-4 md:p-6" dir="rtl">
+        <div class="mx-auto w-full text-center">
+          <div class="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center"
+            :class="fileToToggle?.isVisibleToClient
+              ? 'bg-danger-100 dark:bg-danger-900/30'
+              : 'bg-success-100 dark:bg-success-900/30'"
+          >
+            <Icon
+              :name="fileToToggle?.isVisibleToClient ? 'ph:eye-slash-duotone' : 'ph:eye-duotone'"
+              class="w-8 h-8"
+              :class="fileToToggle?.isVisibleToClient ? 'text-danger-500' : 'text-success-500'"
+            />
+          </div>
+
+          <p class="text-muted-500 dark:text-muted-400 mb-2">
+            {{ fileToToggle?.isVisibleToClient ? 'هل تريد إخفاء هذا الملف عن العميل؟' : 'هل تريد إظهار هذا الملف للعميل؟' }}
+          </p>
+          <p class="text-muted-900 dark:text-white font-semibold mb-6">
+            {{ fileToToggle?.fileName }}
+          </p>
+
+          <div class="flex gap-x-2 justify-center">
+            <BaseButton
+              color="default"
+              @click="cancelToggleVisibility"
+            >
+              إلغاء
+            </BaseButton>
+            <BaseButton
+              :color="fileToToggle?.isVisibleToClient ? 'danger' : 'success'"
+              @click="confirmToggleVisibility"
+            >
+              {{ fileToToggle?.isVisibleToClient ? 'إخفاء الملف' : 'إظهار الملف' }}
+            </BaseButton>
+          </div>
+        </div>
+      </div>
+    </TairoModal>
   </div>
 </template>

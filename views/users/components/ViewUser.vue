@@ -112,6 +112,19 @@ const formatHijriDate = (dateString?: string) => {
                 </p>
               </div>
             </div>
+
+            <!-- Password -->
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center flex-shrink-0">
+                <Icon name="ph:lock-duotone" class="w-4 h-4 text-rose-500" />
+              </div>
+              <div class="min-w-0">
+                <p class="text-[10px] text-muted-400">كلمة المرور</p>
+                <p class="text-sm font-medium text-muted-800 dark:text-muted-100 truncate" dir="ltr">
+                  {{ user.passwordPlain || '-' }}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 

@@ -66,30 +66,25 @@ const phoneRegex = /^(077|078|079)\d{8}$/;
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const validateForm = (): string | null => {
-  // Tab 0: Basic Info
+  // Tab 0: Basic Info - Required fields
   if (!formData.companyName.trim()) return 'اسم الشركة مطلوب';
-  if (!formData.phoneNumber.trim()) return 'رقم الهاتف مطلوب';
+  if (!formData.phoneNumber.trim()) return 'رقم هاتف الشركة مطلوب';
   if (!phoneRegex.test(formData.phoneNumber.trim())) return 'رقم الهاتف غير صالح (مثال: 07712345678)';
-  if (!formData.email.trim()) return 'البريد الإلكتروني مطلوب';
-  if (!emailRegex.test(formData.email.trim())) return 'البريد الإلكتروني غير صالح';
-  if (!formData.code.trim()) return 'الكود مطلوب';
+  if (!formData.code.trim()) return 'الكود (م.ش) مطلوب';
   if (!formData.password.trim()) return 'كلمة المرور مطلوبة';
   if (formData.password.length < 6) return 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
-  if (!formData.address.trim()) return 'العنوان مطلوب';
-  // Tab 1: Manager
+  // Optional field validation (only if filled)
+  if (formData.email?.trim() && !emailRegex.test(formData.email.trim())) return 'البريد الإلكتروني غير صالح';
+  // Tab 1: Manager - Required fields
   if (!formData.managerName.trim()) return 'اسم المدير المفوض مطلوب';
   if (!formData.managerPhone.trim()) return 'رقم هاتف المدير مطلوب';
   if (!phoneRegex.test(formData.managerPhone.trim())) return 'رقم هاتف المدير غير صالح';
   if (formData.managerPhoneSecondary?.trim() && !phoneRegex.test(formData.managerPhoneSecondary.trim())) return 'رقم الهاتف الثاني للمدير غير صالح';
-  // Tab 2: Lawyer
-  if (!formData.lawyerName.trim()) return 'اسم المحامي مطلوب';
-  if (!formData.lawyerPhone.trim()) return 'رقم هاتف المحامي مطلوب';
-  if (!phoneRegex.test(formData.lawyerPhone.trim())) return 'رقم هاتف المحامي غير صالح';
+  // Tab 2: Lawyer - Optional (validate only if filled)
+  if (formData.lawyerPhone?.trim() && !phoneRegex.test(formData.lawyerPhone.trim())) return 'رقم هاتف المحامي غير صالح';
   if (formData.lawyerPhoneSecondary?.trim() && !phoneRegex.test(formData.lawyerPhoneSecondary.trim())) return 'رقم الهاتف الثاني للمحامي غير صالح';
-  // Tab 3: Accountant
-  if (!formData.accountantName.trim()) return 'اسم المحاسب القانوني مطلوب';
-  if (!formData.accountantPhone.trim()) return 'رقم هاتف المحاسب مطلوب';
-  if (!phoneRegex.test(formData.accountantPhone.trim())) return 'رقم هاتف المحاسب غير صالح';
+  // Tab 3: Accountant - Optional (validate only if filled)
+  if (formData.accountantPhone?.trim() && !phoneRegex.test(formData.accountantPhone.trim())) return 'رقم هاتف المحاسب غير صالح';
   if (formData.accountantPhoneSecondary?.trim() && !phoneRegex.test(formData.accountantPhoneSecondary.trim())) return 'رقم الهاتف الثاني للمحاسب غير صالح';
   return null;
 };
@@ -205,7 +200,7 @@ const prevTab = () => {
               <BaseInput
                 v-model="formData.phoneNumber"
                 type="tel"
-                label="رقم الهاتف *"
+                label="رقم هاتف الشركة *"
                 placeholder="077xxxxxxxx"
                 :disabled="isLoading"
                 required
@@ -231,17 +226,15 @@ const prevTab = () => {
             <BaseInput
               v-model="formData.email"
               type="email"
-              label="البريد الإلكتروني *"
+              label="البريد الإلكتروني (اختياري)"
               placeholder="أدخل البريد الإلكتروني"
               :disabled="isLoading"
-              required
             />
             <BaseInput
               v-model="formData.address"
-              label="العنوان الكامل *"
+              label="العنوان الكامل (اختياري)"
               placeholder="أدخل العنوان الكامل"
               :disabled="isLoading"
-              required
             />
           </div>
 
@@ -277,64 +270,60 @@ const prevTab = () => {
             </div>
           </div>
 
-          <!-- Tab 2: Lawyer -->
+          <!-- Tab 2: Lawyer (Optional) -->
           <div v-show="activeTab === 2" class="space-y-4">
             <div class="text-center mb-4">
               <Icon name="ph:scales" class="size-10 text-primary-500 mx-auto mb-2" />
-              <h4 class="font-medium text-muted-700 dark:text-muted-300">بيانات المحامي</h4>
+              <h4 class="font-medium text-muted-700 dark:text-muted-300">بيانات المحامي (اختياري)</h4>
             </div>
             <BaseInput
               v-model="formData.lawyerName"
-              label="الاسم *"
+              label="الاسم"
               placeholder="اسم المحامي"
               :disabled="isLoading"
-              required
             />
             <div class="grid grid-cols-2 gap-4">
               <BaseInput
                 v-model="formData.lawyerPhone"
                 type="tel"
-                label="رقم الهاتف *"
+                label="رقم الهاتف"
                 placeholder="077xxxxxxxx"
                 :disabled="isLoading"
-                required
               />
               <BaseInput
                 v-model="formData.lawyerPhoneSecondary"
                 type="tel"
-                label="رقم ثانٍ (اختياري)"
+                label="رقم ثانٍ"
                 placeholder="077xxxxxxxx"
                 :disabled="isLoading"
               />
             </div>
           </div>
 
-          <!-- Tab 3: Accountant -->
+          <!-- Tab 3: Accountant (Optional) -->
           <div v-show="activeTab === 3" class="space-y-4">
             <div class="text-center mb-4">
               <Icon name="ph:calculator" class="size-10 text-primary-500 mx-auto mb-2" />
-              <h4 class="font-medium text-muted-700 dark:text-muted-300">بيانات المحاسب</h4>
+              <h4 class="font-medium text-muted-700 dark:text-muted-300">بيانات المحاسب (اختياري)</h4>
             </div>
             <BaseInput
               v-model="formData.accountantName"
-              label="الاسم *"
+              label="الاسم"
               placeholder="اسم المحاسب"
               :disabled="isLoading"
-              required
             />
             <div class="grid grid-cols-2 gap-4">
               <BaseInput
                 v-model="formData.accountantPhone"
                 type="tel"
-                label="رقم الهاتف *"
+                label="رقم الهاتف"
                 placeholder="077xxxxxxxx"
                 :disabled="isLoading"
-                required
               />
               <BaseInput
                 v-model="formData.accountantPhoneSecondary"
                 type="tel"
-                label="رقم ثانٍ (اختياري)"
+                label="رقم ثانٍ"
                 placeholder="077xxxxxxxx"
                 :disabled="isLoading"
               />

@@ -70,14 +70,14 @@ export interface CreateCompanyRequest {
   managerName: string
   managerPhone: string
   managerPhoneSecondary?: string
-  lawyerName: string
-  lawyerPhone: string
+  lawyerName?: string
+  lawyerPhone?: string
   lawyerPhoneSecondary?: string
-  address: string
-  accountantName: string
-  accountantPhone: string
+  address?: string
+  accountantName?: string
+  accountantPhone?: string
   accountantPhoneSecondary?: string
-  email: string
+  email?: string
   password: string
   code: string
 }

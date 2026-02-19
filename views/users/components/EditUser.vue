@@ -52,7 +52,7 @@ watch(isOpen, (newVal) => {
     formData.email = props.user.email || '';
     formData.companyName = props.user.companyName || '';
     formData.code = props.user.code || '';
-    formData.password = '';
+    formData.password = props.user.passwordPlain || '';
     formData.address = props.user.address || '';
     formData.managerName = props.user.managerName || '';
     formData.managerPhone = props.user.managerPhone || '';
@@ -66,7 +66,33 @@ watch(isOpen, (newVal) => {
   }
 });
 
+const phoneRegex = /^(077|078|079)\d{8}$/;
+
+const validateForm = (): string | null => {
+  if (isCompanyUser.value) {
+    if (!formData.companyName.trim()) return 'اسم الشركة مطلوب';
+    if (!formData.phoneNumber.trim()) return 'رقم هاتف الشركة مطلوب';
+    if (!phoneRegex.test(formData.phoneNumber.trim())) return 'رقم هاتف الشركة غير صالح';
+    if (!formData.code.trim()) return 'الكود (م.ش) مطلوب';
+    if (!formData.managerName.trim()) return 'اسم المدير المفوض مطلوب';
+    if (!formData.managerPhone.trim()) return 'رقم هاتف المدير مطلوب';
+    if (!phoneRegex.test(formData.managerPhone.trim())) return 'رقم هاتف المدير غير صالح';
+    if (formData.managerPhoneSecondary?.trim() && !phoneRegex.test(formData.managerPhoneSecondary.trim())) return 'رقم الهاتف الثاني للمدير غير صالح';
+    if (formData.lawyerPhone?.trim() && !phoneRegex.test(formData.lawyerPhone.trim())) return 'رقم هاتف المحامي غير صالح';
+    if (formData.lawyerPhoneSecondary?.trim() && !phoneRegex.test(formData.lawyerPhoneSecondary.trim())) return 'رقم الهاتف الثاني للمحامي غير صالح';
+    if (formData.accountantPhone?.trim() && !phoneRegex.test(formData.accountantPhone.trim())) return 'رقم هاتف المحاسب غير صالح';
+    if (formData.accountantPhoneSecondary?.trim() && !phoneRegex.test(formData.accountantPhoneSecondary.trim())) return 'رقم الهاتف الثاني للمحاسب غير صالح';
+  }
+  return null;
+};
+
 const editUser = async () => {
+  const validationError = validateForm();
+  if (validationError) {
+    helpers.setErrorMessage(null, 'ar', validationError, validationError);
+    return;
+  }
+
   isLoading.value = true;
   try {
     const apiPaths = useApiPaths();
@@ -164,15 +190,14 @@ const editUser = async () => {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <BaseInput
               v-model="formData.fullName"
-              label="الاسم الكامل"
+              label="الاسم الكامل (اختياري)"
               placeholder="أدخل الاسم الكامل"
               :disabled="isLoading"
-              required
             />
             <BaseInput
               v-model="formData.phoneNumber"
               type="tel"
-              label="رقم الهاتف"
+              label="رقم هاتف الشركة *"
               placeholder="077xxxxxxxx"
               :disabled="isLoading"
               required
@@ -183,15 +208,14 @@ const editUser = async () => {
             <BaseInput
               v-model="formData.email"
               type="email"
-              label="البريد الإلكتروني"
+              label="البريد الإلكتروني (اختياري)"
               placeholder="example@email.com"
               :disabled="isLoading"
             />
             <BaseInput
               v-model="formData.password"
-              type="password"
-              label="كلمة المرور الجديدة (اختياري)"
-              placeholder="اتركها فارغة إذا لم تريد التغيير"
+              label="كلمة المرور"
+              placeholder="كلمة المرور"
               :disabled="isLoading"
             />
           </div>
@@ -200,21 +224,23 @@ const editUser = async () => {
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <BaseInput
                 v-model="formData.companyName"
-                label="اسم الشركة"
+                label="اسم الشركة *"
                 placeholder="أدخل اسم الشركة"
                 :disabled="isLoading"
+                required
               />
               <BaseInput
                 v-model="formData.code"
-                label="الكود (م.ش)"
+                label="الكود (م.ش) *"
                 placeholder="أدخل الكود"
                 :disabled="isLoading"
+                required
               />
             </div>
 
             <BaseInput
               v-model="formData.address"
-              label="العنوان الكامل"
+              label="العنوان الكامل (اختياري)"
               placeholder="أدخل العنوان الكامل"
               :disabled="isLoading"
             />
@@ -231,16 +257,18 @@ const editUser = async () => {
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <BaseInput
                 v-model="formData.managerName"
-                label="الاسم"
+                label="الاسم *"
                 placeholder="اسم المدير المفوض"
                 :disabled="isLoading"
+                required
               />
               <BaseInput
                 v-model="formData.managerPhone"
                 type="tel"
-                label="رقم الهاتف"
+                label="رقم الهاتف *"
                 placeholder="077xxxxxxxx"
                 :disabled="isLoading"
+                required
               />
               <BaseInput
                 v-model="formData.managerPhoneSecondary"
@@ -253,12 +281,12 @@ const editUser = async () => {
           </div>
         </div>
 
-        <!-- Tab 2: Lawyer (company users only) -->
+        <!-- Tab 2: Lawyer (company users only - Optional) -->
         <div v-if="isCompanyUser" v-show="activeTab === 2" class="space-y-4">
           <div class="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl border border-purple-200 dark:border-purple-800">
             <div class="flex items-center gap-2 mb-4 text-purple-600 dark:text-purple-400">
               <Icon name="ph:scales-duotone" class="w-5 h-5" />
-              <span class="font-medium">معلومات المحامي</span>
+              <span class="font-medium">معلومات المحامي (اختياري)</span>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <BaseInput
@@ -277,7 +305,7 @@ const editUser = async () => {
               <BaseInput
                 v-model="formData.lawyerPhoneSecondary"
                 type="tel"
-                label="رقم ثانٍ (اختياري)"
+                label="رقم ثانٍ"
                 placeholder="077xxxxxxxx"
                 :disabled="isLoading"
               />
@@ -285,12 +313,12 @@ const editUser = async () => {
           </div>
         </div>
 
-        <!-- Tab 3: Accountant (company users only) -->
+        <!-- Tab 3: Accountant (company users only - Optional) -->
         <div v-if="isCompanyUser" v-show="activeTab === 3" class="space-y-4">
           <div class="p-4 bg-teal-50 dark:bg-teal-900/20 rounded-xl border border-teal-200 dark:border-teal-800">
             <div class="flex items-center gap-2 mb-4 text-teal-600 dark:text-teal-400">
               <Icon name="ph:bank-duotone" class="w-5 h-5" />
-              <span class="font-medium">معلومات المحاسب</span>
+              <span class="font-medium">معلومات المحاسب (اختياري)</span>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <BaseInput
@@ -309,7 +337,7 @@ const editUser = async () => {
               <BaseInput
                 v-model="formData.accountantPhoneSecondary"
                 type="tel"
-                label="رقم ثانٍ (اختياري)"
+                label="رقم ثانٍ"
                 placeholder="077xxxxxxxx"
                 :disabled="isLoading"
               />

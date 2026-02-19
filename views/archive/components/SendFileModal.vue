@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CompanyArchive, CategoryListItem } from '~/types/archive'
+import type { CompanyArchive } from '~/types/archive'
 
 const props = defineProps<{
   open: boolean
@@ -15,10 +15,8 @@ const apiPaths = useApiPaths()
 
 // Form state
 const title = ref('')
-const description = ref('')
 const selectedCategoryId = ref<string | undefined>()
 const fileYear = ref<number>(new Date().getFullYear())
-const message = ref('')
 const file = ref<File | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)
 
@@ -26,41 +24,21 @@ const fileInput = ref<HTMLInputElement | null>(null)
 const isSubmitting = ref(false)
 const error = ref<string | null>(null)
 
-// Categories data (flat list for dropdown with tree structure)
-const categoriesFlat = ref<CategoryListItem[]>([])
-const loadingCategories = ref(false)
-
-const fetchCategories = async () => {
-  loadingCategories.value = true
-  try {
-    const response = await $fetch<any>(apiPaths.categoryFlat)
-    categoriesFlat.value = response || []
-  } catch (err) {
-    console.error('Error fetching categories:', err)
-  } finally {
-    loadingCategories.value = false
-  }
-}
-
-// Year options (from 2099 down to 1950)
+// Year options: from 2000 to (current year + 3)
 const currentYear = new Date().getFullYear()
-const yearOptions = Array.from({ length: 150 }, (_, i) => 2099 - i)
+const yearOptions = Array.from({ length: currentYear + 3 - 2000 + 1 }, (_, i) => currentYear + 3 - i)
 
 // Reset form when modal opens/closes
 watch(() => props.open, (isOpen) => {
-  if (isOpen) {
-    fetchCategories()
-  } else {
+  if (!isOpen) {
     resetForm()
   }
 })
 
 const resetForm = () => {
   title.value = ''
-  description.value = ''
   selectedCategoryId.value = undefined
   fileYear.value = currentYear
-  message.value = ''
   file.value = null
   error.value = null
   if (fileInput.value) {
@@ -68,10 +46,20 @@ const resetForm = () => {
   }
 }
 
+// Extract filename without extension
+const getFileNameWithoutExtension = (fileName: string): string => {
+  const lastDot = fileName.lastIndexOf('.')
+  return lastDot > 0 ? fileName.substring(0, lastDot) : fileName
+}
+
 const handleFileChange = (event: Event) => {
   const target = event.target as HTMLInputElement
   if (target.files && target.files.length > 0) {
     file.value = target.files[0]
+    // Auto-fill title from filename
+    if (!title.value.trim()) {
+      title.value = getFileNameWithoutExtension(target.files[0].name)
+    }
   }
 }
 
@@ -79,6 +67,10 @@ const handleDrop = (event: DragEvent) => {
   event.preventDefault()
   if (event.dataTransfer?.files && event.dataTransfer.files.length > 0) {
     file.value = event.dataTransfer.files[0]
+    // Auto-fill title from filename
+    if (!title.value.trim()) {
+      title.value = getFileNameWithoutExtension(event.dataTransfer.files[0].name)
+    }
   }
 }
 
@@ -101,12 +93,6 @@ const formatFileSize = (bytes: number) => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
 }
 
-// Format category option with indentation based on level
-const formatCategoryOption = (category: CategoryListItem) => {
-  const indent = '—'.repeat(category.level)
-  return indent ? `${indent} ${category.name}` : category.name
-}
-
 const handleSubmit = async () => {
   if (!props.company || !file.value || !title.value.trim()) {
     error.value = 'يرجى ملء جميع الحقول المطلوبة'
@@ -122,17 +108,11 @@ const handleSubmit = async () => {
     formData.append('Title', title.value.trim())
     formData.append('File', file.value)
 
-    if (description.value.trim()) {
-      formData.append('Description', description.value.trim())
-    }
     if (selectedCategoryId.value) {
       formData.append('CategoryId', selectedCategoryId.value)
     }
     if (fileYear.value) {
       formData.append('FileYear', fileYear.value.toString())
-    }
-    if (message.value.trim()) {
-      formData.append('Message', message.value.trim())
     }
 
     await $fetch(apiPaths.archiveSendFile, {
@@ -233,38 +213,16 @@ const handleSubmit = async () => {
         />
       </div>
 
-      <!-- Description -->
-      <div>
-        <label class="block text-sm font-medium text-muted-700 dark:text-muted-300 mb-2">
-          الوصف
-        </label>
-        <BaseTextarea
-          v-model="description"
-          placeholder="أدخل وصف الملف (اختياري)..."
-          :rows="2"
-          :classes="{ wrapper: 'w-full' }"
-        />
-      </div>
-
-      <!-- Category (Tree-based) -->
+      <!-- Category & Year -->
       <div class="grid grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium text-muted-700 dark:text-muted-300 mb-2">
             التصنيف
           </label>
-          <BaseSelect
+          <CategorySelector
             v-model="selectedCategoryId"
-            :classes="{ wrapper: 'w-full' }"
-            :loading="loadingCategories"
-          >
-            <option :value="undefined">اختر التصنيف</option>
-            <option v-for="cat in categoriesFlat" :key="cat.id" :value="cat.id">
-              {{ formatCategoryOption(cat) }}
-            </option>
-          </BaseSelect>
-          <p v-if="selectedCategoryId" class="text-xs text-muted-400 mt-1">
-            {{ categoriesFlat.find(c => c.id === selectedCategoryId)?.fullPath }}
-          </p>
+            placeholder="اختر التصنيف..."
+          />
         </div>
         <div>
           <label class="block text-sm font-medium text-muted-700 dark:text-muted-300 mb-2">
@@ -276,22 +234,6 @@ const handleSubmit = async () => {
             </option>
           </BaseSelect>
         </div>
-      </div>
-
-      <!-- Message (optional) -->
-      <div>
-        <label class="block text-sm font-medium text-muted-700 dark:text-muted-300 mb-2">
-          رسالة مرفقة (اختياري)
-        </label>
-        <BaseTextarea
-          v-model="message"
-          placeholder="أدخل رسالة ترسل مع الملف في المحادثة..."
-          :rows="2"
-          :classes="{ wrapper: 'w-full' }"
-        />
-        <p class="text-xs text-muted-400 mt-1">
-          سيتم إرسال هذه الرسالة مع الملف في محادثة العميل
-        </p>
       </div>
     </div>
 

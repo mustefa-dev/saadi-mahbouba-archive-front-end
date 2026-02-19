@@ -85,13 +85,18 @@ const normalizeCompany = (company: any): CompanyArchive => ({
   createdAt: company.createdAt || company.CreatedAt || ''
 })
 
+// Companies search state
+const companiesSearch = ref('')
+
 // Fetch companies
 const fetchCompanies = async () => {
   loadingCompanies.value = true
   try {
-    const response = await $fetch<any>(apiPaths.archiveCompanies, {
-      query: { pageNumber: pageNumber.value, pageSize: pageSize.value }
-    })
+    const query: any = { pageNumber: pageNumber.value, pageSize: pageSize.value }
+    if (companiesSearch.value.trim()) {
+      query.search = companiesSearch.value.trim()
+    }
+    const response = await $fetch<any>(apiPaths.archiveCompanies, { query })
     const rawCompanies = response.Data || response.data || []
     companies.value = rawCompanies.map(normalizeCompany)
     totalCount.value = response.TotalCount || response.totalCount || 0
@@ -205,6 +210,10 @@ const navigateToRoot = () => {
   currentLevel.value = 'companies'
   selectedCompany.value = null
   selectedFolder.value = null
+  searchQuery.value = ''
+  companiesSearch.value = ''
+  showSearchResults.value = false
+  searchResults.value = null
   pageNumber.value = 1
   fetchCompanies()
 }
@@ -438,6 +447,14 @@ const performSearch = async () => {
     return
   }
 
+  // When at companies level, filter companies table directly
+  if (currentLevel.value === 'companies') {
+    companiesSearch.value = searchQuery.value
+    pageNumber.value = 1
+    fetchCompanies()
+    return
+  }
+
   isSearching.value = true
   showSearchResults.value = true
   try {
@@ -457,6 +474,14 @@ const clearSearch = () => {
   searchQuery.value = ''
   searchResults.value = null
   showSearchResults.value = false
+  // Also clear companies filter and refresh
+  if (companiesSearch.value) {
+    companiesSearch.value = ''
+    if (currentLevel.value === 'companies') {
+      pageNumber.value = 1
+      fetchCompanies()
+    }
+  }
 }
 
 const handleSearchSelectCompany = (company: CompanyArchive) => {
@@ -547,7 +572,7 @@ onMounted(() => {
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="بحث في الأرشيف..."
+            :placeholder="currentLevel === 'companies' ? 'بحث باسم الشركة أو الكود (م.ش)...' : 'بحث في الأرشيف...'"
             class="w-full px-4 py-2 pr-10 bg-muted-100 dark:bg-muted-800 border border-muted-200 dark:border-muted-700 rounded-lg text-sm focus:outline-none focus:border-primary-500 dark:focus:border-primary-500 transition-colors"
             @input="onSearchInput"
             @keyup.enter="performSearch"
