@@ -40,7 +40,7 @@ const selectedFileName = ref('');
 const fetchCompanies = async () => {
   loadingCompanies.value = true;
   try {
-    const response = await $fetch<any>(apiPaths.users);
+    const response = await $fetch<any>(apiPaths.users + '?Role=User');
     allCompanies.value = response.data || response || [];
   } catch (error) {
     console.error('Error fetching companies:', error);
@@ -81,11 +81,20 @@ const clearSelectedCompany = () => {
   companySearchQuery.value = '';
 };
 
+const getFileNameWithoutExtension = (fileName: string): string => {
+  const lastDot = fileName.lastIndexOf('.');
+  return lastDot > 0 ? fileName.substring(0, lastDot) : fileName;
+};
+
 const handleFileChange = (event: Event) => {
   const target = event.target as HTMLInputElement;
   if (target.files && target.files.length > 0) {
     reportForm.file = target.files[0];
     selectedFileName.value = target.files[0].name;
+    // Auto-fill title from filename
+    if (!reportForm.title.trim()) {
+      reportForm.title = getFileNameWithoutExtension(target.files[0].name);
+    }
   }
 };
 
@@ -193,12 +202,16 @@ const { data: groupedData, refresh: refreshReports, pending: isLoading, error: f
 
 const groupedReports = computed<ReportsGroupedByCompany[]>(() => groupedData.value || []);
 
-// Filter groups by search query
+// Filter groups by search query and hide fully-archived/rejected companies
 const filteredGroups = computed(() => {
-  if (!searchQuery.value) return groupedReports.value;
+  let groups = groupedReports.value;
 
+  // Hide companies that have no pending/under-review reports
+  groups = groups.filter(group => group.pendingCount > 0 || group.underReviewCount > 0);
+
+  if (!searchQuery.value) return groups;
   const query = searchQuery.value.toLowerCase();
-  return groupedReports.value.filter(group =>
+  return groups.filter(group =>
     group.companyName?.toLowerCase().includes(query) ||
     group.fullName?.toLowerCase().includes(query) ||
     group.code?.toLowerCase().includes(query)
