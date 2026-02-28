@@ -363,7 +363,7 @@ onMounted(async () => {
         :class="message.isAdminMessage ? 'justify-end' : 'justify-start'"
       >
         <div
-          class="max-w-[75%] sm:max-w-[60%] rounded-2xl px-3 py-2 shadow-sm"
+          class="max-w-[75%] sm:max-w-[60%] rounded-2xl px-3 py-2 shadow-sm overflow-hidden"
           :class="message.isAdminMessage
             ? 'bg-primary-500 text-white rounded-br-sm'
             : 'bg-white dark:bg-muted-800 text-muted-900 dark:text-white rounded-bl-sm'"
@@ -388,7 +388,6 @@ onMounted(async () => {
 
           <!-- File -->
           <div v-if="message.type === MessageType.FILE && message.attachmentUrl">
-            <p v-if="message.content" class="text-sm mb-2">{{ message.content }}</p>
             <a
               :href="getAssetUrl(message.attachmentUrl)"
               target="_blank"
@@ -399,7 +398,7 @@ onMounted(async () => {
                 <Icon :name="getFileIcon(message.type)" class="size-6" />
               </div>
               <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium truncate">ملف مرفق</p>
+                <p class="text-sm font-medium truncate">{{ message.content || 'ملف مرفق' }}</p>
                 <p class="text-xs opacity-75">انقر للتحميل</p>
               </div>
             </a>

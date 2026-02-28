@@ -101,15 +101,15 @@ const getAttachmentUrl = (url: string | undefined) => {
           </div>
 
           <!-- Content -->
-          <div class="flex-1">
+          <div class="flex-1 min-w-0">
             <!-- Sender Info -->
             <div class="flex items-center gap-2 mb-2">
-              <span class="font-medium text-muted-800 dark:text-muted-100">
+              <span class="font-medium text-muted-800 dark:text-muted-100 truncate">
                 {{ message.fromUserName }}
               </span>
               <span
                 :class="[
-                  'px-2 py-0.5 rounded text-xs font-medium',
+                  'px-2 py-0.5 rounded text-xs font-medium flex-shrink-0',
                   message.isAdminMessage
                     ? 'bg-primary-100 text-primary-600 dark:bg-primary-900/30 dark:text-primary-400'
                     : 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'
@@ -120,7 +120,7 @@ const getAttachmentUrl = (url: string | undefined) => {
             </div>
 
             <!-- Message Text -->
-            <p class="text-muted-600 dark:text-muted-300 leading-relaxed">
+            <p class="text-muted-600 dark:text-muted-300 leading-relaxed break-words">
               {{ message.content }}
             </p>
 

@@ -214,8 +214,8 @@ const handleSubmit = async () => {
       </div>
 
       <!-- Category & Year -->
-      <div class="grid grid-cols-2 gap-4">
-        <div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="min-w-0">
           <label class="block text-sm font-medium text-muted-700 dark:text-muted-300 mb-2">
             التصنيف
           </label>
@@ -224,7 +224,7 @@ const handleSubmit = async () => {
             placeholder="اختر التصنيف..."
           />
         </div>
-        <div>
+        <div class="min-w-0">
           <label class="block text-sm font-medium text-muted-700 dark:text-muted-300 mb-2">
             السنة
           </label>

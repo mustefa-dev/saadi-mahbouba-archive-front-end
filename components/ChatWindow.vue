@@ -75,7 +75,7 @@ overflow-wrap: break-word;
           :class="message.isAdminMessage ? 'justify-start' : 'justify-end'"
         >
           <div
-            class="max-w-[85%] sm:max-w-[70%] md:max-w-[65%] rounded-lg px-3 py-2 shadow-sm relative"
+            class="max-w-[85%] sm:max-w-[70%] md:max-w-[65%] rounded-lg px-3 py-2 shadow-sm relative overflow-hidden"
             :class="message.isAdminMessage
               ? 'bg-white dark:bg-[#2b2b2b] text-muted-900 dark:text-white rounded-bl-md'
               : 'bg-primary-500 dark:bg-primary-600 text-white rounded-br-md'"
@@ -100,15 +100,17 @@ overflow-wrap: break-word;
 
             <!-- File Message -->
             <div v-else-if="message.type === MessageType.FILE && message.attachmentUrl">
-              <p v-if="message.content" class="text-sm mb-2">{{ message.content }}</p>
               <a
                 :href="getAssetUrl(message.attachmentUrl)"
                 target="_blank"
                 download
-                class="flex items-center gap-3 p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                class="flex items-center gap-3 p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors min-w-0"
               >
-                <Icon name="ph:file-duotone" class="size-6" />
-                <span class="text-sm">ملف مرفق</span>
+                <Icon name="ph:file-duotone" class="size-6 flex-shrink-0" />
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-medium truncate">{{ message.content || 'ملف مرفق' }}</p>
+                  <p class="text-xs opacity-75">انقر للتحميل</p>
+                </div>
               </a>
             </div>
 

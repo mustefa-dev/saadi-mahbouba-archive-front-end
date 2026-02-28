@@ -66,22 +66,9 @@ watch(isOpen, (newVal) => {
   }
 });
 
-const phoneRegex = /^(077|078|079)\d{8}$/;
-
 const validateForm = (): string | null => {
   if (isCompanyUser.value) {
-    if (!formData.companyName.trim()) return 'اسم الشركة مطلوب';
     if (!formData.phoneNumber.trim()) return 'رقم هاتف الشركة مطلوب';
-    if (!phoneRegex.test(formData.phoneNumber.trim())) return 'رقم هاتف الشركة غير صالح';
-    if (!formData.code.trim()) return 'الكود (م.ش) مطلوب';
-    if (!formData.managerName.trim()) return 'اسم المدير المفوض مطلوب';
-    if (!formData.managerPhone.trim()) return 'رقم هاتف المدير مطلوب';
-    if (!phoneRegex.test(formData.managerPhone.trim())) return 'رقم هاتف المدير غير صالح';
-    if (formData.managerPhoneSecondary?.trim() && !phoneRegex.test(formData.managerPhoneSecondary.trim())) return 'رقم الهاتف الثاني للمدير غير صالح';
-    if (formData.lawyerPhone?.trim() && !phoneRegex.test(formData.lawyerPhone.trim())) return 'رقم هاتف المحامي غير صالح';
-    if (formData.lawyerPhoneSecondary?.trim() && !phoneRegex.test(formData.lawyerPhoneSecondary.trim())) return 'رقم الهاتف الثاني للمحامي غير صالح';
-    if (formData.accountantPhone?.trim() && !phoneRegex.test(formData.accountantPhone.trim())) return 'رقم هاتف المحاسب غير صالح';
-    if (formData.accountantPhoneSecondary?.trim() && !phoneRegex.test(formData.accountantPhoneSecondary.trim())) return 'رقم الهاتف الثاني للمحاسب غير صالح';
   }
   return null;
 };

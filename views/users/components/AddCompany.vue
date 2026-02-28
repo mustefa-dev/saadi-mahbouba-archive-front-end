@@ -62,30 +62,16 @@ const openModal = () => {
   isOpen.value = true;
 };
 
-const phoneRegex = /^(077|078|079)\d{8}$/;
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
 const validateForm = (): string | null => {
   // Tab 0: Basic Info - Required fields
   if (!formData.companyName.trim()) return 'اسم الشركة مطلوب';
   if (!formData.phoneNumber.trim()) return 'رقم هاتف الشركة مطلوب';
-  if (!phoneRegex.test(formData.phoneNumber.trim())) return 'رقم الهاتف غير صالح (مثال: 07712345678)';
   if (!formData.code.trim()) return 'الكود (م.ش) مطلوب';
   if (!formData.password.trim()) return 'كلمة المرور مطلوبة';
   if (formData.password.length < 6) return 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
-  // Optional field validation (only if filled)
-  if (formData.email?.trim() && !emailRegex.test(formData.email.trim())) return 'البريد الإلكتروني غير صالح';
   // Tab 1: Manager - Required fields
   if (!formData.managerName.trim()) return 'اسم المدير المفوض مطلوب';
   if (!formData.managerPhone.trim()) return 'رقم هاتف المدير مطلوب';
-  if (!phoneRegex.test(formData.managerPhone.trim())) return 'رقم هاتف المدير غير صالح';
-  if (formData.managerPhoneSecondary?.trim() && !phoneRegex.test(formData.managerPhoneSecondary.trim())) return 'رقم الهاتف الثاني للمدير غير صالح';
-  // Tab 2: Lawyer - Optional (validate only if filled)
-  if (formData.lawyerPhone?.trim() && !phoneRegex.test(formData.lawyerPhone.trim())) return 'رقم هاتف المحامي غير صالح';
-  if (formData.lawyerPhoneSecondary?.trim() && !phoneRegex.test(formData.lawyerPhoneSecondary.trim())) return 'رقم الهاتف الثاني للمحامي غير صالح';
-  // Tab 3: Accountant - Optional (validate only if filled)
-  if (formData.accountantPhone?.trim() && !phoneRegex.test(formData.accountantPhone.trim())) return 'رقم هاتف المحاسب غير صالح';
-  if (formData.accountantPhoneSecondary?.trim() && !phoneRegex.test(formData.accountantPhoneSecondary.trim())) return 'رقم الهاتف الثاني للمحاسب غير صالح';
   return null;
 };
 

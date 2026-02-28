@@ -28,6 +28,7 @@ export interface ArchiveFile {
   id: string;
   fileName: string;
   fileType: string;
+  categoryId?: string;
   categoryName: string;
   categoryPath: string; // Full path like "المستندات > العقود"
   archivedAt: string;

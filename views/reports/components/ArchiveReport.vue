@@ -57,15 +57,9 @@ const handleArchive = async () => {
   }
 };
 
-// Generate year options (last 50 years)
-const yearOptions = computed(() => {
-  const currentYear = new Date().getFullYear();
-  const years = [];
-  for (let i = currentYear; i >= currentYear - 50; i--) {
-    years.push(i);
-  }
-  return years;
-});
+// Generate year options (2000 to current year + 3)
+const currentYear = new Date().getFullYear();
+const yearOptions = Array.from({ length: currentYear + 3 - 2000 + 1 }, (_, i) => currentYear + 3 - i);
 </script>
 
 <template>
@@ -94,26 +88,30 @@ const yearOptions = computed(() => {
       </template>
 
       <div class="space-y-4 p-6" dir="rtl">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <BaseSelect
-            v-model="form.fileYear"
-            label="سنة الملف"
-            :classes="{ wrapper: 'w-full' }"
-          >
-            <option v-for="year in yearOptions" :key="year" :value="year">
-              {{ year }}
-            </option>
-          </BaseSelect>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="min-w-0">
+            <BaseSelect
+              v-model="form.fileYear"
+              label="سنة الملف"
+              :classes="{ wrapper: 'w-full' }"
+            >
+              <option v-for="year in yearOptions" :key="year" :value="year">
+                {{ year }}
+              </option>
+            </BaseSelect>
+          </div>
 
-          <BaseInput
-            v-model="form.archiveFileName"
-            label="اسم الملف"
-            placeholder="أدخل اسم الملف"
-            :classes="{ wrapper: 'w-full' }"
-          />
+          <div class="min-w-0">
+            <BaseInput
+              v-model="form.archiveFileName"
+              label="اسم الملف"
+              placeholder="أدخل اسم الملف"
+              :classes="{ wrapper: 'w-full' }"
+            />
+          </div>
         </div>
 
-        <div>
+        <div class="min-w-0">
           <label class="block text-sm font-medium text-muted-700 dark:text-muted-300 mb-2">
             التصنيف <span class="text-danger-500">*</span>
           </label>

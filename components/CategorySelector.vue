@@ -191,13 +191,13 @@ const getFullPath = (category: Category): string => {
       @click="openModal"
     >
       <div
-        class="w-full px-4 py-2 border border-muted-300 dark:border-muted-700 rounded-lg bg-white dark:bg-muted-800 hover:border-primary-500 transition-colors"
+        class="w-full px-4 py-2 border border-muted-300 dark:border-muted-700 rounded-lg bg-white dark:bg-muted-800 hover:border-primary-500 transition-colors overflow-hidden"
       >
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2 flex-1 min-w-0">
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2 flex-1 min-w-0 overflow-hidden">
             <Icon name="ph:folder-duotone" class="w-5 h-5 text-amber-500 flex-shrink-0" />
             <template v-if="selectedPath">
-              <span class="text-muted-800 dark:text-muted-200 truncate">
+              <span class="text-muted-800 dark:text-muted-200 truncate block">
                 {{ getFullPath(selectedPath) }}
               </span>
               <span class="text-xs text-muted-500 bg-muted-100 dark:bg-muted-700 px-1.5 py-0.5 rounded flex-shrink-0">
