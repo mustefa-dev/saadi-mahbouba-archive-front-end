@@ -261,10 +261,9 @@ const clearFilters = () => {
   selectedStatus.value = undefined;
 };
 
-// Check if report can be archived (under review status)
+// Check if report can be archived (under review or pending status)
 const canArchive = (report: Report) => {
-  const status = report.status?.toLowerCase();
-  return status === 'under_review' || status === 'pending';
+  return report.status === 1 || report.status === 0;
 };
 </script>
 

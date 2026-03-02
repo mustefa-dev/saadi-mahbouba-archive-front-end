@@ -25,47 +25,13 @@ export const ReportStatusColors: Record<ReportStatus, 'default' | 'primary' | 's
   [ReportStatus.Rejected]: 'danger'
 };
 
-// Map string status to enum
-const StringToStatusMap: Record<string, ReportStatus> = {
-  'pending': ReportStatus.Pending,
-  'under_review': ReportStatus.UnderReview,
-  'approved': ReportStatus.Approved,
-  'rejected': ReportStatus.Rejected
-};
-
 // Helper functions for safe status access
-export function getReportStatusColor(status: string | ReportStatus): 'default' | 'primary' | 'success' | 'warning' | 'danger' | 'info' {
-  if (typeof status === 'number') {
-    return ReportStatusColors[status as ReportStatus] || 'default';
-  }
-  // Check string status
-  const lowerStatus = status.toLowerCase();
-  if (lowerStatus in StringToStatusMap) {
-    return ReportStatusColors[StringToStatusMap[lowerStatus]] || 'default';
-  }
-  // Try to parse string status as number
-  const statusNum = parseInt(status);
-  if (!isNaN(statusNum) && statusNum in ReportStatus) {
-    return ReportStatusColors[statusNum as ReportStatus] || 'default';
-  }
-  return 'default';
+export function getReportStatusColor(status: ReportStatus): 'default' | 'primary' | 'success' | 'warning' | 'danger' | 'info' {
+  return ReportStatusColors[status] || 'default';
 }
 
-export function getReportStatusLabel(status: string | ReportStatus): string {
-  if (typeof status === 'number') {
-    return ReportStatusLabels[status as ReportStatus] || status.toString();
-  }
-  // Check string status
-  const lowerStatus = status.toLowerCase();
-  if (lowerStatus in StringToStatusMap) {
-    return ReportStatusLabels[StringToStatusMap[lowerStatus]] || status;
-  }
-  // Try to parse string status as number
-  const statusNum = parseInt(status);
-  if (!isNaN(statusNum) && statusNum in ReportStatus) {
-    return ReportStatusLabels[statusNum as ReportStatus] || status;
-  }
-  return status;
+export function getReportStatusLabel(status: ReportStatus): string {
+  return ReportStatusLabels[status] || status.toString();
 }
 
 // Category Type (tree structure with unlimited depth)
@@ -94,8 +60,7 @@ export interface Report {
   categoryId?: string;
   categoryName?: string;
   categoryPath?: string;
-  status: string; // String representation
-  statusValue?: ReportStatus; // Enum value
+  status: ReportStatus;
   fileUrl?: string;
   fileName?: string;
   fileSize?: string;

@@ -17,24 +17,7 @@ const isLoading = ref(false);
 const showConfirm = ref(false);
 const pendingAction = ref<'startReview' | 'reject' | null>(null);
 
-// Convert status string to ReportStatus enum
-const getCurrentStatus = (): ReportStatus => {
-  const status = props.report.status?.toLowerCase();
-  switch (status) {
-    case 'pending':
-      return ReportStatus.Pending;
-    case 'under_review':
-      return ReportStatus.UnderReview;
-    case 'approved':
-      return ReportStatus.Approved;
-    case 'rejected':
-      return ReportStatus.Rejected;
-    default:
-      return ReportStatus.Pending;
-  }
-};
-
-const currentStatus = computed(() => getCurrentStatus());
+const currentStatus = computed(() => props.report.status as ReportStatus);
 
 // Determine which action button to show based on current status
 const showStartReview = computed(() => currentStatus.value === ReportStatus.Pending);

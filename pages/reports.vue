@@ -111,16 +111,15 @@ const getFileIcon = (fileName?: string) => {
 };
 
 // Get status icon
-const getStatusIcon = (status: string) => {
-  const statusLower = status?.toLowerCase();
-  switch (statusLower) {
-    case 'pending':
+const getStatusIcon = (status: number) => {
+  switch (status) {
+    case 0:
       return 'ph:clock-duotone';
-    case 'under_review':
+    case 1:
       return 'ph:eye-duotone';
-    case 'approved':
+    case 2:
       return 'ph:check-circle-duotone';
-    case 'rejected':
+    case 3:
       return 'ph:x-circle-duotone';
     default:
       return 'ph:question-duotone';
