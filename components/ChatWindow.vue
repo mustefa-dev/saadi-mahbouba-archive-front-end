@@ -80,8 +80,8 @@ overflow-wrap: break-word;
               ? 'bg-white dark:bg-[#2b2b2b] text-muted-900 dark:text-white rounded-bl-md'
               : 'bg-primary-500 dark:bg-primary-600 text-white rounded-br-md'"
           >
-            <!-- Text Message -->
-            <p v-if="message.type === MessageType.TEXT" class="message-text">
+            <!-- Text / Report Message -->
+            <p v-if="message.type === MessageType.TEXT || message.type === MessageType.REPORT" class="message-text">
               {{ message.content }}
             </p>
 

@@ -20,7 +20,7 @@ const filePreviewUrl = ref<string | null>(null);
 const isTyping = ref(false);
 const messagesContainer = ref<HTMLElement | null>(null);
 
-const pageNumber = ref(1);
+const pageNumber = ref(0);
 const pageSize = ref(50);
 const hasMoreMessages = ref(true);
 
@@ -53,7 +53,7 @@ const fetchMessages = async (loadMore = false) => {
       scrollToBottom();
     }
 
-    hasMoreMessages.value = response.data.pageCount > pageNumber.value;
+    hasMoreMessages.value = !response.data.isLast;
 
     // Mark messages as read
     await markMessagesAsRead();
@@ -339,11 +339,11 @@ onMounted(async () => {
       style="background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cmVjdCB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIGZpbGw9Im5vbmUiLz48cGF0aCBkPSJNIDQwIDAgTCAwIDAgMCA0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDAwMDAwMDUiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==');"
       @scroll="handleScroll"
     >
-      <div v-if="isLoading && pageNumber === 1" class="text-center py-8">
+      <div v-if="isLoading && pageNumber === 0" class="text-center py-8">
         <BaseLoader size="lg" />
       </div>
 
-      <div v-if="hasMoreMessages && pageNumber > 1" class="text-center py-2">
+      <div v-if="hasMoreMessages && pageNumber > 0" class="text-center py-2">
         <BaseButton
           size="sm"
           color="default"
@@ -368,8 +368,8 @@ onMounted(async () => {
             ? 'bg-primary-500 text-white rounded-br-sm'
             : 'bg-white dark:bg-muted-800 text-muted-900 dark:text-white rounded-bl-sm'"
         >
-          <!-- Text Content -->
-          <p v-if="message.content && message.type === MessageType.TEXT" class="text-sm leading-relaxed break-words">
+          <!-- Text / Report Content -->
+          <p v-if="message.content && (message.type === MessageType.TEXT || message.type === MessageType.REPORT)" class="text-sm leading-relaxed break-words">
             {{ message.content }}
           </p>
 

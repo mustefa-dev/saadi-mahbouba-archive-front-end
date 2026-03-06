@@ -36,8 +36,8 @@ const { data: adminsData, refresh: fetchAdmins, pending: isLoading } = await use
 );
 
 const admins = computed<User[]>(() => adminsData.value?.data || []);
-const totalCount = computed(() => adminsData.value?.totalCount || 0);
-const pageCount = computed(() => adminsData.value?.pageCount || 0);
+const totalRecords = computed(() => adminsData.value?.totalRecords || 0);
+const totalPages = computed(() => adminsData.value?.totalPages || 0);
 
 watch(searchQuery, () => {
   pageNumber.value = 1;
@@ -141,11 +141,11 @@ watch(searchQuery, () => {
       </div>
 
       <!-- Pagination -->
-      <div v-if="pageCount > 1" class="p-6 border-t border-muted-200 dark:border-muted-700">
+      <div v-if="totalPages > 1" class="p-6 border-t border-muted-200 dark:border-muted-700">
         <BasePagination
           :current-page="pageNumber"
           :item-per-page="pageSize"
-          :total-items="totalCount"
+          :total-items="totalRecords"
           @update:current-page="pageNumber = $event"
         />
       </div>

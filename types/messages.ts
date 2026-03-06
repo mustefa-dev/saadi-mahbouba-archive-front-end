@@ -4,7 +4,8 @@ export enum MessageType {
   TEXT = 0,
   IMAGE = 1,
   FILE = 2,
-  VOICE = 3
+  VOICE = 3,
+  REPORT = 4
 }
 
 export interface Message {
@@ -25,8 +26,9 @@ export interface MessagesResponse {
   data: Message[]
   pageNumber: number
   pageSize: number
-  pageCount: number
-  totalCount: number
+  totalPages: number
+  totalRecords: number
+  isLast: boolean
 }
 
 export interface Conversation {
@@ -41,8 +43,9 @@ export interface ConversationsResponse {
   data: Conversation[]
   pageNumber: number
   pageSize: number
-  pageCount: number
-  totalCount: number
+  totalPages: number
+  totalRecords: number
+  isLast: boolean
 }
 
 export interface FilePreview {

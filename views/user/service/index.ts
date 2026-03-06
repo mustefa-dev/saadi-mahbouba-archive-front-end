@@ -16,8 +16,9 @@ export class UserService implements IModelService<User>{
     try {
       const response = await appClient.get(baseURL,params??useRoute().query);
       useUserStore().users = (response.data as PaginatedResponse<User>).data;
-      useAppCrudStore().pagesCount = (response.data as PaginatedResponse<User>).pagesCount;
-      useAppCrudStore().currentPage = (response.data as PaginatedResponse<User>).currentPage;
+      useAppCrudStore().totalPages = (response.data as PaginatedResponse<User>).totalPages;
+      useAppCrudStore().totalRecords = (response.data as PaginatedResponse<User>).totalRecords;
+      useAppCrudStore().currentPage = (response.data as PaginatedResponse<User>).pageNumber;
     } catch (e) {
       console.error(e);
       throw new Error((e as ApiError).response?.data.message)

@@ -109,11 +109,11 @@ const createAction = ()=>{
       </slot>
       </div>
     <slot/>
-    <BasePagination v-if="pagination" :item-per-page="10" :total-items="appCrudStore.pagesCount * 10"
+    <BasePagination v-if="pagination" :item-per-page="10" :total-items="appCrudStore.totalRecords"
       router-query-key=""
       :current-page="currentPage"
       @update:current-page="(i)=>currentPage = i"
-      :max-links-displayed="5" 
+      :max-links-displayed="5"
       rounded="lg" />
   </TairoContentWrapper>
   <DeleteModal />

@@ -99,7 +99,7 @@ const fetchCompanies = async () => {
     const response = await $fetch<any>(apiPaths.archiveCompanies, { query })
     const rawCompanies = response.Data || response.data || []
     companies.value = rawCompanies.map(normalizeCompany)
-    totalCount.value = response.TotalCount || response.totalCount || 0
+    totalCount.value = response.TotalRecords || response.totalRecords || 0
   } catch (error) {
     console.error('Error fetching companies:', error)
   } finally {
@@ -157,7 +157,7 @@ const fetchFiles = async (userId: string, folderType: FolderType, filter: Archiv
     })
     const rawFiles = response.Data || response.data || []
     files.value = rawFiles.map(normalizeFile)
-    totalCount.value = response.TotalCount || response.totalCount || 0
+    totalCount.value = response.TotalRecords || response.totalRecords || 0
   } catch (error) {
     console.error('Error fetching files:', error)
   } finally {

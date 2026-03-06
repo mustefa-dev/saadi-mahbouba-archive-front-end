@@ -14,7 +14,7 @@ const loadData = async ()=>{
   isLoading.value = true;
   const res = await axiosIns.get(`dashboard/user-ticketsnumber?pageSize=5&pageNumber=${pageNumber.value}`);
   users.value = res.data.data;
-  totalCount.value = res.data.pagesCount * 5;
+  totalCount.value = res.data.totalRecords;
   isLoading.value = false;
   useAppCrudStore().isLoading = false;
 }

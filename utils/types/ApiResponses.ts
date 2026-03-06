@@ -2,9 +2,11 @@ import type { AxiosError } from "axios";
 
 export interface PaginatedResponse<T> {
     data: T[];
-    pagesCount:number;
-    currentPage:number;
-    type:string;
+    pageNumber:number;
+    pageSize:number;
+    totalPages:number;
+    totalRecords:number;
+    isLast:boolean;
 }
 export interface SingleObjectResponse<T> {
     result:T,

@@ -8,7 +8,8 @@ export const useAppCrudStore = defineStore('app-crud', () => {
   const isLoading = ref(false)
   const item = ref<string | null>(null)
   const currentPage = ref(1)
-  const pagesCount = ref(1)
+  const totalPages = ref(1)
+  const totalRecords = ref(0)
 
   const setItem = (i: any) => {
     item.value = i
@@ -26,7 +27,8 @@ export const useAppCrudStore = defineStore('app-crud', () => {
     isLoading,
     item,
     currentPage,
-    pagesCount,
+    totalPages,
+    totalRecords,
     setItem,
     setModelService,
   }

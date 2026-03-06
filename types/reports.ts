@@ -140,14 +140,20 @@ export interface CategoryFilter {
 // Response Types
 export interface ReportsResponse {
   data: Report[];
-  totalCount: number;
-  pageCount: number;
+  pageNumber: number;
+  pageSize: number;
+  totalPages: number;
+  totalRecords: number;
+  isLast: boolean;
 }
 
 export interface CategoriesResponse {
   data: Category[];
-  totalCount: number;
-  pageCount: number;
+  pageNumber: number;
+  pageSize: number;
+  totalPages: number;
+  totalRecords: number;
+  isLast: boolean;
 }
 
 // Statistics Type

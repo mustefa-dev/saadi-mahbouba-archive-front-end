@@ -38,8 +38,8 @@ const { data: bannersData, refresh: refreshBanners, pending: isLoading } = await
 );
 
 const banners = computed<Banner[]>(() => bannersData.value?.data || []);
-const totalCount = computed(() => bannersData.value?.totalCount || 0);
-const pageCount = computed(() => bannersData.value?.pageCount || 0);
+const totalRecords = computed(() => bannersData.value?.totalRecords || 0);
+const totalPages = computed(() => bannersData.value?.totalPages || 0);
 
 watch([searchQuery, filterType, filterActive], () => {
   pageNumber.value = 1;
@@ -171,11 +171,11 @@ const getTypeColor = (type: number) => {
         </table>
       </div>
 
-      <div v-if="pageCount > 1" class="p-6 border-t border-muted-200 dark:border-muted-700">
+      <div v-if="totalPages > 1" class="p-6 border-t border-muted-200 dark:border-muted-700">
         <BasePagination
           :current-page="pageNumber"
           :item-per-page="pageSize"
-          :total-items="totalCount"
+          :total-items="totalRecords"
           @update:current-page="pageNumber = $event"
         />
       </div>

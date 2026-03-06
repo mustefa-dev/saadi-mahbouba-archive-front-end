@@ -32,9 +32,11 @@ export enum UserStatus {
 
 export interface UsersResponse {
   data: User[]
-  pageCount: number
-  currentPage: number
-  totalCount: number
+  pageNumber: number
+  pageSize: number
+  totalPages: number
+  totalRecords: number
+  isLast: boolean
 }
 
 export interface CreateUserRequest {

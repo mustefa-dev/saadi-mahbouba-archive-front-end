@@ -46,8 +46,11 @@ export interface BannerForm {
 
 export interface BannersResponse {
   data: Banner[];
-  totalCount: number;
-  pageCount: number;
+  pageNumber: number;
+  pageSize: number;
+  totalPages: number;
+  totalRecords: number;
+  isLast: boolean;
 }
 
 export interface TrackBannerRequest {
