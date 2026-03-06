@@ -86,7 +86,7 @@ const getStatusColor = (status?: UserStatus) => {
 
     <BaseCard class="p-6">
       <div class="flex items-center justify-between gap-4">
-        <BaseInput v-model="searchQuery" placeholder="البحث بالاسم..." icon="ph:magnifying-glass-duotone" class="w-full max-w-xs" />
+        <BaseInput v-model="searchQuery" placeholder="البحث بالاسم..." icon="ph:magnifying-glass-duotone" class="w-full max-w-sm lg:max-w-md" />
       </div>
     </BaseCard>
 

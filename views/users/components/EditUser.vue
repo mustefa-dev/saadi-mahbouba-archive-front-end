@@ -86,8 +86,11 @@ const editUser = async () => {
     const dataToSend: Record<string, any> = {
       fullName: formData.fullName,
       phoneNumber: formData.phoneNumber,
-      email: formData.email,
     };
+
+    if (isCompanyUser.value) {
+      dataToSend.email = formData.email;
+    }
 
     if (formData.password) {
       dataToSend.password = formData.password;
@@ -192,13 +195,15 @@ const editUser = async () => {
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <BaseInput
-              v-model="formData.email"
-              type="email"
-              label="البريد الإلكتروني (اختياري)"
-              placeholder="example@email.com"
-              :disabled="isLoading"
-            />
+            <template v-if="isCompanyUser">
+              <BaseInput
+                v-model="formData.email"
+                type="email"
+                label="البريد الإلكتروني (اختياري)"
+                placeholder="example@email.com"
+                :disabled="isLoading"
+              />
+            </template>
             <BaseInput
               v-model="formData.password"
               label="كلمة المرور"

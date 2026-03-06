@@ -132,6 +132,7 @@ const normalizeFile = (file: any): ArchiveFile => ({
   id: file.id || file.Id || '',
   fileName: file.fileName || file.FileName || '',
   fileType: file.fileType || file.FileType || '',
+  categoryId: file.categoryId || file.CategoryId || '',
   categoryName: file.categoryName || file.CategoryName || '',
   categoryPath: file.categoryPath || file.CategoryPath || '',
   archivedAt: file.archivedAt || file.ArchivedAt || '',

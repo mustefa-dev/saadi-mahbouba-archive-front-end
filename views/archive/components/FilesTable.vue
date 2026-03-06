@@ -210,11 +210,11 @@ const toggleSort = () => {
           </td>
           <!-- Visibility Toggle Switch -->
           <td class="py-4 px-4">
-            <div class="flex items-center justify-center cursor-pointer" @click="openVisibilityConfirm(file)">
+            <div class="flex items-center justify-center">
               <BaseSwitchBall
                 :model-value="file.isVisibleToClient"
                 :color="file.isVisibleToClient ? 'success' : 'danger'"
-                class="pointer-events-none"
+                @update:model-value="openVisibilityConfirm(file)"
               />
             </div>
           </td>
