@@ -206,9 +206,6 @@ const groupedReports = computed<ReportsGroupedByCompany[]>(() => groupedData.val
 const filteredGroups = computed(() => {
   let groups = groupedReports.value;
 
-  // Hide companies that have no pending/under-review reports
-  groups = groups.filter(group => group.pendingCount > 0 || group.underReviewCount > 0);
-
   if (!searchQuery.value) return groups;
   const query = searchQuery.value.toLowerCase();
   return groups.filter(group =>
