@@ -261,6 +261,12 @@ const clearFilters = () => {
   selectedStatus.value = undefined;
 };
 
+const viewFile = (report: Report) => {
+  if (report.fileUrl) {
+    window.open(apiPaths.getAsset(report.fileUrl), '_blank');
+  }
+};
+
 // Check if report can be archived (under review or pending status)
 const canArchive = (report: Report) => {
   return report.status === 1 || report.status === 0;
@@ -456,6 +462,15 @@ const canArchive = (report: Report) => {
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
                     <div class="flex items-center gap-2">
+                      <BaseButtonIcon
+                        v-if="report.fileUrl"
+                        size="sm"
+                        color="primary"
+                        data-nui-tooltip="عرض الملف"
+                        @click="viewFile(report)"
+                      >
+                        <Icon name="ph:file-magnifying-glass-duotone" class="h-4 w-4" />
+                      </BaseButtonIcon>
                       <ChangeStatus :report="report" @status-changed="refreshReports" />
                       <ArchiveReport
                         v-if="canArchive(report)"
