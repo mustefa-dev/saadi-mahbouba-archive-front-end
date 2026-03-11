@@ -21,6 +21,8 @@ const userStore = useAppUserStore();
 const searchQuery = ref('');
 const selectedStatus = ref<ReportStatus | undefined>(undefined);
 const expandedCompanies = ref<Set<string>>(new Set());
+const pageNumber = ref(1);
+const pageSize = ref(10);
 
 // For Add Report modal
 const showAddReportModal = ref(false);
@@ -191,16 +193,20 @@ const { data: groupedData, refresh: refreshReports, pending: isLoading, error: f
     query: computed(() => ({
       search: searchQuery.value,
       status: selectedStatus.value,
+      pageNumber: pageNumber.value,
+      pageSize: pageSize.value,
     })),
-    transform: (response: any) => response.data || response || [],
-    default: () => [],
+    transform: (response: any) => response,
+    default: () => ({ data: [], totalRecords: 0, totalPages: 0 }),
     onResponseError({ response }) {
       console.error('Error fetching grouped reports:', response.status, response._data);
     }
   }
 );
 
-const groupedReports = computed<ReportsGroupedByCompany[]>(() => groupedData.value || []);
+const groupedReports = computed<ReportsGroupedByCompany[]>(() => groupedData.value?.data || []);
+const totalRecords = computed(() => groupedData.value?.totalRecords || 0);
+const totalPages = computed(() => groupedData.value?.totalPages || 0);
 
 // Filter groups by search query and hide fully-archived/rejected companies
 const filteredGroups = computed(() => {
@@ -253,9 +259,14 @@ const getFileIcon = (fileName?: string) => {
   return iconMap[ext || ''] || 'ph:file';
 };
 
+watch([searchQuery, selectedStatus], () => {
+  pageNumber.value = 1;
+});
+
 const clearFilters = () => {
   searchQuery.value = '';
   selectedStatus.value = undefined;
+  pageNumber.value = 1;
 };
 
 const viewFile = (report: Report) => {
@@ -482,6 +493,11 @@ const canArchive = (report: Report) => {
           </div>
         </div>
       </BaseCard>
+
+      <!-- Pagination -->
+      <div v-if="totalPages > 1" class="mt-4">
+        <BasePagination :current-page="pageNumber" :item-per-page="pageSize" :total-items="totalRecords" @update:current-page="pageNumber = $event" />
+      </div>
     </div>
 
     <!-- Add Report Modal -->
