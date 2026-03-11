@@ -12,7 +12,7 @@ const formatHijriDate = (dateString?: string) => {
   if (!dateString) return '-'
   try {
     const date = new Date(dateString)
-    return new Intl.DateTimeFormat('ar-SA-u-ca-islamic', {
+    return new Intl.DateTimeFormat('ar-IQ', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
@@ -276,7 +276,7 @@ const formatHijriDate = (dateString?: string) => {
             <div>
               <p class="text-[10px] text-muted-400">تاريخ التسجيل</p>
               <p class="text-sm font-medium text-muted-800 dark:text-muted-100">
-                {{ formatHijriDate(user.creationDate) }} هـ
+                {{ formatHijriDate(user.creationDate) }}
               </p>
             </div>
           </div>

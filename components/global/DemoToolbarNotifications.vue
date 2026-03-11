@@ -113,7 +113,7 @@ const loadMore = async () =>{
                         {{notification.ticketTitle}}
                       </h6>
                       <h6 class="font-heading text-muted-800 text-xs font-semibold leading-tight dark:text-white">
-                        {{new Date(notification.creationDate).toLocaleString('ar')}}
+                        {{new Date(notification.creationDate).toLocaleString('ar-IQ')}}
                       </h6>
                     </div>
                     <p class="text-muted-400 font-sans text-xs mt-2">
@@ -128,7 +128,7 @@ const loadMore = async () =>{
                         {{notification.ticketTitle}}
                       </h6>
                       <h6 class="font-heading text-muted-800 text-xs font-semibold leading-tight dark:text-white">
-                        {{new Date(notification.creationDate).toLocaleString('ar')}}
+                        {{new Date(notification.creationDate).toLocaleString('ar-IQ')}}
                       </h6>
                     </div>
                     <p class="text-muted-400 font-sans text-xs">

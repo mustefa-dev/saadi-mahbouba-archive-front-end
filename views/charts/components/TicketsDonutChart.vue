@@ -65,7 +65,7 @@ onMounted(async ()=>{
 
 <template>
   <div class="h-full">
-    <span class="font-bold">احصائيات الشكاوي الكلية ليوم {{new Date(chartData.date).toLocaleDateString('ar')}}</span>
+    <span class="font-bold">احصائيات الشكاوي الكلية ليوم {{new Date(chartData.date).toLocaleDateString('ar-IQ')}}</span>
     <br/>
     <div class="grid grid-cols-2 justify-center items-center h-full">
       <AddonApexcharts v-bind="chart"/>

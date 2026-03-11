@@ -64,7 +64,7 @@ const formatHijriDate = (dateString: string) => {
   if (!dateString) return '-'
   try {
     const date = new Date(dateString)
-    return new Intl.DateTimeFormat('ar-SA-u-ca-islamic', {
+    return new Intl.DateTimeFormat('ar-IQ', {
       year: 'numeric',
       month: 'numeric',
       day: 'numeric'
@@ -203,7 +203,7 @@ const toggleSort = () => {
             </div>
           </td>
           <td class="py-4 px-4 text-muted-500 dark:text-muted-400 text-sm">
-            {{ formatHijriDate(file.archivedAt) }} هـ
+            {{ formatHijriDate(file.archivedAt) }}
           </td>
           <td class="py-4 px-4 text-muted-600 dark:text-muted-300">
             {{ file.senderName || '-' }}
