@@ -34,7 +34,7 @@ const getFileIcon = (fileType: string) => {
 
 const formatDate = (date: string | undefined) => {
   if (!date) return '-';
-  return new Date(date).toLocaleDateString('ar-IQ');
+  return new Date(date).toLocaleDateString('en-GB');
 };
 
 const handleSelectCompany = (company: SearchResultCompany) => {

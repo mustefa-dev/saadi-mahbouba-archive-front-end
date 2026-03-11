@@ -163,6 +163,33 @@ const openModal = async () => {
   isOpen.value = true;
 };
 
+// Resolve selected category from tree
+const resolveSelected = async (id: string) => {
+  if (!allCategories.value.length) {
+    await fetchCategories();
+  }
+  const findInTree = (cats: Category[], targetId: string): Category | null => {
+    for (const cat of cats) {
+      if (cat.id === targetId) return cat;
+      if (cat.children?.length) {
+        const found = findInTree(cat.children, targetId);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
+  selectedCategory.value = findInTree(allCategories.value, id);
+};
+
+// Watch modelValue to resolve category when it changes (e.g. edit form populates later)
+watch(() => props.modelValue, async (newVal) => {
+  if (newVal) {
+    await resolveSelected(newVal);
+  } else {
+    selectedCategory.value = null;
+  }
+}, { immediate: true });
+
 // Build full path for a category
 const getFullPath = (category: Category): string => {
   const buildPath = (cats: Category[], targetId: string, path: string[] = []): string[] | null => {

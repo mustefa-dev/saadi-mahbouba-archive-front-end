@@ -657,7 +657,7 @@ const handleTyping = useDebounceFn(async () => {
 // Format time
 const formatTime = (dateString: string) => {
   const date = new Date(dateString)
-  return date.toLocaleTimeString('ar-IQ', {
+  return date.toLocaleTimeString('en-GB', {
     hour: '2-digit',
     minute: '2-digit',
     hour12: true

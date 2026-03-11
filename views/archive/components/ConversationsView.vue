@@ -12,7 +12,7 @@ const formatDateTime = (dateString: string) => {
   if (!dateString) return ''
   try {
     const date = new Date(dateString)
-    const timeStr = date.toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit' })
+    const timeStr = date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
     const dateStr = date.toLocaleDateString('en-CA') // YYYY-MM-DD format
     return `${timeStr} ${dateStr}`
   } catch {
