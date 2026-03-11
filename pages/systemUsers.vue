@@ -116,7 +116,7 @@ watch(searchQuery, () => {
                 </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-muted-600 dark:text-muted-300">
+                <div class="text-sm text-muted-600 dark:text-muted-300" dir="ltr">
                   {{ phoneNumberFormatter(admin.phoneNumber) }}
                 </div>
               </td>

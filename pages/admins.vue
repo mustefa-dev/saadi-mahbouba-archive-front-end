@@ -88,7 +88,7 @@ watch(searchQuery, () => {
                 <div class="text-sm font-medium text-muted-900 dark:text-white">{{ admin.fullName }}</div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-muted-600 dark:text-muted-300">{{ phoneNumberFormatter(admin.phoneNumber) }}</div>
+                <div class="text-sm text-muted-600 dark:text-muted-300" dir="ltr">{{ phoneNumberFormatter(admin.phoneNumber) }}</div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="text-sm text-muted-600 dark:text-muted-300">{{ formatDate(admin.creationDate) }}</div>

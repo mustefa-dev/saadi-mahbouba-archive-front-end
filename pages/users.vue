@@ -123,7 +123,7 @@ const getStatusColor = (status?: UserStatus) => {
                 <div class="text-sm text-muted-600 dark:text-muted-300">{{ user.fullName }}</div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-muted-600 dark:text-muted-300">{{ phoneNumberFormatter(user.phoneNumber) }}</div>
+                <div class="text-sm text-muted-600 dark:text-muted-300" dir="ltr">{{ phoneNumberFormatter(user.phoneNumber) }}</div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="text-sm text-muted-600 dark:text-muted-300">{{ user.code || '-' }}</div>
