@@ -37,7 +37,7 @@ onMounted(async ()=>{
           <span v-else>لا يوجد</span>
         </template>
         <template #data-creationDate="{item}">
-          <span>{{new Date(item.creationDate||'').toLocaleDateString('ar-IQ')}}</span>
+          <span>{{new Date(item.creationDate||'').toLocaleDateString('en-GB')}}</span>
         </template>
         <template #data-status="{item}">
             <div class="flex justify-center">

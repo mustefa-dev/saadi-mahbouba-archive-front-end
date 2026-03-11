@@ -41,7 +41,7 @@ const greeting = computed(() => {
 
 // Format current date in Arabic
 const currentDate = computed(() => {
-  return new Date().toLocaleDateString('ar-IQ', {
+  return new Date().toLocaleDateString('en-GB', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',

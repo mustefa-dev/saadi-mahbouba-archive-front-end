@@ -12,7 +12,7 @@ const formatHijriDate = (dateString?: string) => {
   if (!dateString) return '-'
   try {
     const date = new Date(dateString)
-    return new Intl.DateTimeFormat('ar-IQ', {
+    return new Intl.DateTimeFormat('en-GB', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'

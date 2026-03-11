@@ -43,7 +43,7 @@
 
       <TairoFlexTableCell type="stable" >
         <h6 class="font-heading text-muted-800 text-xs font-semibold leading-tight dark:text-white">
-          {{new Date(n.creationDate).toLocaleString('ar-IQ')}}
+          {{new Date(n.creationDate).toLocaleString('en-GB')}}
         </h6>
       </TairoFlexTableCell>
 
