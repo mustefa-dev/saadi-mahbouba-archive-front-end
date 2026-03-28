@@ -11,7 +11,6 @@ export class FileService {
   }
 
   async uploadFiles(files:File[]){
-    console.log(files);
     if(!files) return undefined;
     const formData = new FormData();
     for(let i=0;i<files.length;i++)

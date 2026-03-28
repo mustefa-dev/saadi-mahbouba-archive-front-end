@@ -5,7 +5,7 @@ import TairoCollapseLayout from '~/layers/tairo-layout-collapse/components/Tairo
 const userStore = useAppUserStore();
 
 onMounted(async () => {
-  console.log('📱 Layout mounted, user:', userStore.user?.fullName || 'Not logged in');
+  // Layout initialized
 });
 </script>
 

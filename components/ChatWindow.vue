@@ -382,7 +382,6 @@ const fetchMessages = async (append = false) => {
 
     await markAsRead()
   } catch (error) {
-    console.error('Error loading messages:', error)
     helpers.setErrorMessage(error, 'ar', 'Failed to load messages', 'فشل تحميل الرسائل')
   } finally {
     isLoading.value = false
@@ -405,13 +404,6 @@ const sendMessage = async () => {
   await signalR.sendTypingIndicator(props.userId, false)
 
   try {
-    console.log('📤 Sending message:', {
-      content: tempContent,
-      type: MessageType.TEXT,
-      toUserId: props.userId,
-      isConnected: signalR.isConnected.value
-    })
-
     const response = await $fetch<any>(apiPaths.sendMessage, {
       method: 'POST',
       headers: {
@@ -426,14 +418,10 @@ const sendMessage = async () => {
       }
     })
 
-    console.log('✅ Message sent, response:', response)
-    console.log('🔔 Waiting for SignalR to broadcast message...')
-
     await nextTick()
     scrollToBottom()
     await markAsRead()
   } catch (error) {
-    console.error('❌ Error sending message:', error)
     newMessage.value = tempContent
     helpers.setErrorMessage(error, 'ar', 'Failed to send message', 'فشل إرسال الرسالة')
   } finally {
@@ -541,7 +529,6 @@ const sendFiles = async () => {
 
     await markAsRead()
   } catch (error) {
-    console.error('Error sending files:', error)
     helpers.setErrorMessage(error, 'ar', 'Failed to send files', 'فشل إرسال الملفات')
   } finally {
     isUploading.value = false
@@ -576,7 +563,6 @@ const startRecording = async () => {
     mediaRecorder.value.start()
     isRecording.value = true
   } catch (error) {
-    console.error('Error starting recording:', error)
     helpers.setErrorMessage(error, 'ar', 'Failed to start recording', 'فشل بدء التسجيل')
   }
 }
@@ -612,7 +598,7 @@ const markAsRead = async () => {
       })
     }
   } catch (error) {
-    console.error('Error marking messages as read:', error)
+    // Silently handle - non-critical operation
   }
 }
 
@@ -702,12 +688,9 @@ onMounted(async () => {
 
       // Always attach event listeners for this chat window
       signalR.onReceiveMessage((message: Message) => {
-        console.log('📨 Message received in ChatWindow:', message)
-
         if (message.fromUserId === props.userId || message.toUserId === props.userId) {
           const exists = messages.value.some(m => m.id === message.id)
           if (!exists) {
-            console.log('✅ Adding message to UI:', message)
             messages.value.push(message)
             nextTick(() => scrollToBottom())
 
@@ -715,11 +698,7 @@ onMounted(async () => {
               markAsRead()
               signalR.sendMessageReadReceipt(message.id)
             }
-          } else {
-            console.log('⚠️ Message already exists, skipping')
           }
-        } else {
-          console.log('⚠️ Message not for this conversation')
         }
       })
 
@@ -738,7 +717,7 @@ onMounted(async () => {
         })
       })
     } catch (error) {
-      console.error('❌ SignalR connection failed:', error)
+      // SignalR connection failed - messages still work via polling
     }
   }
 

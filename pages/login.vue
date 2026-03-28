@@ -26,31 +26,17 @@ useHead({
 })
 
 const onSubmit = async () => {
-  console.log('🔑 Starting login process...');
-  console.log('Phone:', phoneNumber.value);
-  console.log('Password length:', password.value?.length || 0);
-
   isLoading.value = true;
   try {
-    // Validate input
-    console.log('📋 Validating input...');
     const validatedData = loginSchema.parse({
       phoneNumber: phoneNumber.value,
       password: password.value
     });
-    console.log('✅ Validation passed');
-    console.log('Validated phone:', validatedData.phoneNumber);
 
-    // Step 1: Login with credentials
-    console.log('🌐 Calling login API...');
     const loginResponse = await userStore.login(validatedData.phoneNumber, validatedData.password);
-    console.log('📥 Login response received:', loginResponse);
 
     // Check if token is returned directly (no OTP required)
     if (loginResponse && loginResponse.token) {
-      // Token received directly - save it and login
-      console.log('✅ Token received! Saving...');
-
       const userData = {
         id: loginResponse.id,
         fullName: loginResponse.fullName,
@@ -60,32 +46,18 @@ const onSubmit = async () => {
         isVerified: loginResponse.isActive || true
       };
 
-      console.log('👤 User data:', userData);
-
-      // Store in localStorage
-      console.log('💾 Saving to localStorage...');
       localStorage.setItem('authToken', loginResponse.token);
       localStorage.setItem('authUser', JSON.stringify(userData));
-      console.log('✅ Saved to localStorage');
-
-      // Verify it was saved
-      const savedToken = localStorage.getItem('authToken');
-      console.log('🔍 Verification - Token in localStorage:', savedToken ? 'YES' : 'NO');
-
       userStore.user = userData;
-      console.log('✅ User store updated');
 
       helpers.setSuccessMessage('ar', 'Login successful', 'تم تسجيل الدخول بنجاح');
 
       // Small delay to ensure storage is written
-      console.log('⏱️ Waiting 500ms before redirect...');
       await new Promise(resolve => setTimeout(resolve, 500));
 
       // Force reload to ensure middleware picks up the token
-      console.log('🔄 Redirecting to home...');
       window.location.href = '/';
     } else {
-      console.log('❌ No token in response - OTP required');
       // OTP required - proceed with OTP flow
       await userStore.sendOTP(validatedData.phoneNumber);
       sessionStorage.setItem('pendingPhoneNumber', validatedData.phoneNumber);
@@ -93,10 +65,8 @@ const onSubmit = async () => {
       helpers.setSuccessMessage('ar', 'تم إرسال رمز التحقق', 'تم إرسال رمز التحقق');
     }
   } catch (error: any) {
-    console.error('❌ Login error:', error);
     if (error.errors) {
       // Zod validation error
-      console.error('Validation error:', error.errors);
       helpers.setErrorMessage(
         { message: error.errors[0].message },
         'ar',
@@ -104,7 +74,6 @@ const onSubmit = async () => {
         error.errors[0].message
       );
     } else {
-      console.error('API error:', error.response?.data || error.message);
       helpers.setErrorMessage(
         error,
         'ar',
@@ -114,7 +83,6 @@ const onSubmit = async () => {
     }
   } finally {
     isLoading.value = false;
-    console.log('🏁 Login process finished');
   }
 }
 </script>

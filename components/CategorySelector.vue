@@ -46,7 +46,7 @@ const filteredCategories = computed(() => {
 
 const selectedPath = computed(() => {
   if (!props.modelValue) return null;
-  // Find category in flat list
+  // Find category in tree
   const findInTree = (cats: Category[], id: string): Category | null => {
     for (const cat of cats) {
       if (cat.id === id) return cat;
@@ -57,18 +57,21 @@ const selectedPath = computed(() => {
     }
     return null;
   };
-  return findInTree(allCategories.value, props.modelValue);
+  // Try tree first, fall back to resolved category
+  return findInTree(allCategories.value, props.modelValue) || selectedCategory.value;
 });
 
-// Fetch all categories
+// Fetch all categories (use large pageSize to get full tree)
 const fetchCategories = async () => {
   loading.value = true;
   try {
-    const response = await $fetch<any>(apiPaths.categoryTree);
+    const response = await $fetch<any>(apiPaths.categoryTree, {
+      query: { pageSize: 1000 }
+    });
     allCategories.value = Array.isArray(response) ? response : (response?.data || []);
     categories.value = allCategories.value.filter(c => !c.parentId);
   } catch (error) {
-    console.error('Error fetching categories:', error);
+    // Silently handle - categories will be empty
   } finally {
     loading.value = false;
   }
@@ -178,7 +181,22 @@ const resolveSelected = async (id: string) => {
     }
     return null;
   };
-  selectedCategory.value = findInTree(allCategories.value, id);
+  let found = findInTree(allCategories.value, id);
+
+  // Fallback: fetch the category by ID if not found in tree
+  if (!found) {
+    try {
+      const response = await $fetch<any>(apiPaths.categoryById(id));
+      const category = response?.data || response;
+      if (category && category.id) {
+        found = category;
+      }
+    } catch {
+      // Category not found - leave as null
+    }
+  }
+
+  selectedCategory.value = found;
 };
 
 // Watch modelValue to resolve category when it changes (e.g. edit form populates later)

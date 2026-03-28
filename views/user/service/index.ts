@@ -20,8 +20,7 @@ export class UserService implements IModelService<User>{
       useAppCrudStore().totalRecords = (response.data as PaginatedResponse<User>).totalRecords;
       useAppCrudStore().currentPage = (response.data as PaginatedResponse<User>).pageNumber;
     } catch (e) {
-      console.error(e);
-      throw new Error((e as ApiError).response?.data.message)
+      throw new Error('حدث خطأ في تحميل البيانات')
     } finally {
       useAppTableStore().setLoading(false);
     }
@@ -70,7 +69,6 @@ export class UserService implements IModelService<User>{
       await appClient.post(baseURL,data);
     }catch{
       useToast({isError:true,message:'حدث خطأ اثناء اضافة مستخدم'})
-      console.log("sdasdsad")
     }
       await this.getAll();
     useUserStore().isCreateDialogOpen = false;

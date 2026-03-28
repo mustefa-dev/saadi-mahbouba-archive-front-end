@@ -15,6 +15,7 @@ const helpers = useHelpers();
 const isOpen = ref(false);
 const isLoading = ref(false);
 const activeTab = ref(0);
+const phoneError = ref('');
 
 const formData = reactive({
   fullName: '',
@@ -47,6 +48,7 @@ const tabs = computed(() => {
 watch(isOpen, (newVal) => {
   if (newVal && props.user) {
     activeTab.value = 0;
+    phoneError.value = '';
     formData.fullName = props.user.fullName || '';
     formData.phoneNumber = props.user.phoneNumber || '';
     formData.email = props.user.email || '';
@@ -117,6 +119,12 @@ const editUser = async () => {
     isOpen.value = false;
     emit('edited');
   } catch (error: any) {
+    const data = error?.response?.data;
+    const errorMessage = data?.message || data?.Message || '';
+    if (errorMessage.includes('الهاتف') || errorMessage.includes('phone')) {
+      phoneError.value = errorMessage;
+      activeTab.value = 0;
+    }
     helpers.setErrorMessage(error, 'ar', 'Failed to update user', 'فشل تحديث المستخدم');
   } finally {
     isLoading.value = false;
@@ -184,14 +192,19 @@ const editUser = async () => {
               placeholder="أدخل الاسم الكامل"
               :disabled="isLoading"
             />
-            <BaseInput
-              v-model="formData.phoneNumber"
-              type="tel"
-              label="رقم هاتف الشركة *"
-              placeholder="077xxxxxxxx"
-              :disabled="isLoading"
-              required
-            />
+            <div>
+              <BaseInput
+                v-model="formData.phoneNumber"
+                type="tel"
+                label="رقم هاتف الشركة *"
+                placeholder="077xxxxxxxx"
+                :disabled="isLoading"
+                :classes="{ input: phoneError ? 'border-danger-500' : '' }"
+                required
+                @update:model-value="phoneError = ''"
+              />
+              <p v-if="phoneError" class="text-danger-500 text-xs mt-1">{{ phoneError }}</p>
+            </div>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

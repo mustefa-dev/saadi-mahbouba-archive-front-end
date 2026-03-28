@@ -113,8 +113,7 @@ const handleSubmit = async () => {
     emit('success');
     emit('close');
   } catch (error: any) {
-    const errorMessage = error?.response?.data?.error || error?.response?.data?.Error || 'فشل إنشاء الشركة';
-    helpers.setErrorMessage(error, 'ar', 'Failed to create company', errorMessage);
+    helpers.setErrorMessage(error, 'ar', 'Failed to create company', 'فشل إنشاء الشركة');
   } finally {
     isLoading.value = false;
   }

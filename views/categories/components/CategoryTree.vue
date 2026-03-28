@@ -52,7 +52,7 @@ const fetchCategories = async (parentId?: string) => {
       categories.value = allCategories.filter((c: Category) => !c.parentId);
     }
   } catch (error) {
-    console.error('Error fetching categories:', error);
+    // Silently handle - categories will be empty
     categories.value = [];
   } finally {
     loading.value = false;
@@ -65,7 +65,7 @@ const fetchBreadcrumbs = async (categoryId: string) => {
     const response = await $fetch<any>(apiPaths.categoryBreadcrumbs(categoryId));
     breadcrumbs.value = response || [];
   } catch (error) {
-    console.error('Error fetching breadcrumbs:', error);
+    // Silently handle - breadcrumbs will be empty
     breadcrumbs.value = [];
   }
 };
@@ -96,7 +96,7 @@ const navigateToBreadcrumb = async (crumb: CategoryBreadcrumb | null) => {
     const category = response?.data || response;
     await navigateTo(category);
   } catch (error) {
-    console.error('Error navigating to breadcrumb:', error);
+    // Silently handle navigation error
   }
 };
 
@@ -187,10 +187,12 @@ const deleteCategory = async () => {
     showDeleteModal.value = false;
     await fetchCategories(currentCategory.value?.id);
   } catch (error: any) {
-    // Extract error message from API response
-    const errorMessage = error?.data?.message || error?.data?.Message || error?.message || 'فشل حذف التصنيف';
-    deleteError.value = errorMessage;
-    helpers.setErrorMessage(error, 'ar', 'Failed to delete category', errorMessage);
+    const fallback = 'فشل حذف التصنيف'
+    const rawMsg = helpers.extractErrorMessage(error)
+    deleteError.value = rawMsg
+      ? helpers.sanitizeErrorMessage(rawMsg, fallback)
+      : fallback
+    helpers.setErrorMessage(error, 'ar', 'Failed to delete category', fallback);
   } finally {
     modalLoading.value = false;
   }

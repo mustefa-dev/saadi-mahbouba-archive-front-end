@@ -45,7 +45,7 @@ const fetchCompanies = async () => {
     const response = await $fetch<any>(apiPaths.users + '?Role=User');
     allCompanies.value = response.data || response || [];
   } catch (error) {
-    console.error('Error fetching companies:', error);
+    // Silently handle - companies list will be empty
   } finally {
     loadingCompanies.value = false;
   }
@@ -120,12 +120,6 @@ const openAddReportModal = () => {
 };
 
 const submitReport = async () => {
-  console.log('submitReport called', {
-    selectedCompany: selectedCompany.value,
-    title: reportForm.title,
-    file: reportForm.file
-  });
-
   if (!selectedCompany.value) {
     helpers.setErrorMessage(null, 'ar', 'Please select a company', 'يرجى اختيار الشركة');
     return;
@@ -152,11 +146,6 @@ const submitReport = async () => {
     }
 
     const token = userStore.getToken();
-    console.log('Token available:', !!token);
-    console.log('Token prefix:', token?.substring(0, 30));
-    console.log('Current user:', userStore.user);
-    console.log('FormData UserId:', selectedCompany.value.id);
-    console.log('Endpoint:', apiPaths.archiveSendFile);
 
     if (!token) {
       helpers.setErrorMessage(null, 'ar', 'Not authenticated', 'يرجى تسجيل الدخول');
@@ -176,9 +165,6 @@ const submitReport = async () => {
     resetReportForm();
     refreshReports();
   } catch (error: any) {
-    console.error('Error submitting report:', error);
-    console.error('Error data:', error.data);
-    console.error('Error response:', error.response);
     helpers.setErrorMessage(error, 'ar', 'Failed to add report', 'فشل إضافة التقرير');
   } finally {
     isSubmitting.value = false;
@@ -198,8 +184,8 @@ const { data: groupedData, refresh: refreshReports, pending: isLoading, error: f
     })),
     transform: (response: any) => response,
     default: () => ({ data: [], totalRecords: 0, totalPages: 0 }),
-    onResponseError({ response }) {
-      console.error('Error fetching grouped reports:', response.status, response._data);
+    onResponseError() {
+      // Error handled by useLazyFetch error ref
     }
   }
 );

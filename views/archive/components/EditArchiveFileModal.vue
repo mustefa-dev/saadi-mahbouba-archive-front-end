@@ -52,7 +52,8 @@ const handleSave = async () => {
     emit('saved')
     closeModal()
   } catch (error: any) {
-    console.error('Error updating archive file:', error)
+    const helpers = useHelpers()
+    helpers.setErrorMessage(error, 'ar', 'Failed to update file', 'فشل تحديث الملف')
   } finally {
     isLoading.value = false
   }

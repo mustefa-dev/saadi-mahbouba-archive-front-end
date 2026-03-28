@@ -123,8 +123,11 @@ const handleSubmit = async () => {
     emit('success')
     emit('close')
   } catch (err: any) {
-    console.error('Error sending file:', err)
-    error.value = err.data?.error || 'حدث خطأ أثناء إرسال الملف'
+    const helpers = useHelpers()
+    const rawMsg = helpers.extractErrorMessage(err)
+    error.value = rawMsg
+      ? helpers.sanitizeErrorMessage(rawMsg, 'حدث خطأ أثناء إرسال الملف')
+      : 'حدث خطأ أثناء إرسال الملف'
   } finally {
     isSubmitting.value = false
   }

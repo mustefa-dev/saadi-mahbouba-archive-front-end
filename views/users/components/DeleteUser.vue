@@ -26,11 +26,12 @@ const deleteUser = async () => {
     isOpen.value = false;
     emit('deleted');
   } catch (error: any) {
-    const errorMessage = error?.response?.data?.error || error?.response?.data?.Error || '';
+    const rawMsg = helpers.extractErrorMessage(error) || '';
+    const sanitizedMsg = helpers.sanitizeErrorMessage(rawMsg, 'فشل حذف العميل');
     // Check if the error is about associated files
-    if (errorMessage.includes('ملف') || errorMessage.includes('ملفات')) {
+    if (rawMsg.includes('ملف') || rawMsg.includes('ملفات')) {
       hasFiles.value = true;
-      filesMessage.value = errorMessage;
+      filesMessage.value = sanitizedMsg;
     } else {
       helpers.setErrorMessage(error, 'ar', 'Failed to delete user', 'فشل حذف العميل');
     }

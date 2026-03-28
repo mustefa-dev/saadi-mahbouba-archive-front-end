@@ -3,6 +3,42 @@
  * Provides user feedback utilities and error handling
  */
 
+/**
+ * Sanitize error messages to hide technical details from users.
+ * Strips endpoint paths, stack traces, and raw technical info.
+ */
+const sanitizeErrorMessage = (message: string, fallback: string): string => {
+  if (!message || typeof message !== 'string') return fallback
+
+  // If the message contains URL paths, endpoint paths, or technical patterns, use fallback
+  const technicalPatterns = [
+    /\/api\//i,
+    /https?:\/\//i,
+    /localhost/i,
+    /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/,  // IP addresses
+    /Exception/,
+    /Stack\s?Trace/i,
+    /at\s+\w+\.\w+\(/,                        // stack trace lines
+    /NullReferenceException/,
+    /Internal Server Error/i,
+    /500|502|503|504/,
+    /SqlException/i,
+    /LINQ/,
+    /EntityFramework/i,
+    /Npgsql/i,
+    /System\.\w+/,
+    /Microsoft\.\w+/,
+  ]
+
+  for (const pattern of technicalPatterns) {
+    if (pattern.test(message)) {
+      return fallback
+    }
+  }
+
+  return message
+}
+
 export const useHelpers = () => {
   /**
    * Display success message toast
@@ -18,28 +54,40 @@ export const useHelpers = () => {
   }
 
   /**
-   * Display error message toast with automatic translation
+   * Extract raw error message from API response (unsanitized, for programmatic use)
    */
-  const setErrorMessage = (error: any, locale: string, defaultEnMsg: string, defaultArMsg: string) => {
-    let errorMessage = locale === 'en' ? defaultEnMsg : defaultArMsg
-
-    // Try to extract error from response
+  const extractErrorMessage = (error: any): string | null => {
     if (error?.response?.data) {
       const data = error.response.data
-
-      // Check for error message in various formats
-      if (data.message) {
-        errorMessage = data.message
-      } else if (data.error) {
-        errorMessage = data.error
-      } else if (data.errors && Array.isArray(data.errors) && data.errors.length > 0) {
-        errorMessage = data.errors[0]
-      } else if (typeof data === 'string') {
-        errorMessage = data
-      }
-    } else if (error?.message) {
-      errorMessage = error.message
+      if (data.message) return data.message
+      if (data.Message) return data.Message
+      if (data.error) return data.error
+      if (data.Error) return data.Error
+      if (data.errors && Array.isArray(data.errors) && data.errors.length > 0) return data.errors[0]
+      if (data.Errors && Array.isArray(data.Errors) && data.Errors.length > 0) return data.Errors[0]
+      if (typeof data === 'string') return data
     }
+    // Also handle $fetch error shape (error.data instead of error.response.data)
+    if (error?.data) {
+      const data = error.data
+      if (data.message) return data.message
+      if (data.Message) return data.Message
+      if (data.error) return data.error
+      if (data.Error) return data.Error
+      if (typeof data === 'string') return data
+    }
+    return null
+  }
+
+  /**
+   * Display error message toast with automatic sanitization
+   */
+  const setErrorMessage = (error: any, locale: string, defaultEnMsg: string, defaultArMsg: string) => {
+    const fallback = locale === 'en' ? defaultEnMsg : defaultArMsg
+    const rawMessage = extractErrorMessage(error)
+    const errorMessage = rawMessage
+      ? sanitizeErrorMessage(rawMessage, fallback)
+      : fallback
 
     useToast({
       title: 'خطأ',
@@ -65,6 +113,8 @@ export const useHelpers = () => {
   return {
     setSuccessMessage,
     setErrorMessage,
-    setLoadingMessage
+    setLoadingMessage,
+    extractErrorMessage,
+    sanitizeErrorMessage
   }
 }

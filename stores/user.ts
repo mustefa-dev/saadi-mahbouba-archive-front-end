@@ -24,17 +24,11 @@ export const useAppUserStore = defineStore('appUserStore',()=>{
         const storedToken = localStorage.getItem('authToken');
         const storedUserStr = localStorage.getItem('authUser');
 
-        console.log('🔄 InitAuth - Token found:', !!storedToken);
-        console.log('🔄 InitAuth - User found:', !!storedUserStr);
-
         if (storedToken && storedUserStr) {
           user.value = JSON.parse(storedUserStr);
-          console.log('✅ User loaded:', user.value.fullName);
-        } else {
-          console.log('❌ No user data in localStorage');
         }
       } catch (error) {
-        console.error('❌ Error initializing auth:', error);
+        // Silently handle auth init error
       }
     }
   };
@@ -102,7 +96,6 @@ export const useAppUserStore = defineStore('appUserStore',()=>{
 
   // Logout and clear auth
   const logout = () => {
-    console.log('🔓 Logging out...');
     localStorage.removeItem('authToken');
     localStorage.removeItem('authUser');
     user.value = {};
