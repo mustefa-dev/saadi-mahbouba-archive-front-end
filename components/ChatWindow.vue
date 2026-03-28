@@ -72,13 +72,13 @@ overflow-wrap: break-word;
           v-for="message in messages"
           :key="message.id"
           class="flex items-end gap-1"
-          :class="message.isAdminMessage ? 'justify-start' : 'justify-end'"
+          :class="message.isAdminMessage ? 'justify-end' : 'justify-start'"
         >
           <div
             class="max-w-[85%] sm:max-w-[70%] md:max-w-[65%] rounded-lg px-3 py-2 shadow-sm relative overflow-hidden"
             :class="message.isAdminMessage
-              ? 'bg-white dark:bg-[#2b2b2b] text-muted-900 dark:text-white rounded-bl-md'
-              : 'bg-primary-500 dark:bg-primary-600 text-white rounded-br-md'"
+              ? 'bg-primary-500 dark:bg-primary-600 text-white rounded-br-md'
+              : 'bg-white dark:bg-[#2b2b2b] text-muted-900 dark:text-white rounded-bl-md'"
           >
             <!-- Text / Report Message -->
             <p v-if="message.type === MessageType.TEXT || message.type === MessageType.REPORT" class="message-text">
@@ -133,7 +133,7 @@ overflow-wrap: break-word;
                 {{ formatTime(message.sentAt) }}
               </span>
               <Icon
-                v-if="!message.isAdminMessage"
+                v-if="message.isAdminMessage"
                 :name="message.isRead ? 'ph:checks' : 'ph:check'"
                 class="size-4 flex-shrink-0 opacity-70"
               />
