@@ -227,8 +227,8 @@ const initSignalR = async () => {
             messages.value.push(message)
             scrollToBottom()
 
-            // Mark as read if from admin
-            if (!message.isAdminMessage) {
+            // Mark as read if from the other user (not from current admin)
+            if (message.fromUserId === userId && !message.isAdminMessage) {
               signalR.sendMessageReadReceipt(message.id)
             }
           } else {
@@ -295,13 +295,13 @@ onMounted(async () => {
   await fetchUserInfo();
   await fetchMessages();
   await initSignalR();
+});
 
-  onUnmounted(() => {
-    signalR.offReceiveMessage();
-    signalR.offUserTyping();
-    signalR.offMessageRead();
-    signalR.stopConnection();
-  });
+onUnmounted(() => {
+  signalR.offReceiveMessage();
+  signalR.offUserTyping();
+  signalR.offMessageRead();
+  signalR.stopConnection();
 });
 </script>
 

@@ -126,9 +126,21 @@ onMounted(async () => {
       signalR.onReceiveMessage((message: any) => {
         console.log('📨 New message received:', message)
 
+        // Normalize message to always use camelCase
+        const msg = {
+          fromUserId: message.fromUserId || message.FromUserId,
+          fromUserName: message.fromUserName || message.FromUserName || 'مستخدم',
+          toUserId: message.toUserId || message.ToUserId,
+          content: message.content ?? message.Content ?? '',
+          sentAt: message.sentAt || message.SentAt,
+          isAdminMessage: message.isAdminMessage ?? message.IsAdminMessage ?? false,
+          id: message.id || message.Id,
+          type: message.type ?? message.Type ?? 0,
+        }
+
         // Update conversation list
         const convIndex = conversations.value.findIndex(
-          c => c.userId === message.fromUserId || c.userId === message.FromUserId
+          c => c.userId === msg.fromUserId
         )
 
         if (convIndex !== -1) {
@@ -136,17 +148,17 @@ onMounted(async () => {
           conversations.value.splice(convIndex, 1)
           conversations.value.unshift({
             ...conv,
-            lastMessage: message.content || message.Content,
-            lastMessageTime: message.sentAt || message.SentAt,
+            lastMessage: msg.content,
+            lastMessageTime: msg.sentAt,
             unreadCount: (conv.unreadCount || 0) + 1
           })
         } else {
           // New conversation
           conversations.value.unshift({
-            userId: message.fromUserId || message.FromUserId,
-            userName: message.fromUserName || message.FromUserName || 'مستخدم',
-            lastMessage: message.content || message.Content,
-            lastMessageTime: message.sentAt || message.SentAt,
+            userId: msg.fromUserId,
+            userName: msg.fromUserName,
+            lastMessage: msg.content,
+            lastMessageTime: msg.sentAt,
             unreadCount: 1
           })
         }
