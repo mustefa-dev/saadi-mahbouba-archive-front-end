@@ -33,8 +33,14 @@ const showVisibilityConfirm = ref(false)
 const fileToToggle = ref<ArchiveFile | null>(null)
 
 const openVisibilityConfirm = (file: ArchiveFile) => {
-  fileToToggle.value = file
-  showVisibilityConfirm.value = true
+  if (file.isVisibleToClient) {
+    // Hiding from client — ask for confirmation
+    fileToToggle.value = file
+    showVisibilityConfirm.value = true
+  } else {
+    // Showing to client — no confirmation needed
+    emit('toggleVisibility', file)
+  }
 }
 
 const confirmToggleVisibility = () => {
