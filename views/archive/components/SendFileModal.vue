@@ -94,8 +94,8 @@ const formatFileSize = (bytes: number) => {
 }
 
 const handleSubmit = async () => {
-  if (!props.company || !file.value || !title.value.trim()) {
-    error.value = 'يرجى ملء جميع الحقول المطلوبة'
+  if (!props.company || !file.value || !title.value.trim() || !selectedCategoryId.value) {
+    error.value = 'يرجى ملء جميع الحقول المطلوبة (الملف، العنوان، التصنيف)'
     return
   }
 
