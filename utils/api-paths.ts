@@ -90,6 +90,13 @@ export const useApiPaths = () => {
     activeBanners: `${baseUrl}/Banners/active`,
     trackBanner: `${baseUrl}/Banners/track`,
 
+    // Notifications
+    notifications: `${baseUrl}/notifications`,
+    notificationUnreadCount: `${baseUrl}/notifications/unread-count`,
+    notificationRead: (id: string) => `${baseUrl}/notifications/${id}/read`,
+    notificationReadAll: `${baseUrl}/notifications/read-all`,
+    notificationFcmToken: `${baseUrl}/notifications/fcm-token`,
+
     // Assets
     getAsset: (path: string) => {
       // If path is already a full URL, return as is

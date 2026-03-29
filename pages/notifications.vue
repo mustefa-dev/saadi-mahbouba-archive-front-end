@@ -1,141 +1,155 @@
-<template>
-  <TairoFlexTable>
-    <template #header>
-      <TairoFlexTableHeading type="stable">
-        النوع
-      </TairoFlexTableHeading>
-
-      <TairoFlexTableHeading type="stable">
-        التاريخ
-      </TairoFlexTableHeading>
-
-      <TairoFlexTableHeading type="stable">
-        عنوان الشكوى
-      </TairoFlexTableHeading>
-
-      <TairoFlexTableHeading type="grow" class="text-center">
-        المحتوى
-      </TairoFlexTableHeading>
-
-      <TairoFlexTableHeading type="stable">
-        الاجراءات
-      </TairoFlexTableHeading>
-    </template>
-
-    <TairoFlexTableRow
-      v-for="n in notifications"
-      :key="n.id"
-      rounded="none"
-    >
-      <TairoFlexTableCell type="stable" data-content="Member">
-        <div class="flex items-center gap-2">
-          <BaseAvatar size="sm">
-            <Icon :name="n.type==0?'ph:messenger-logo':'ph:user-circle-plus'" class="size-8"/>
-          </BaseAvatar>
-
-          <div class="leading-none">
-            <h4 class="font-bold">
-              {{ n.type==0?'رسالة':'تعيين' }}
-            </h4>
-          </div>
-        </div>
-      </TairoFlexTableCell>
-
-      <TairoFlexTableCell type="stable" >
-        <h6 class="font-heading text-muted-800 text-xs font-semibold leading-tight dark:text-white">
-          {{new Date(n.creationDate).toLocaleString('en-GB')}}
-        </h6>
-      </TairoFlexTableCell>
-
-      <TairoFlexTableCell type="grow" >
-        <h2>
-          {{ n.ticketTitle }}
-        </h2>
-      </TairoFlexTableCell>
-
-      <TairoFlexTableCell type="grow">
-        <span class="font-medium" v-if="n.type==1">
-          تم تعيينك في شكوى جديدة
-        </span>
-        <span class="font-medium" v-else>
-          لديك رسالة جديدة من <strong>{{n.managerName}}</strong>
-        </span>
-      </TairoFlexTableCell>
-      <TairoFlexTableCell type="stable" data-content="Actions">
-        <BaseButton
-          color="primary"
-          variant="outline"
-          @click="useRouter().push('/tickets/'+n.ticketId)"
-        >
-          <Icon name="ph:caret-circle-left-light" class="size-full"
-          />
-        </BaseButton>
-      </TairoFlexTableCell>
-    </TairoFlexTableRow>
-    <TairoFlexTableRow class>
-      <BaseButton color="primary" class="w-full"
-        :disabled="!canLoad"
-        :loading="isLoadingMore"
-        @click="(e:Event)=>{
-          loadMore()
-          e.preventDefault();
-        }">
-        {{canLoad?'تحميل المزيد من الاشعارات':'لا يوجد المزيد من الاشعارات'}}
-      </BaseButton>
-    </TairoFlexTableRow>
-  </TairoFlexTable>
-</template>
-
 <script setup lang="ts">
-import AxiosIns from "~/services/app-client/axios"
-import { useNotificationStore } from '~/stores/notification';
-import type { PaginatedResponse } from '~/utils/types/ApiResponses';
-interface Notifications{
-  id?:string
-  title?:string
-  body?:string
-  userId?:string
-  projectId?:string
-  ticketId?:string
-}
-const notifications = ref<any[]>([]);
-const canLoad = ref(true);
+import { useNotificationStore } from '~/stores/notification'
+import type { AppNotification } from '~/stores/notification'
 
-const isLoading = ref(false);
-const isLoadingMore = ref(false);
-const notificationsUrl = computed<string>(()=>{
-  return "notifications" + (useAppUserStore().user.role == 'Admin'?'/manager':'');
+const notifStore = useNotificationStore()
+
+const getTypeIcon = (type: string) => {
+  switch (type) {
+    case 'message': return 'ph:chat-circle-duotone'
+    case 'report': return 'ph:file-text-duotone'
+    default: return 'ph:bell-duotone'
+  }
+}
+
+const getTypeLabel = (type: string) => {
+  switch (type) {
+    case 'message': return 'رسالة'
+    case 'report': return 'تقرير'
+    default: return 'عام'
+  }
+}
+
+const getTypeColor = (type: string) => {
+  switch (type) {
+    case 'message': return 'primary'
+    case 'report': return 'success'
+    default: return 'info'
+  }
+}
+
+const formatDate = (dateStr: string) => {
+  if (!dateStr) return '-'
+  try {
+    return new Intl.DateTimeFormat('en-GB', {
+      year: 'numeric', month: 'numeric', day: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    }).format(new Date(dateStr))
+  } catch {
+    return dateStr
+  }
+}
+
+const handleClick = async (n: AppNotification) => {
+  if (!n.isRead) {
+    await notifStore.markAsRead(n.id)
+  }
+}
+
+onMounted(() => {
+  notifStore.fetchNotifications(true)
 })
-onMounted(async () => {
-  await loadNotifications();
-})
-const loadNotifications = async ()=>{
-  isLoading.value = true;
-  useNotificationStore().isNewNotification = false;
-  const res = await AxiosIns.get<PaginatedResponse<Notifications>>(`${notificationsUrl.value}?pageSize=10`);
-  notifications.value = res.data.data;
-
-  //if(10==res.data.data.length)
-  //  canLoad.value = true;
-  //else
-  //  canLoad.value = false;
-
-  isLoading.value = false;
-}
-const loadMore = async () =>{
-  if(canLoad.value == false)
-    return;
-  isLoadingMore.value = true;
-  await new Promise(res=> setTimeout(res,100))
-  const previousLength = notifications.value.length;
-  const res = await AxiosIns.get<PaginatedResponse<Notifications>>(`${notificationsUrl.value}?pageSize=${notifications.value.length+10}`);
-
-  if(previousLength==res.data.data.length)
-    canLoad.value = false;
-    else
-    canLoad.value = true;
-
-  notifications.value = res.data.data;
-  isLoadingMore.value = false;
-}
 </script>
+
+<template>
+  <div class="p-6 max-w-4xl mx-auto" dir="rtl">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6">
+      <div class="flex items-center gap-3">
+        <Icon name="ph:bell-duotone" class="w-6 h-6 text-primary-500" />
+        <BaseHeading size="xl" weight="medium">الإشعارات</BaseHeading>
+        <BaseTag v-if="notifStore.unreadCount > 0" color="primary" size="sm" flavor="pastel">
+          {{ notifStore.unreadCount }} غير مقروء
+        </BaseTag>
+      </div>
+      <BaseButton
+        v-if="notifStore.unreadCount > 0"
+        color="primary"
+        variant="pastel"
+        size="sm"
+        @click="notifStore.markAllAsRead()"
+      >
+        <Icon name="ph:checks" class="w-4 h-4" />
+        <span>قراءة الكل</span>
+      </BaseButton>
+    </div>
+
+    <!-- Loading -->
+    <div v-if="notifStore.loading && notifStore.notifications.length === 0" class="space-y-3">
+      <BasePlaceload v-for="_ in 5" :key="_" class="h-20 w-full rounded-lg" />
+    </div>
+
+    <!-- Empty -->
+    <div v-else-if="notifStore.notifications.length === 0" class="py-20 text-center">
+      <Icon name="ph:bell-slash-duotone" class="w-16 h-16 mx-auto text-muted-300 mb-4" />
+      <BaseParagraph class="text-muted-400">لا توجد إشعارات</BaseParagraph>
+    </div>
+
+    <!-- Notifications List -->
+    <div v-else class="space-y-2">
+      <div
+        v-for="n in notifStore.notifications"
+        :key="n.id"
+        class="flex items-start gap-4 p-4 rounded-lg border transition-colors cursor-pointer"
+        :class="n.isRead
+          ? 'bg-white dark:bg-muted-800 border-muted-200 dark:border-muted-700'
+          : 'bg-primary-50/50 dark:bg-primary-900/10 border-primary-200 dark:border-primary-800'"
+        @click="handleClick(n)"
+      >
+        <!-- Icon -->
+        <div
+          class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center"
+          :class="n.type === 'message'
+            ? 'bg-primary-100 dark:bg-primary-900/30'
+            : n.type === 'report'
+              ? 'bg-success-100 dark:bg-success-900/30'
+              : 'bg-muted-100 dark:bg-muted-700'"
+        >
+          <Icon
+            :name="getTypeIcon(n.type)"
+            class="w-5 h-5"
+            :class="n.type === 'message'
+              ? 'text-primary-500'
+              : n.type === 'report'
+                ? 'text-success-500'
+                : 'text-muted-500'"
+          />
+        </div>
+
+        <!-- Content -->
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 mb-1">
+            <h4 class="font-semibold text-muted-800 dark:text-white text-sm">
+              {{ n.title }}
+            </h4>
+            <BaseTag :color="getTypeColor(n.type)" size="sm" flavor="pastel">
+              {{ getTypeLabel(n.type) }}
+            </BaseTag>
+          </div>
+          <p class="text-sm text-muted-500 dark:text-muted-400">
+            {{ n.description }}
+          </p>
+          <p class="text-xs text-muted-400 mt-1">
+            {{ formatDate(n.createdAt) }}
+          </p>
+        </div>
+
+        <!-- Unread dot -->
+        <div v-if="!n.isRead" class="flex-shrink-0 mt-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-primary-500 block"></span>
+        </div>
+      </div>
+
+      <!-- Load More -->
+      <div v-if="notifStore.hasMore" class="pt-4 text-center">
+        <BaseButton
+          color="default"
+          :loading="notifStore.loading"
+          @click="notifStore.loadMore()"
+        >
+          تحميل المزيد
+        </BaseButton>
+      </div>
+    </div>
+  </div>
+</template>

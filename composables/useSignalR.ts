@@ -139,6 +139,52 @@ export const useSignalR = () => {
     }
   }
 
+  // === Notification Hub (separate connection) ===
+  const notifConnection = ref<signalR.HubConnection | null>(null)
+
+  const initializeNotificationHub = async (token: string) => {
+    try {
+      const config = useRuntimeConfig()
+      const hubUrl = `${config.public.assetsUrl}/notificationHub`
+
+      notifConnection.value = new signalR.HubConnectionBuilder()
+        .withUrl(hubUrl, {
+          accessTokenFactory: () => token,
+          skipNegotiation: true,
+          transport: signalR.HttpTransportType.WebSockets
+        })
+        .withAutomaticReconnect()
+        .build()
+
+      await notifConnection.value.start()
+      return notifConnection.value
+    } catch {
+      // Notification hub connection failed - non-critical
+    }
+  }
+
+  const onReceiveNotification = (callback: (notification: any) => void) => {
+    if (notifConnection.value) {
+      notifConnection.value.on('ReceiveNotification', callback)
+    }
+  }
+
+  const offReceiveNotification = () => {
+    if (notifConnection.value) {
+      notifConnection.value.off('ReceiveNotification')
+    }
+  }
+
+  const stopNotificationHub = async () => {
+    if (notifConnection.value) {
+      try {
+        await notifConnection.value.stop()
+      } catch {
+        // Silently handle
+      }
+    }
+  }
+
   return {
     connection,
     isConnected,
@@ -152,7 +198,11 @@ export const useSignalR = () => {
     sendMessageReadReceipt,
     offReceiveMessage,
     offUserTyping,
-    offMessageRead
+    offMessageRead,
+    initializeNotificationHub,
+    onReceiveNotification,
+    offReceiveNotification,
+    stopNotificationHub
   }
 }
 

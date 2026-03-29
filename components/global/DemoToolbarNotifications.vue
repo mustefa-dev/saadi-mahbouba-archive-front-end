@@ -1,155 +1,180 @@
 <script setup lang="ts">
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
-import AxiosIns from "~/services/app-client/axios"
-import { useNotificationStore } from '~/stores/notification';
-import type { PaginatedResponse } from '~/utils/types/ApiResponses';
-interface Notifications{
-  id?:string
-  title?:string
-  body?:string
-  userId?:string
-  projectId?:string
-  ticketId?:string
+import { useNotificationStore } from '~/stores/notification'
+import type { AppNotification } from '~/stores/notification'
+
+const notifStore = useNotificationStore()
+const signalR = useSignalR()
+
+const getTypeIcon = (type: string) => {
+  switch (type) {
+    case 'message': return 'ph:chat-circle-duotone'
+    case 'report': return 'ph:file-text-duotone'
+    default: return 'ph:bell-duotone'
+  }
 }
-const notifications = ref<any[]>([]);
-const canLoad = ref(true);
-const isNewNotification = computed<boolean>(() => {
-  return useNotificationStore().isNewNotification;
-});
-const isLoading = ref(false);
-const isLoadingMore = ref(false);
-const notificationsUrl = computed<string>(()=>{
-  return "notifications" + (useAppUserStore().user.role == 'Admin'?'/manager':'');
-})
+
+const getTypeColor = (type: string) => {
+  switch (type) {
+    case 'message': return 'text-primary-500'
+    case 'report': return 'text-success-500'
+    default: return 'text-muted-500'
+  }
+}
+
+const formatTime = (dateStr: string) => {
+  if (!dateStr) return ''
+  try {
+    const date = new Date(dateStr)
+    const now = new Date()
+    const diff = now.getTime() - date.getTime()
+    const mins = Math.floor(diff / 60000)
+    if (mins < 1) return 'الآن'
+    if (mins < 60) return `${mins} د`
+    const hours = Math.floor(mins / 60)
+    if (hours < 24) return `${hours} س`
+    return new Intl.DateTimeFormat('en-GB', { month: 'numeric', day: 'numeric' }).format(date)
+  } catch {
+    return ''
+  }
+}
+
+const handleNotificationClick = async (notification: AppNotification) => {
+  if (!notification.isRead) {
+    await notifStore.markAsRead(notification.id)
+  }
+}
+
 onMounted(async () => {
-  await loadNotifications();
+  await notifStore.fetchUnreadCount()
+
+  // Listen for real-time notifications
+  const token = localStorage.getItem('authToken')
+  if (token) {
+    await signalR.initializeNotificationHub(token)
+    signalR.onReceiveNotification((notification: any) => {
+      notifStore.addNotification({
+        id: notification.id || notification.Id,
+        title: notification.title || notification.Title || '',
+        description: notification.description || notification.Description || '',
+        type: notification.type || notification.Type || 'general',
+        isRead: false,
+        relatedEntityId: notification.relatedEntityId || notification.RelatedEntityId,
+        createdAt: notification.createdAt || notification.CreatedAt || new Date().toISOString()
+      })
+    })
+  }
 })
-const loadNotifications = async ()=>{
-  isLoading.value = true;
-  useNotificationStore().isNewNotification = false;
-  const res = await AxiosIns.get<PaginatedResponse<Notifications>>(`${notificationsUrl.value}?pageSize=5`);
-  notifications.value = res.data.data;
 
-  //if(10==res.data.data.length)
-  //  canLoad.value = true;
-  //else
-  //  canLoad.value = false;
-
-  isLoading.value = false;
-}
-const loadMore = async () =>{
-
-  if(canLoad.value == false)
-    return;
-  isLoadingMore.value = true;
-  await new Promise(res=> setTimeout(res,100))
-  const previousLength = notifications.value.length;
-  const res = await AxiosIns.get<PaginatedResponse<Notifications>>(`${notificationsUrl.value}?pageSize=${notifications.value.length+10}`);
-
-  if(previousLength==res.data.data.length)
-    canLoad.value = false;
-  else
-    canLoad.value = true;
-
-  notifications.value = res.data.data;
-  isLoadingMore.value = false;
-}
+onUnmounted(() => {
+  signalR.offReceiveNotification()
+})
 </script>
 
 <template>
-  <div class="group  z-20 inline-flex items-center justify-center text-right">
-    <Menu v-slot="{ close }" as="div" class="relative  z-20 size-9 text-left z-100">
+  <div class="group z-20 inline-flex items-center justify-center text-right">
+    <Menu v-slot="{ close }" as="div" class="relative z-20 size-9 text-left">
       <MenuButton as="div">
-        <button type="button" @click="loadNotifications"
-          class="group-hover:ring-muted-200 dark:group-hover:ring-muted-700 dark:ring-offset-muted-900 inline-flex size-9 items-center justify-start rounded-full ring-1 ring-transparent transition-all duration-300 group-hover:ring-offset-4">
-          <BaseAvatar size="sm" :dot="isNewNotification?'primary':null">
-            <Icon name="ph:bell" />
-          </BaseAvatar>
+        <button
+          type="button"
+          class="group-hover:ring-muted-200 dark:group-hover:ring-muted-700 dark:ring-offset-muted-900 inline-flex size-9 items-center justify-start rounded-full ring-1 ring-transparent transition-all duration-300 group-hover:ring-offset-4"
+          @click="notifStore.fetchNotifications(true)"
+        >
+          <div class="relative">
+            <BaseAvatar size="sm">
+              <Icon name="ph:bell" />
+            </BaseAvatar>
+            <span
+              v-if="notifStore.unreadCount > 0"
+              class="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-white bg-primary-500 rounded-full"
+            >
+              {{ notifStore.unreadCount > 99 ? '99+' : notifStore.unreadCount }}
+            </span>
+          </div>
         </button>
       </MenuButton>
 
-      <Transition enter-active-class="transition duration-100 ease-out" enter-from-class="transform scale-95 opacity-0"
-        enter-to-class="transform scale-100 opacity-100" leave-active-class="transition duration-75 ease-in"
-        leave-from-class="transform scale-100 opacity-100" leave-to-class="transform scale-95 opacity-0">
+      <Transition
+        enter-active-class="transition duration-100 ease-out"
+        enter-from-class="transform scale-95 opacity-0"
+        enter-to-class="transform scale-100 opacity-100"
+        leave-active-class="transition duration-75 ease-in"
+        leave-from-class="transform scale-100 opacity-100"
+        leave-to-class="transform scale-95 opacity-0"
+      >
         <MenuItems
           class="divide-muted-100 border-muted-200 dark:divide-muted-700 dark:border-muted-700 dark:bg-muted-800 absolute end-0 mt-2 origin-top-right divide-y rounded-md border bg-white shadow-lg focus:outline-none"
-          style="width:400px;max-height: 300px;overflow-y: scroll;scrollbar-width: none;" 
+          style="width: 380px; max-height: 400px; overflow-y: auto; scrollbar-width: none;"
         >
-          <div class="p-4">
-            <div class="relative flex items-center justify-between">
-              <h4 class="font-heading text-muted-500 dark:text-muted-200 text-xs uppercase">
-                الإشعارات
-              </h4>
-              <h4 class="font-bold text-muted-500 cursor-pointer hover:text-primary-500 dark:text-muted-200 text-sm uppercase"
-                @click="()=>{
-                  useRouter().push('/notifications')
-                  close();
-                }"
+          <!-- Header -->
+          <div class="p-4 flex items-center justify-between">
+            <h4 class="font-heading text-muted-500 dark:text-muted-200 text-xs uppercase">
+              الإشعارات
+            </h4>
+            <div class="flex items-center gap-3">
+              <button
+                v-if="notifStore.unreadCount > 0"
+                class="text-xs text-primary-500 hover:text-primary-600 font-medium"
+                @click.stop="notifStore.markAllAsRead()"
+              >
+                قراءة الكل
+              </button>
+              <button
+                class="text-xs font-bold text-muted-500 hover:text-primary-500 dark:text-muted-200"
+                @click="() => { useRouter().push('/notifications'); close() }"
               >
                 عرض الكل
-              </h4>
+              </button>
             </div>
           </div>
-          <template v-if="isLoading">
-            <MenuItem v-for="_ in 5">
-            <div class="group flex w-full items-center rounded-md p-2 text-sm transition-colors duration-300">
-              <div class="ms-2 w-full">
-                <BasePlaceload class="h-3 font-heading text-xs font-semibold leading-tight dark:text-white"/>
-              </div>
+
+          <!-- Loading -->
+          <template v-if="notifStore.loading && notifStore.notifications.length === 0">
+            <div v-for="_ in 4" :key="_" class="p-3">
+              <BasePlaceload class="h-10 w-full rounded" />
             </div>
-            </MenuItem>
           </template>
+
+          <!-- Empty -->
+          <div v-else-if="notifStore.notifications.length === 0" class="p-8 text-center">
+            <Icon name="ph:bell-slash-duotone" class="w-10 h-10 mx-auto text-muted-300 mb-2" />
+            <p class="text-muted-400 text-sm">لا توجد إشعارات</p>
+          </div>
+
+          <!-- Notifications List -->
           <template v-else>
-            <template v-for="notification in notifications" :key="notification.id" >
-              <MenuItem as="div" class="w-full">
-              <NuxtLink :to="`/tickets/${notification.ticketId}`"
-                class="flex w-full text-right rounded-md p-2 text-sm transition-colors duration-300" @click.passive="close"
-                active-class="text-primary-500"
+            <MenuItem
+              v-for="n in notifStore.notifications.slice(0, 8)"
+              :key="n.id"
+              as="div"
+              class="w-full"
+            >
+              <div
+                class="flex items-start gap-3 p-3 cursor-pointer transition-colors hover:bg-muted-50 dark:hover:bg-muted-700/50"
+                :class="!n.isRead ? 'bg-primary-50/50 dark:bg-primary-900/10' : ''"
+                @click="() => { handleNotificationClick(n); close() }"
               >
-                <template v-if="useAppUserStore().user.role=='Admin'">
-                  <div class="w-full">
-                    <div class="flex justify-between">
-                      <h6 class="font-heading text-xs font-semibold leading-tight" :class="active?'text-danger':''">
-                        {{notification.ticketTitle}}
-                      </h6>
-                      <h6 class="font-heading text-muted-800 text-xs font-semibold leading-tight dark:text-white">
-                        {{new Date(notification.creationDate).toLocaleString('en-GB')}}
-                      </h6>
-                    </div>
-                    <p class="text-muted-400 font-sans text-xs mt-2">
-                      {{notification.type==1?'تم تعيينك في شكوى جديدة':'لديك رسالة جديدة'}}
-                    </p>
+                <div class="flex-shrink-0 mt-0.5">
+                  <Icon :name="getTypeIcon(n.type)" class="w-5 h-5" :class="getTypeColor(n.type)" />
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center justify-between gap-2">
+                    <h6 class="text-xs font-semibold text-muted-800 dark:text-white truncate">
+                      {{ n.title }}
+                    </h6>
+                    <span class="text-[10px] text-muted-400 whitespace-nowrap">
+                      {{ formatTime(n.createdAt) }}
+                    </span>
                   </div>
-                </template>
-                <template v-else>
-                  <div class="w-full">
-                    <div class="flex justify-between">
-                      <h6 class="font-heading text-muted-800 text-xs font-semibold leading-tight dark:text-white">
-                        {{notification.ticketTitle}}
-                      </h6>
-                      <h6 class="font-heading text-muted-800 text-xs font-semibold leading-tight dark:text-white">
-                        {{new Date(notification.creationDate).toLocaleString('en-GB')}}
-                      </h6>
-                    </div>
-                    <p class="text-muted-400 font-sans text-xs">
-                      {{notification.body}}
-                    </p>
-                  </div>
-                </template>
-              </NuxtLink>
-              </MenuItem>
-            </template>
-              <MenuItem class="w-full">
-            <BaseButton color="primary" 
-              :disabled="!canLoad"
-              :loading="isLoadingMore"
-              @click="(e)=>{
-              loadMore()
-              e.preventDefault();
-            }">
-              {{canLoad?'تحميل المزيد من الاشعارات':'لا يوجد المزيد من الاشعارات'}}
-                </BaseButton>
-              </MenuItem>
+                  <p class="text-xs text-muted-400 mt-0.5 line-clamp-2">
+                    {{ n.description }}
+                  </p>
+                </div>
+                <div v-if="!n.isRead" class="flex-shrink-0 mt-1.5">
+                  <span class="w-2 h-2 rounded-full bg-primary-500 block"></span>
+                </div>
+              </div>
+            </MenuItem>
           </template>
         </MenuItems>
       </Transition>
