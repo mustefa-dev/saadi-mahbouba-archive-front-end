@@ -29,8 +29,8 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      baseUrl: process.env.NUXT_PUBLIC_BASE_URL || 'http://37.237.225.78/api',
-      assetsUrl: process.env.NUXT_PUBLIC_ASSETS_URL || 'http://37.237.225.78',
+      baseUrl: process.env.NUXT_PUBLIC_BASE_URL || 'http://37.237.225.78:822/api',
+      assetsUrl: process.env.NUXT_PUBLIC_ASSETS_URL || 'http://37.237.225.78:822',
     }
   },
 
