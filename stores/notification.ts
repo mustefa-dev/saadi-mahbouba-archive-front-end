@@ -86,6 +86,33 @@ export const useNotificationStore = defineStore('notification', () => {
     if (!notification.isRead) unreadCount.value++
   }
 
+  // Admin: send a notification to a specific user or broadcast to a group.
+  // targetKind: 0 = User, 1 = AllUsers, 2 = AllAdmins
+  const sendNotification = async (payload: {
+    title: string
+    body: string
+    type: string
+    targetKind: 0 | 1 | 2
+    targetUserId?: string | null
+  }) => {
+    const apiPaths = useApiPaths()
+    const body: Record<string, unknown> = {
+      title: payload.title,
+      body: payload.body,
+      type: payload.type,
+      targetKind: payload.targetKind
+    }
+    if (payload.targetKind === 0 && payload.targetUserId) {
+      body.targetUserId = payload.targetUserId
+    }
+    return await $fetch<{
+      message: string
+      persisted: number
+      pushSuccess: number
+      pushFailure: number
+    }>(apiPaths.notificationSend, { method: 'POST', body })
+  }
+
   return {
     notifications,
     unreadCount,
@@ -96,6 +123,7 @@ export const useNotificationStore = defineStore('notification', () => {
     fetchUnreadCount,
     markAsRead,
     markAllAsRead,
-    addNotification
+    addNotification,
+    sendNotification
   }
 })
