@@ -78,6 +78,13 @@ const openConversation = (userId: string, userName: string) => {
   console.log('🎯 Opening conversation:', { userId, userName })
   selectedUserId.value = userId
   selectedUserName.value = userName
+
+  // Locally zero the unread badge — the child view will POST mark-read
+  const conv = conversations.value.find(c => c.userId === userId)
+  if (conv && conv.unreadCount > 0) {
+    totalUnreadCount.value = Math.max(0, totalUnreadCount.value - conv.unreadCount)
+    conv.unreadCount = 0
+  }
 }
 
 // Filtered and sorted conversations
@@ -138,10 +145,17 @@ onMounted(async () => {
           type: message.type ?? message.Type ?? 0,
         }
 
+        // The non-admin participant is the conversation key.
+        // Admin outgoing → other party is toUserId; user incoming → other party is fromUserId.
+        const peerId = msg.isAdminMessage ? msg.toUserId : msg.fromUserId
+        if (!peerId) return
+
+        // Admin-sent messages never bump unread; also skip if conversation is active
+        const isActiveConv = selectedUserId.value === peerId
+        const delta = (msg.isAdminMessage || isActiveConv) ? 0 : 1
+
         // Update conversation list
-        const convIndex = conversations.value.findIndex(
-          c => c.userId === msg.fromUserId
-        )
+        const convIndex = conversations.value.findIndex(c => c.userId === peerId)
 
         if (convIndex !== -1) {
           const conv = conversations.value[convIndex]
@@ -150,20 +164,21 @@ onMounted(async () => {
             ...conv,
             lastMessage: msg.content,
             lastMessageTime: msg.sentAt,
-            unreadCount: (conv.unreadCount || 0) + 1
+            unreadCount: (conv.unreadCount || 0) + delta
           })
         } else {
-          // New conversation
+          // New conversation — only create when a user messages us, not for our own outgoing
+          if (msg.isAdminMessage) return
           conversations.value.unshift({
-            userId: msg.fromUserId,
+            userId: peerId,
             userName: msg.fromUserName,
             lastMessage: msg.content,
             lastMessageTime: msg.sentAt,
-            unreadCount: 1
+            unreadCount: delta
           })
         }
 
-        totalUnreadCount.value++
+        totalUnreadCount.value += delta
       })
 
       console.log('✅ SignalR listeners attached')

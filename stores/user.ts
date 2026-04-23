@@ -95,7 +95,13 @@ export const useAppUserStore = defineStore('appUserStore',()=>{
   };
 
   // Logout and clear auth
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await useSignalR().stopConnection();
+      await useSignalR().stopNotificationHub();
+    } catch {
+      // best-effort; don't block logout on a dying socket
+    }
     localStorage.removeItem('authToken');
     localStorage.removeItem('authUser');
     user.value = {};

@@ -692,11 +692,13 @@ onMounted(async () => {
           const exists = messages.value.some(m => m.id === message.id)
           if (!exists) {
             messages.value.push(message)
+            messages.value.sort(
+              (a, b) => new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime()
+            )
             nextTick(() => scrollToBottom())
 
             if (message.fromUserId === props.userId && !message.isAdminMessage) {
               markAsRead()
-              signalR.sendMessageReadReceipt(message.id)
             }
           }
         }
@@ -708,13 +710,11 @@ onMounted(async () => {
         }
       })
 
-      signalR.onMessageRead((data) => {
-        messages.value = messages.value.map(m => {
-          if (m.id === data.messageId) {
-            return { ...m, isRead: true }
-          }
-          return m
-        })
+      signalR.onMessagesRead((data) => {
+        if (!data.messageIds.length) return
+        messages.value = messages.value.map(m =>
+          data.messageIds.includes(m.id) ? { ...m, isRead: true } : m
+        )
       })
     } catch (error) {
       // SignalR connection failed - messages still work via polling

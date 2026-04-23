@@ -171,15 +171,18 @@ const removeFile = () => {
 // Mark messages as read
 const markMessagesAsRead = async () => {
   try {
-    const unreadMessages = messages.value.filter(
-      m => !m.isRead && !m.isAdminMessage
-    );
+    const unreadIds = messages.value
+      .filter(m => !m.isRead && !m.isAdminMessage)
+      .map(m => m.id);
 
-    for (const message of unreadMessages) {
-      const apiPaths = useApiPaths();
-      await axios.post(apiPaths.markMessageRead, { messageId: message.id });
-      message.isRead = true;
-    }
+    if (unreadIds.length === 0) return;
+
+    const apiPaths = useApiPaths();
+    await axios.post(apiPaths.markMessageRead, unreadIds);
+
+    messages.value = messages.value.map(m =>
+      unreadIds.includes(m.id) ? { ...m, isRead: true } : m
+    );
   } catch (error) {
     console.error('Failed to mark messages as read:', error);
   }
@@ -225,11 +228,14 @@ const initSignalR = async () => {
           if (!exists) {
             console.log('✅ Mobile: Adding new message to UI')
             messages.value.push(message)
+            messages.value.sort(
+              (a, b) => new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime()
+            )
             scrollToBottom()
 
             // Mark as read if from the other user (not from current admin)
             if (message.fromUserId === userId && !message.isAdminMessage) {
-              signalR.sendMessageReadReceipt(message.id)
+              markMessagesAsRead()
             }
           } else {
             console.log('⚠️ Mobile: Message already exists, skipping')
@@ -246,12 +252,12 @@ const initSignalR = async () => {
         }
       });
 
-      // Listen for read receipts - FIXED: Correct data structure
-      signalR.onMessageRead((data) => {
-        const message = messages.value.find(m => m.id === data.messageId);
-        if (message) {
-          message.isRead = true;
-        }
+      // Listen for read receipts (batch) - backend emits MessagesRead with MessageIds[]
+      signalR.onMessagesRead((data) => {
+        if (!data.messageIds.length) return;
+        messages.value = messages.value.map(m =>
+          data.messageIds.includes(m.id) ? { ...m, isRead: true } : m
+        );
       });
 
       console.log('✅ Mobile: SignalR listeners attached successfully')
@@ -298,10 +304,10 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
+  // Detach this page's listeners but keep the shared hub alive for the conversation list.
   signalR.offReceiveMessage();
   signalR.offUserTyping();
-  signalR.offMessageRead();
-  signalR.stopConnection();
+  signalR.offMessagesRead();
 });
 </script>
 
