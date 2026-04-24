@@ -29,11 +29,14 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      baseUrl: process.env.NUXT_PUBLIC_BASE_URL || 'http://37.237.225.78:822/api',
-      assetsUrl: process.env.NUXT_PUBLIC_ASSETS_URL || 'http://37.237.225.78:822',
+      baseUrl: process.env.NUXT_PUBLIC_BASE_URL || 'https://api-saadi-mahbouba.sumercode.com/api',
+      assetsUrl: process.env.NUXT_PUBLIC_ASSETS_URL || 'https://api-saadi-mahbouba.sumercode.com',
+      // baseUrl: process.env.NUXT_PUBLIC_BASE_URL || 'http://192.168.24.20:885/api',
+      // assetsUrl: process.env.NUXT_PUBLIC_ASSETS_URL || 'http://192.168.24.20:885',
     }
   },
-
+  // api-saadi-mahbouba
+  // sudo nano /etc/nginx/sites-available/api-saadi-mahbouba.sumercode.com
   app: {
     pageTransition: { name: 'page', mode: 'out-in' },
     head: {
