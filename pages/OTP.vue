@@ -218,7 +218,6 @@ const resendOTP = async () => {
             :disabled="isLoading"
             type="button"
             color="default"
-            variant="plain"
             @click="resendOTP"
           >
             إعادة الإرسال
@@ -232,7 +231,6 @@ const resendOTP = async () => {
           <BaseButton
             type="button"
             color="default"
-            variant="plain"
             @click="router.push('/login')"
           >
             العودة لتسجيل الدخول

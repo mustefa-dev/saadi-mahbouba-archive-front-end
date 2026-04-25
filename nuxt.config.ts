@@ -29,8 +29,8 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      baseUrl: process.env.NUXT_PUBLIC_BASE_URL || 'http://37.237.225.78:822/api',
-      assetsUrl: process.env.NUXT_PUBLIC_ASSETS_URL || 'http://37.237.225.78:822',
+      baseUrl: process.env.NUXT_PUBLIC_BASE_URL || 'https://api-saadi-mahbouba.sumercode.com/api',
+      assetsUrl: process.env.NUXT_PUBLIC_ASSETS_URL || 'https://api-saadi-mahbouba.sumercode.com',
     }
   },
 
@@ -43,7 +43,7 @@ export default defineNuxtConfig({
         { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' },
         { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
-        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: true },
+        { rel: 'preconnect', href: 'https://fonts.gstatic.com' },
         { href: 'https://fonts.googleapis.com/css2?family=Tajawal:wght@200;300;400;500;700;800;900&display=swap', rel: 'stylesheet' },
       ],
     }
