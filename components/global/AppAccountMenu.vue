@@ -15,11 +15,6 @@ import { getEnumByKey,UserRoles } from '~/utils/constants/enum';
         variant="text"
       >
         <BaseDropdownItem
-          title="تغيير الرمز السري"
-          rounded="sm"
-          @click="useAppUserStore().isChangePasswordDialogOpen=true"
-        />
-        <BaseDropdownItem
           title="تسجيل خروج"
           rounded="sm"
           @click="useAppUserStore().logout()"
@@ -27,5 +22,4 @@ import { getEnumByKey,UserRoles } from '~/utils/constants/enum';
       </BaseDropdown>
     </div>
   </div>
-  <ChangeUserPassword/>
 </template>

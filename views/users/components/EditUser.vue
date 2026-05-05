@@ -2,6 +2,7 @@
 import axios from '~/services/app-client/axios';
 import type { User } from '~/types/users';
 import { UserStatus } from '~/types/users';
+import { validatePhoneNumber } from '~/utils/helpers';
 
 const props = defineProps<{
   user: User;
@@ -15,8 +16,17 @@ const helpers = useHelpers();
 const isOpen = ref(false);
 const isLoading = ref(false);
 const activeTab = ref(0);
-const phoneError = ref('');
+const phoneErrors = reactive({
+  phoneNumber: '',
+  managerPhone: '',
+  managerPhoneSecondary: '',
+  lawyerPhone: '',
+  lawyerPhoneSecondary: '',
+  accountantPhone: '',
+  accountantPhoneSecondary: '',
+});
 
+// Real-time validation watches
 const formData = reactive({
   fullName: '',
   phoneNumber: '',
@@ -36,7 +46,51 @@ const formData = reactive({
   accountantPhoneSecondary: '',
 });
 
-const isCompanyUser = computed(() => props.user.role === 'User' || props.user.role === 1 || props.user.role === '1');
+watch(() => formData.phoneNumber, (val) => {
+  if (!val) phoneErrors.phoneNumber = '';
+  else if (!validatePhoneNumber(val)) phoneErrors.phoneNumber = 'رقم الهاتف يجب أن يتكون من 10 أرقام ولا يبدأ بـ 0';
+  else phoneErrors.phoneNumber = '';
+});
+
+watch(() => formData.managerPhone, (val) => {
+  if (!val) phoneErrors.managerPhone = '';
+  else if (!validatePhoneNumber(val)) phoneErrors.managerPhone = 'رقم الهاتف غير صحيح';
+  else phoneErrors.managerPhone = '';
+});
+
+watch(() => formData.managerPhoneSecondary, (val) => {
+  if (!val) phoneErrors.managerPhoneSecondary = '';
+  else if (!validatePhoneNumber(val)) phoneErrors.managerPhoneSecondary = 'رقم الهاتف غير صحيح';
+  else phoneErrors.managerPhoneSecondary = '';
+});
+
+watch(() => formData.lawyerPhone, (val) => {
+  if (!val) phoneErrors.lawyerPhone = '';
+  else if (!validatePhoneNumber(val)) phoneErrors.lawyerPhone = 'رقم الهاتف غير صحيح';
+  else phoneErrors.lawyerPhone = '';
+});
+
+watch(() => formData.lawyerPhoneSecondary, (val) => {
+  if (!val) phoneErrors.lawyerPhoneSecondary = '';
+  else if (!validatePhoneNumber(val)) phoneErrors.lawyerPhoneSecondary = 'رقم الهاتف غير صحيح';
+  else phoneErrors.lawyerPhoneSecondary = '';
+});
+
+watch(() => formData.accountantPhone, (val) => {
+  if (!val) phoneErrors.accountantPhone = '';
+  else if (!validatePhoneNumber(val)) phoneErrors.accountantPhone = 'رقم الهاتف غير صحيح';
+  else phoneErrors.accountantPhone = '';
+});
+
+watch(() => formData.accountantPhoneSecondary, (val) => {
+  if (!val) phoneErrors.accountantPhoneSecondary = '';
+  else if (!validatePhoneNumber(val)) phoneErrors.accountantPhoneSecondary = 'رقم الهاتف غير صحيح';
+  else phoneErrors.accountantPhoneSecondary = '';
+});
+
+
+
+const isCompanyUser = computed(() => props.user.role === 'User' || props.user.role === '1');
 
 const tabs = computed(() => {
   if (isCompanyUser.value) {
@@ -48,7 +102,6 @@ const tabs = computed(() => {
 watch(isOpen, (newVal) => {
   if (newVal && props.user) {
     activeTab.value = 0;
-    phoneError.value = '';
     formData.fullName = props.user.fullName || '';
     formData.phoneNumber = props.user.phoneNumber || '';
     formData.email = props.user.email || '';
@@ -65,12 +118,30 @@ watch(isOpen, (newVal) => {
     formData.accountantName = props.user.accountantName || '';
     formData.accountantPhone = props.user.accountantPhone || '';
     formData.accountantPhoneSecondary = props.user.accountantPhoneSecondary || '';
+    
+    // Reset errors
+    Object.keys(phoneErrors).forEach(key => {
+      phoneErrors[key as keyof typeof phoneErrors] = '';
+    });
   }
 });
 
 const validateForm = (): string | null => {
   if (isCompanyUser.value) {
     if (!formData.phoneNumber.trim()) return 'رقم هاتف الشركة مطلوب';
+    if (!validatePhoneNumber(formData.phoneNumber)) return 'رقم الهاتف غير صحيح (يجب أن يكون 10 أرقام ولا يبدأ بـ 0)';
+    
+    if (formData.managerPhone && !validatePhoneNumber(formData.managerPhone)) return 'رقم هاتف المدير غير صحيح';
+    if (formData.managerPhoneSecondary && !validatePhoneNumber(formData.managerPhoneSecondary)) return 'رقم هاتف المدير الثاني غير صحيح';
+    
+    if (formData.lawyerPhone && !validatePhoneNumber(formData.lawyerPhone)) return 'رقم هاتف المحامي غير صحيح';
+    if (formData.lawyerPhoneSecondary && !validatePhoneNumber(formData.lawyerPhoneSecondary)) return 'رقم هاتف المحامي الثاني غير صحيح';
+    
+    if (formData.accountantPhone && !validatePhoneNumber(formData.accountantPhone)) return 'رقم هاتف المحاسب غير صحيح';
+    if (formData.accountantPhoneSecondary && !validatePhoneNumber(formData.accountantPhoneSecondary)) return 'رقم هاتف المحاسب الثاني غير صحيح';
+  } else {
+    if (!formData.phoneNumber.trim()) return 'رقم الهاتف مطلوب';
+    if (!validatePhoneNumber(formData.phoneNumber)) return 'رقم الهاتف غير صحيح (يجب أن يكون 10 أرقام ولا يبدأ بـ 0)';
   }
   return null;
 };
@@ -122,7 +193,7 @@ const editUser = async () => {
     const data = error?.response?.data;
     const errorMessage = data?.message || data?.Message || '';
     if (errorMessage.includes('الهاتف') || errorMessage.includes('phone')) {
-      phoneError.value = errorMessage;
+      phoneErrors.phoneNumber = errorMessage;
       activeTab.value = 0;
     }
     helpers.setErrorMessage(error, 'ar', 'Failed to update user', 'فشل تحديث المستخدم');
@@ -197,13 +268,12 @@ const editUser = async () => {
                 v-model="formData.phoneNumber"
                 type="tel"
                 label="رقم هاتف الشركة *"
-                placeholder="077xxxxxxxx"
+                placeholder="77XXXXXXXX"
                 :disabled="isLoading"
-                :classes="{ input: phoneError ? 'border-danger-500' : '' }"
+                :classes="{ input: phoneErrors.phoneNumber ? 'border-danger-500' : '' }"
                 required
-                @update:model-value="phoneError = ''"
               />
-              <p v-if="phoneError" class="text-danger-500 text-xs mt-1">{{ phoneError }}</p>
+              <p v-if="phoneErrors.phoneNumber" class="text-danger-500 text-[10px] mt-1">{{ phoneErrors.phoneNumber }}</p>
             </div>
           </div>
 
@@ -267,21 +337,29 @@ const editUser = async () => {
                 :disabled="isLoading"
                 required
               />
-              <BaseInput
-                v-model="formData.managerPhone"
-                type="tel"
-                label="رقم الهاتف *"
-                placeholder="077xxxxxxxx"
-                :disabled="isLoading"
-                required
-              />
-              <BaseInput
-                v-model="formData.managerPhoneSecondary"
-                type="tel"
-                label="رقم ثانٍ (اختياري)"
-                placeholder="077xxxxxxxx"
-                :disabled="isLoading"
-              />
+              <div>
+                <BaseInput
+                  v-model="formData.managerPhone"
+                  type="tel"
+                  label="رقم الهاتف (10 أرقام)"
+                  placeholder="77XXXXXXXX"
+                  :disabled="isLoading"
+                  :classes="{ input: phoneErrors.managerPhone ? 'border-danger-500' : '' }"
+                  required
+                />
+                <p v-if="phoneErrors.managerPhone" class="text-danger-500 text-[10px] mt-1">{{ phoneErrors.managerPhone }}</p>
+              </div>
+              <div>
+                <BaseInput
+                  v-model="formData.managerPhoneSecondary"
+                  type="tel"
+                  label="رقم ثانٍ (اختياري)"
+                  placeholder="77XXXXXXXX"
+                  :disabled="isLoading"
+                  :classes="{ input: phoneErrors.managerPhoneSecondary ? 'border-danger-500' : '' }"
+                />
+                <p v-if="phoneErrors.managerPhoneSecondary" class="text-danger-500 text-[10px] mt-1">{{ phoneErrors.managerPhoneSecondary }}</p>
+              </div>
             </div>
           </div>
         </div>
@@ -300,20 +378,28 @@ const editUser = async () => {
                 placeholder="اسم المحامي"
                 :disabled="isLoading"
               />
-              <BaseInput
-                v-model="formData.lawyerPhone"
-                type="tel"
-                label="رقم الهاتف"
-                placeholder="077xxxxxxxx"
-                :disabled="isLoading"
-              />
-              <BaseInput
-                v-model="formData.lawyerPhoneSecondary"
-                type="tel"
-                label="رقم ثانٍ"
-                placeholder="077xxxxxxxx"
-                :disabled="isLoading"
-              />
+              <div>
+                <BaseInput
+                  v-model="formData.lawyerPhone"
+                  type="tel"
+                  label="رقم الهاتف (10 أرقام)"
+                  placeholder="77XXXXXXXX"
+                  :disabled="isLoading"
+                  :classes="{ input: phoneErrors.lawyerPhone ? 'border-danger-500' : '' }"
+                />
+                <p v-if="phoneErrors.lawyerPhone" class="text-danger-500 text-[10px] mt-1">{{ phoneErrors.lawyerPhone }}</p>
+              </div>
+              <div>
+                <BaseInput
+                  v-model="formData.lawyerPhoneSecondary"
+                  type="tel"
+                  label="رقم ثانٍ (10 أرقام)"
+                  placeholder="77XXXXXXXX"
+                  :disabled="isLoading"
+                  :classes="{ input: phoneErrors.lawyerPhoneSecondary ? 'border-danger-500' : '' }"
+                />
+                <p v-if="phoneErrors.lawyerPhoneSecondary" class="text-danger-500 text-[10px] mt-1">{{ phoneErrors.lawyerPhoneSecondary }}</p>
+              </div>
             </div>
           </div>
         </div>
@@ -332,20 +418,28 @@ const editUser = async () => {
                 placeholder="اسم المحاسب"
                 :disabled="isLoading"
               />
-              <BaseInput
-                v-model="formData.accountantPhone"
-                type="tel"
-                label="رقم الهاتف"
-                placeholder="077xxxxxxxx"
-                :disabled="isLoading"
-              />
-              <BaseInput
-                v-model="formData.accountantPhoneSecondary"
-                type="tel"
-                label="رقم ثانٍ"
-                placeholder="077xxxxxxxx"
-                :disabled="isLoading"
-              />
+              <div>
+                <BaseInput
+                  v-model="formData.accountantPhone"
+                  type="tel"
+                  label="رقم الهاتف (10 أرقام)"
+                  placeholder="77XXXXXXXX"
+                  :disabled="isLoading"
+                  :classes="{ input: phoneErrors.accountantPhone ? 'border-danger-500' : '' }"
+                />
+                <p v-if="phoneErrors.accountantPhone" class="text-danger-500 text-[10px] mt-1">{{ phoneErrors.accountantPhone }}</p>
+              </div>
+              <div>
+                <BaseInput
+                  v-model="formData.accountantPhoneSecondary"
+                  type="tel"
+                  label="رقم ثانٍ (10 أرقام)"
+                  placeholder="77XXXXXXXX"
+                  :disabled="isLoading"
+                  :classes="{ input: phoneErrors.accountantPhoneSecondary ? 'border-danger-500' : '' }"
+                />
+                <p v-if="phoneErrors.accountantPhoneSecondary" class="text-danger-500 text-[10px] mt-1">{{ phoneErrors.accountantPhoneSecondary }}</p>
+              </div>
             </div>
           </div>
         </div>
