@@ -96,6 +96,7 @@ export const useApiPaths = () => {
     notificationRead: (id: string) => `${baseUrl}/notifications/${id}/read`,
     notificationReadAll: `${baseUrl}/notifications/read-all`,
     notificationFcmToken: `${baseUrl}/notifications/fcm-token`,
+    notificationSend: `${baseUrl}/notifications/send`,
 
     // Assets
     getAsset: (path: string) => {

@@ -2,9 +2,10 @@
 import * as signalR from '@microsoft/signalr'
 
 export const useSignalR = () => {
-  const connection = ref<signalR.HubConnection | null>(null)
-  const isConnected = ref(false)
-  const connectionError = ref<string | null>(null)
+  // Shared across every caller in the app — one SignalR connection per tab.
+  const connection = useState<signalR.HubConnection | null>('signalr-chat-connection', () => null)
+  const isConnected = useState<boolean>('signalr-chat-isConnected', () => false)
+  const connectionError = useState<string | null>('signalr-chat-error', () => null)
 
   const initializeConnection = async (token: string) => {
     try {
@@ -67,10 +68,12 @@ export const useSignalR = () => {
     if (connection.value) {
       try {
         await connection.value.stop()
-        isConnected.value = false
-        console.log('SignalR connection stopped')
       } catch (error) {
         console.error('Error stopping SignalR connection:', error)
+      } finally {
+        connection.value = null
+        isConnected.value = false
+        console.log('SignalR connection stopped')
       }
     }
   }
@@ -94,9 +97,16 @@ export const useSignalR = () => {
     }
   }
 
-  const onMessageRead = (callback: (data: { messageId: string }) => void) => {
+  const onMessagesRead = (callback: (data: { messageIds: string[]; readAt: string }) => void) => {
     if (connection.value) {
-      connection.value.on('MessageRead', callback)
+      connection.value.on('MessagesRead', (data: any) => {
+        const rawIds = data?.MessageIds ?? data?.messageIds ?? []
+        const messageIds = Array.isArray(rawIds)
+          ? rawIds.map((id: any) => String(id))
+          : []
+        const readAt = data?.ReadAt ?? data?.readAt ?? new Date().toISOString()
+        callback({ messageIds, readAt })
+      })
     }
   }
 
@@ -107,16 +117,6 @@ export const useSignalR = () => {
         await connection.value.invoke('SendTypingIndicator', isTyping, userId)
       } catch (error) {
         console.error('Error sending typing indicator:', error)
-      }
-    }
-  }
-
-  const sendMessageReadReceipt = async (messageId: string) => {
-    if (connection.value && isConnected.value) {
-      try {
-        await connection.value.invoke('MessageRead', messageId)
-      } catch (error) {
-        console.error('Error sending read receipt:', error)
       }
     }
   }
@@ -133,14 +133,14 @@ export const useSignalR = () => {
     }
   }
 
-  const offMessageRead = () => {
+  const offMessagesRead = () => {
     if (connection.value) {
-      connection.value.off('MessageRead')
+      connection.value.off('MessagesRead')
     }
   }
 
   // === Notification Hub (separate connection) ===
-  const notifConnection = ref<signalR.HubConnection | null>(null)
+  const notifConnection = useState<signalR.HubConnection | null>('signalr-notif-connection', () => null)
 
   const initializeNotificationHub = async (token: string) => {
     try {
@@ -181,6 +181,8 @@ export const useSignalR = () => {
         await notifConnection.value.stop()
       } catch {
         // Silently handle
+      } finally {
+        notifConnection.value = null
       }
     }
   }
@@ -193,12 +195,11 @@ export const useSignalR = () => {
     stopConnection,
     onReceiveMessage,
     onUserTyping,
-    onMessageRead,
+    onMessagesRead,
     sendTypingIndicator,
-    sendMessageReadReceipt,
     offReceiveMessage,
     offUserTyping,
-    offMessageRead,
+    offMessagesRead,
     initializeNotificationHub,
     onReceiveNotification,
     offReceiveNotification,

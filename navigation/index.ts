@@ -72,6 +72,11 @@ const settings = [
     icon: { name: 'ph:bell-duotone', class: 'w-5 h-5' },
     to: "/notifications",
   },
+  {
+    name: "إرسال إشعار",
+    icon: { name: 'ph:paper-plane-tilt-duotone', class: 'w-5 h-5' },
+    to: "/send-notification",
+  },
 ]
 
 export default [

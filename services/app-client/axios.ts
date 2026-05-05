@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 // Hardcode base URL - runtime config can't be used at module level
-export const baseURL = 'https://archive-api.taco5k.site'
+export const baseURL = 'https://api-saadi-mahbouba.sumercode.com'
 const axiosIns = axios.create({
     baseURL: `${baseURL}/api`,
 })
