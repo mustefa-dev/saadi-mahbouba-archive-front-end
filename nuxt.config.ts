@@ -1,4 +1,4 @@
-import {process} from "std-env";
+import { process } from "std-env";
 
 export default defineNuxtConfig({
   ssr: false,
@@ -7,8 +7,8 @@ export default defineNuxtConfig({
     './layers/tairo-layout-collapse',
     './layers/tairo',
   ],
-  build:{
-    transpile:['@vuepic/vue-datepicker']
+  build: {
+    transpile: ['@vuepic/vue-datepicker']
   },
 
   devtools: { enabled: false },
@@ -33,7 +33,8 @@ export default defineNuxtConfig({
       assetsUrl: process.env.NUXT_PUBLIC_ASSETS_URL || 'https://api-saadi-mahbouba.sumercode.com',
     }
   },
-
+  // api-saadi-mahbouba
+  // sudo nano /etc/nginx/sites-available/api-saadi-mahbouba.sumercode.com
   app: {
     pageTransition: { name: 'page', mode: 'out-in' },
     head: {

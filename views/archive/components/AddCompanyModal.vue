@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import axios from '~/services/app-client/axios';
 import type { CreateCompanyRequest } from '~/types/users';
+import { validatePhoneNumber } from '~/utils/helpers';
 
 const props = defineProps<{
   open: boolean;
@@ -14,6 +15,7 @@ const emit = defineEmits<{
 const helpers = useHelpers();
 const apiPaths = useApiPaths();
 const isLoading = ref(false);
+const isPasswordVisible = ref(false);
 
 // Tabs for step-by-step creation
 const tabs = ['المعلومات الأساسية', 'المدير المفوض', 'المحامي', 'المحاسب'];
@@ -35,6 +37,59 @@ const formData = reactive<CreateCompanyRequest>({
   accountantName: '',
   accountantPhone: '',
   accountantPhoneSecondary: '',
+});
+
+const phoneErrors = reactive({
+  phoneNumber: '',
+  managerPhone: '',
+  managerPhoneSecondary: '',
+  lawyerPhone: '',
+  lawyerPhoneSecondary: '',
+  accountantPhone: '',
+  accountantPhoneSecondary: '',
+});
+
+// Real-time validation watches
+watch(() => formData.phoneNumber, (val) => {
+  if (!val) phoneErrors.phoneNumber = '';
+  else if (!validatePhoneNumber(val)) phoneErrors.phoneNumber = 'رقم الهاتف غير صحيح (10 أرقام، لا يبدأ بـ 0)';
+  else phoneErrors.phoneNumber = '';
+});
+
+watch(() => formData.managerPhone, (val) => {
+  if (!val) phoneErrors.managerPhone = '';
+  else if (!validatePhoneNumber(val)) phoneErrors.managerPhone = 'رقم الهاتف غير صحيح';
+  else phoneErrors.managerPhone = '';
+});
+
+watch(() => formData.managerPhoneSecondary, (val) => {
+  if (!val) phoneErrors.managerPhoneSecondary = '';
+  else if (!validatePhoneNumber(val)) phoneErrors.managerPhoneSecondary = 'رقم الهاتف غير صحيح';
+  else phoneErrors.managerPhoneSecondary = '';
+});
+
+watch(() => formData.lawyerPhone, (val) => {
+  if (!val) phoneErrors.lawyerPhone = '';
+  else if (!validatePhoneNumber(val)) phoneErrors.lawyerPhone = 'رقم الهاتف غير صحيح';
+  else phoneErrors.lawyerPhone = '';
+});
+
+watch(() => formData.lawyerPhoneSecondary, (val) => {
+  if (!val) phoneErrors.lawyerPhoneSecondary = '';
+  else if (!validatePhoneNumber(val)) phoneErrors.lawyerPhoneSecondary = 'رقم الهاتف غير صحيح';
+  else phoneErrors.lawyerPhoneSecondary = '';
+});
+
+watch(() => formData.accountantPhone, (val) => {
+  if (!val) phoneErrors.accountantPhone = '';
+  else if (!validatePhoneNumber(val)) phoneErrors.accountantPhone = 'رقم الهاتف غير صحيح';
+  else phoneErrors.accountantPhone = '';
+});
+
+watch(() => formData.accountantPhoneSecondary, (val) => {
+  if (!val) phoneErrors.accountantPhoneSecondary = '';
+  else if (!validatePhoneNumber(val)) phoneErrors.accountantPhoneSecondary = 'رقم الهاتف غير صحيح';
+  else phoneErrors.accountantPhoneSecondary = '';
 });
 
 // Reset form when modal opens
@@ -66,17 +121,13 @@ const resetForm = () => {
 const validateForm = (): string | null => {
   if (!formData.companyName.trim()) return 'اسم الشركة مطلوب';
   if (!formData.phoneNumber.trim()) return 'رقم الهاتف مطلوب';
-  if (!formData.email.trim()) return 'البريد الإلكتروني مطلوب';
-  if (!formData.code.trim()) return 'الكود مطلوب';
+  if (!validatePhoneNumber(formData.phoneNumber)) return 'رقم هاتف الشركة غير صحيح (يجب أن يكون 10 أرقام ولا يبدأ بـ 0)';
+  if (!formData.code.trim()) return 'الكود (م.ش) مطلوب';
   if (!formData.password.trim()) return 'كلمة المرور مطلوبة';
   if (formData.password.length < 6) return 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
-  if (!formData.address.trim()) return 'العنوان مطلوب';
   if (!formData.managerName.trim()) return 'اسم المدير المفوض مطلوب';
   if (!formData.managerPhone.trim()) return 'رقم هاتف المدير مطلوب';
-  if (!formData.lawyerName.trim()) return 'اسم المحامي مطلوب';
-  if (!formData.lawyerPhone.trim()) return 'رقم هاتف المحامي مطلوب';
-  if (!formData.accountantName.trim()) return 'اسم المحاسب مطلوب';
-  if (!formData.accountantPhone.trim()) return 'رقم هاتف المحاسب مطلوب';
+  if (!validatePhoneNumber(formData.managerPhone)) return 'رقم هاتف المدير غير صحيح (يجب أن يكون 10 أرقام ولا يبدأ بـ 0)';
   return null;
 };
 
@@ -154,19 +205,15 @@ const prevTab = () => {
     </template>
 
     <!-- Step Indicator -->
-    <div class="flex items-center justify-center gap-2 py-4 px-6 border-b border-muted-200 dark:border-muted-700" dir="rtl">
-      <button
-        v-for="(tab, index) in tabs"
-        :key="index"
+    <div class="flex items-center justify-center gap-2 py-4 px-6 border-b border-muted-200 dark:border-muted-700"
+      dir="rtl">
+      <button v-for="(tab, index) in tabs" :key="index"
         class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
         :class="activeTab === index
           ? 'bg-primary-500 text-white'
-          : 'bg-muted-100 dark:bg-muted-800 text-muted-600 dark:text-muted-300 hover:bg-muted-200 dark:hover:bg-muted-700'"
-        @click="activeTab = index"
-      >
+          : 'bg-muted-100 dark:bg-muted-800 text-muted-600 dark:text-muted-300 hover:bg-muted-200 dark:hover:bg-muted-700'" @click="activeTab = index">
         <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs"
-          :class="activeTab === index ? 'bg-white/20' : 'bg-muted-200 dark:bg-muted-700'"
-        >
+          :class="activeTab === index ? 'bg-white/20' : 'bg-muted-200 dark:bg-muted-700'">
           {{ index + 1 }}
         </span>
         {{ tab }}
@@ -176,52 +223,38 @@ const prevTab = () => {
     <form @submit.prevent="handleSubmit" class="p-4 md:p-6 space-y-6 max-h-[50vh] overflow-y-auto" dir="rtl">
       <!-- Tab 0: Basic Info -->
       <div v-show="activeTab === 0" class="space-y-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <BaseInput
-            v-model="formData.companyName"
-            label="اسم الشركة *"
-            placeholder="أدخل اسم الشركة"
-            :disabled="isLoading"
-          />
-          <BaseInput
-            v-model="formData.phoneNumber"
-            type="tel"
-            label="رقم الهاتف *"
-            placeholder="07xxxxxxxxx"
-            :disabled="isLoading"
-          />
+        <div class="grid grid-cols-2 md:grid-cols-2 gap-4">
+          <BaseInput v-model="formData.companyName" label="اسم الشركة *" placeholder="أدخل اسم الشركة"
+            :disabled="isLoading" />
+          <div>
+            <BaseInput v-model="formData.phoneNumber" type="tel" label="رقم الهاتف (10 أرقام) *" placeholder="77XXXXXXXX"
+              :disabled="isLoading" :classes="{ input: phoneErrors.phoneNumber ? 'border-danger-500' : '' }" />
+            <p v-if="phoneErrors.phoneNumber" class="text-danger-500 text-[10px] mt-1">{{ phoneErrors.phoneNumber }}</p>
+          </div>
+        </div>
+
+        <BaseInput v-model="formData.email" type="email" label="البريد الإلكتروني" placeholder="example@email.com"
+          :disabled="isLoading" />
+
+        <div class="grid grid-cols-2 md:grid-cols-2 gap-4">
+
+          <BaseInput v-model="formData.code" label="كود (م.ش) *" placeholder="أدخل الكود" :disabled="isLoading" />
+          <BaseInput v-model="formData.password" :type="isPasswordVisible ? 'text' : 'password'" label="كلمة المرور *"
+            placeholder="أدخل كلمة المرور" :disabled="isLoading">
+            <template #action>
+              <button type="button"
+                class="m-auto h-full text-muted-400 hover:text-primary-500 absolute end-0 top-0 z-[1] flex size-10 items-center justify-center transition-colors duration-300"
+                @click="isPasswordVisible = !isPasswordVisible">
+                <Icon :name="isPasswordVisible ? 'ph:eye-slash' : 'ph:eye'" class="size-5" />
+              </button>
+            </template>
+          </BaseInput>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <BaseInput
-            v-model="formData.email"
-            type="email"
-            label="البريد الإلكتروني *"
-            placeholder="example@email.com"
-            :disabled="isLoading"
-          />
-          <BaseInput
-            v-model="formData.code"
-            label="الكود (م.ش) *"
-            placeholder="أدخل الكود"
-            :disabled="isLoading"
-          />
-        </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <BaseInput
-            v-model="formData.password"
-            type="password"
-            label="كلمة المرور *"
-            placeholder="أدخل كلمة المرور"
-            :disabled="isLoading"
-          />
-          <BaseInput
-            v-model="formData.address"
-            label="العنوان الكامل *"
-            placeholder="أدخل العنوان الكامل"
-            :disabled="isLoading"
-          />
+          <BaseInput v-model="formData.address" label="العنوان الكامل" placeholder="أدخل العنوان الكامل"
+            :disabled="isLoading" />
         </div>
       </div>
 
@@ -234,26 +267,22 @@ const prevTab = () => {
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <BaseInput
-              v-model="formData.managerName"
-              label="الاسم *"
-              placeholder="اسم المدير المفوض"
-              :disabled="isLoading"
-            />
-            <BaseInput
-              v-model="formData.managerPhone"
-              type="tel"
-              label="رقم الهاتف *"
-              placeholder="07xxxxxxxxx"
-              :disabled="isLoading"
-            />
-            <BaseInput
-              v-model="formData.managerPhoneSecondary"
-              type="tel"
-              label="رقم ثانٍ (اختياري)"
-              placeholder="07xxxxxxxxx"
-              :disabled="isLoading"
-            />
+            <BaseInput v-model="formData.managerName" label="الاسم *" placeholder="اسم المدير المفوض"
+              :disabled="isLoading" />
+            <div class="grid grid-cols-2 md:grid-cols-1 gap-4">
+              <div>
+                <BaseInput v-model="formData.managerPhone" type="tel" label="رقم الهاتف (10 أرقام) *"
+                  placeholder="77XXXXXXXX" :disabled="isLoading"
+                  :classes="{ input: phoneErrors.managerPhone ? 'border-danger-500' : '' }" />
+                <p v-if="phoneErrors.managerPhone" class="text-danger-500 text-[10px] mt-1">{{ phoneErrors.managerPhone }}</p>
+              </div>
+              <div>
+                <BaseInput v-model="formData.managerPhoneSecondary" type="tel" label="رقم ثانٍ (10 أرقام)"
+                  placeholder="77XXXXXXXX" :disabled="isLoading"
+                  :classes="{ input: phoneErrors.managerPhoneSecondary ? 'border-danger-500' : '' }" />
+                <p v-if="phoneErrors.managerPhoneSecondary" class="text-danger-500 text-[10px] mt-1">{{ phoneErrors.managerPhoneSecondary }}</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -267,26 +296,20 @@ const prevTab = () => {
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <BaseInput
-              v-model="formData.lawyerName"
-              label="الاسم *"
-              placeholder="اسم المحامي"
-              :disabled="isLoading"
-            />
-            <BaseInput
-              v-model="formData.lawyerPhone"
-              type="tel"
-              label="رقم الهاتف *"
-              placeholder="07xxxxxxxxx"
-              :disabled="isLoading"
-            />
-            <BaseInput
-              v-model="formData.lawyerPhoneSecondary"
-              type="tel"
-              label="رقم ثانٍ (اختياري)"
-              placeholder="07xxxxxxxxx"
-              :disabled="isLoading"
-            />
+            <BaseInput v-model="formData.lawyerName" label="الاسم" placeholder="اسم المحامي" :disabled="isLoading" />
+            <div class="grid grid-cols-2 md:grid-cols-1 gap-4">
+              <div>
+                <BaseInput v-model="formData.lawyerPhone" type="tel" label="رقم الهاتف (10 أرقام)" placeholder="77XXXXXXXX"
+                  :disabled="isLoading" :classes="{ input: phoneErrors.lawyerPhone ? 'border-danger-500' : '' }" />
+                <p v-if="phoneErrors.lawyerPhone" class="text-danger-500 text-[10px] mt-1">{{ phoneErrors.lawyerPhone }}</p>
+              </div>
+              <div>
+                <BaseInput v-model="formData.lawyerPhoneSecondary" type="tel" label="رقم ثانٍ (10 أرقام)"
+                  placeholder="77XXXXXXXX" :disabled="isLoading"
+                  :classes="{ input: phoneErrors.lawyerPhoneSecondary ? 'border-danger-500' : '' }" />
+                <p v-if="phoneErrors.lawyerPhoneSecondary" class="text-danger-500 text-[10px] mt-1">{{ phoneErrors.lawyerPhoneSecondary }}</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -300,72 +323,44 @@ const prevTab = () => {
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <BaseInput
-              v-model="formData.accountantName"
-              label="الاسم *"
-              placeholder="اسم المحاسب"
-              :disabled="isLoading"
-            />
-            <BaseInput
-              v-model="formData.accountantPhone"
-              type="tel"
-              label="رقم الهاتف *"
-              placeholder="07xxxxxxxxx"
-              :disabled="isLoading"
-            />
-            <BaseInput
-              v-model="formData.accountantPhoneSecondary"
-              type="tel"
-              label="رقم ثانٍ (اختياري)"
-              placeholder="07xxxxxxxxx"
-              :disabled="isLoading"
-            />
+            <BaseInput v-model="formData.accountantName" label="الاسم" placeholder="اسم المحاسب"
+              :disabled="isLoading" />
+
+              <div class="grid grid-cols-2 md:grid-cols-1 gap-4">
+              <div>
+                <BaseInput v-model="formData.accountantPhone" type="tel" label="رقم الهاتف (10 أرقام)"
+                  placeholder="77XXXXXXXX" :disabled="isLoading"
+                  :classes="{ input: phoneErrors.accountantPhone ? 'border-danger-500' : '' }" />
+                <p v-if="phoneErrors.accountantPhone" class="text-danger-500 text-[10px] mt-1">{{ phoneErrors.accountantPhone }}</p>
+              </div>
+              <div>
+                <BaseInput v-model="formData.accountantPhoneSecondary" type="tel" label="رقم ثانٍ (10 أرقام)"
+                  placeholder="77XXXXXXXX" :disabled="isLoading"
+                  :classes="{ input: phoneErrors.accountantPhoneSecondary ? 'border-danger-500' : '' }" />
+                <p v-if="phoneErrors.accountantPhoneSecondary" class="text-danger-500 text-[10px] mt-1">{{ phoneErrors.accountantPhoneSecondary }}</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </form>
 
     <template #footer>
-      <div class="flex items-center justify-between p-4 border-t border-muted-200 dark:border-muted-700" dir="rtl">
-        <div class="flex gap-2">
-          <BaseButton
-            v-if="activeTab > 0"
-            type="button"
-            color="muted"
-            @click="prevTab"
-          >
-            <Icon name="ph:arrow-right" class="w-4 h-4 ml-1" />
-            السابق
-          </BaseButton>
-        </div>
+      <div class="flex items-center justify-end gap-2 p-4 border-t border-muted-200 dark:border-muted-700" dir="rtl">
+        <BaseButton v-if="activeTab > 0" type="button" color="muted" @click="prevTab" class="me-auto">
+          <Icon name="ph:arrow-right" class="w-4 h-4 ml-1" />
+          السابق
+        </BaseButton>
 
         <div class="flex gap-2">
-          <BaseButton
-            type="button"
-            color="default"
-            @click="emit('close')"
-          >
-            إلغاء
-          </BaseButton>
 
-          <BaseButton
-            v-if="activeTab < tabs.length - 1"
-            type="button"
-            color="primary"
-            @click="nextTab"
-          >
+          <BaseButton v-if="activeTab < tabs.length - 1" type="button" color="primary" @click="nextTab">
             التالي
             <Icon name="ph:arrow-left" class="w-4 h-4 mr-1" />
           </BaseButton>
 
-          <BaseButton
-            v-else
-            type="button"
-            color="primary"
-            :loading="isLoading"
-            :disabled="isLoading"
-            @click="handleSubmit"
-          >
+          <BaseButton v-else type="button" color="primary" :loading="isLoading" :disabled="isLoading"
+            @click="handleSubmit">
             <Icon name="ph:plus" class="w-4 h-4 ml-1" />
             إنشاء الشركة
           </BaseButton>

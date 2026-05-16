@@ -3,7 +3,6 @@ import type { User, UsersResponse } from '~/types/users';
 import { UserStatus } from '~/types/users';
 import { formatDate, phoneNumberFormatter } from '~/utils/helpers';
 import { UserRoles } from '~/types/enums';
-import AddUser from '~/views/users/components/AddUser.vue';
 import AddCompany from '~/views/users/components/AddCompany.vue';
 import EditUser from '~/views/users/components/EditUser.vue';
 import DeleteUser from '~/views/users/components/DeleteUser.vue';

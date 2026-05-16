@@ -40,7 +40,7 @@ const dark = computed<boolean>(() => {
         class="m-auto h-full text-muted-400 hover:text-primary-500 absolute end-0 top-0 z-[1] flex size-8 items-center justify-center transition-colors duration-300"
         @click="showPassword = !showPassword"
       >
-        <Icon name="ph:eye" class="size-5" />
+        <Icon :name="showPassword ? 'ph:eye-slash' : 'ph:eye'" class="size-5" />
       </button>
     </template>
   </BaseInput>

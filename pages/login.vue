@@ -57,12 +57,6 @@ const onSubmit = async () => {
 
       // Force reload to ensure middleware picks up the token
       window.location.href = '/';
-    } else {
-      // OTP required - proceed with OTP flow
-      await userStore.sendOTP(validatedData.phoneNumber);
-      sessionStorage.setItem('pendingPhoneNumber', validatedData.phoneNumber);
-      router.push('/OTP');
-      helpers.setSuccessMessage('ar', 'تم إرسال رمز التحقق', 'تم إرسال رمز التحقق');
     }
   } catch (error: any) {
     if (error.errors) {
@@ -121,10 +115,10 @@ const onSubmit = async () => {
                 <BaseInput
                   v-model="phoneNumber"
                   type="tel"
-                  label="رقم الهاتف"
+                  label="رقم الهاتف (10 أرقام)"
                   :disabled="isLoading"
                   :loading="isLoading"
-                  placeholder="077xxxxxxxx"
+                  placeholder="77XXXXXXXX"
                   icon="ph:phone-duotone"
                 />
                 <AppInputField

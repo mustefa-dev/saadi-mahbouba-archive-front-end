@@ -5,8 +5,8 @@ const phoneValidation = z
   .string()
   .trim()
   .refine(
-    (val) => /^(\+?964|0)?7[0-9]{9}$/.test(val),
-    'رقم الهاتف غير صحيح (مثال: 07712345678)'
+    (val) => /^[1-9][0-9]{9}$/.test(val),
+    'رقم الهاتف يجب أن يتكون من 10 أرقام ولا يبدأ بـ 0'
   )
 
 export const loginSchema = z.object({

@@ -76,3 +76,22 @@ export const timeAgo = (dateString: string): string => {
   if (seconds < 31536000) return `منذ ${Math.floor(seconds / 2592000)} شهر`
   return `منذ ${Math.floor(seconds / 31536000)} سنة`
 }
+
+/**
+ * Validate phone number: must be 10 digits and not start with '0'
+ */
+export const validatePhoneNumber = (phoneNumber?: string | null): boolean => {
+  if (!phoneNumber) return false;
+  const regex = /^[1-9][0-9]{9}$/;
+  return regex.test(phoneNumber);
+}
+
+/**
+ * Validate email address
+ */
+export const isValidEmail = (email?: string | null): boolean => {
+  if (!email) return false;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
